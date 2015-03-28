@@ -1,0 +1,6 @@
+*.crt
+*.csr
+*.key
+*.key.org
+*.cnf
+*.crt-extensions

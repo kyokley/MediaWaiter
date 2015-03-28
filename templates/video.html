@@ -1,0 +1,79 @@
+<html>
+    {% if theme == 'darkly' %}
+        <link href="/assets/css/darkly.css" rel="stylesheet">
+    {% elif theme == 'united' %}
+        <link href="/assets/css/united.css" rel="stylesheet">
+    {% elif theme == 'journal' %}
+        <link href="/assets/css/journal.css" rel="stylesheet">
+    {% elif theme == 'readable' %}
+        <link href="/assets/css/readable.css" rel="stylesheet">
+    {% endif %}
+    <link href="/assets/css/waiter.css" rel="stylesheet">
+    <head>
+        <link href="/assets/video-js/video-js.css" rel="stylesheet">
+        <script src="/assets/video-js/video.js"></script>
+        <script>
+            videojs.options.flash.swf = "/assets/video-js/video-js.swf"
+        </script>
+
+        {% if title %}
+        <title>Alfred - {{title}}</title>
+        {% else %}
+        <title>Alfred v1.0</title>
+        {% endif %}
+
+        <div class="container container-header">
+            {% if title %}
+            <h1>Alfred - {{title}}</h1>
+            {% else %}
+            <h1>Alfred v1.0</h1>
+            {% endif %}
+        </div>
+    </head>
+    <body>
+        <div class="container">
+            <center>
+            <table>
+                <thead>
+                    <th>
+                        <center>
+                            <h3>{{ filename }}</h3>
+                        </center>
+                    </th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <center>
+                                <video id="video1" class="video-js vjs-default-skin vjs-big-play-centered" width="600" height="400" 
+                                    controls
+                                    preload="auto"
+                                    data-setup='{"example_option":true}'>
+                                <source src="{{ video_file }}" type="video/mp4">
+                                <p class="vjs-no-js">Sorry, your browser doesn't support HTML5 video.</p>
+                                </video>
+                            </center>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <center>
+                                <div id="viewedText"></div>
+                            </center>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </center>
+        </div>
+    </body>
+</html>
+<script src="/assets/js/jquery-1.10.1.min.js"></script>
+<script src="/assets/js/waiter.js"></script>
+<script>
+    $(document).ready(function (){
+        viewedUrl = '{{ viewedUrl }}';
+        guid = '{{ guid }}';
+        setupVideoPlayerPage('{{filename}}');
+    });
+</script>

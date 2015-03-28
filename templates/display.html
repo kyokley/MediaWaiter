@@ -1,0 +1,102 @@
+<html>
+    <link href="/assets/css/waiter.css" rel="stylesheet">
+    <link href="/assets/DataTables-1.10.4/media/css/jquery.dataTables.css" rel="stylesheet">
+    <link href="/assets/css/dataTables.responsive.css" rel="stylesheet">
+    {% if theme == 'darkly' %}
+        <link href="/assets/css/darkly.css" rel="stylesheet">
+    {% elif theme == 'united' %}
+        <link href="/assets/css/united.css" rel="stylesheet">
+    {% elif theme == 'journal' %}
+        <link href="/assets/css/journal.css" rel="stylesheet">
+    {% elif theme == 'readable' %}
+        <link href="/assets/css/readable.css" rel="stylesheet">
+    {% endif %}
+    <head>
+        {% if title %}
+        <title>Alfred - {{title}}</title>
+        {% else %}
+        <title>Alfred v1.0</title>
+        {% endif %}
+
+        <div class="container container-header">
+            {% if title %}
+            <h1>Alfred - {{title}}</h1>
+            {% else %}
+            <h1>Alfred v1.0</h1>
+            {% endif %}
+        </div>
+    </head>
+    <body>
+        <div class="container">
+            <div class="well">
+                <h4 class="top-message">
+                    Note: Alfred encoded files are designed to be less than 2GB in size. They are slightly lower quality but should download faster.
+                </h4>
+            </div>
+            <table id="myTable" class="table table-hover dt-responsive">
+                <thead>
+                    <tr>
+                        <th class="all">Filename</th>
+                        <th class="desktop">Size</th>
+                        <th class="desktop">Is Alfred Encoded?</th>
+                        {% if not files.0.ismovie %}
+                            <th class="all">Autodownload</th>
+                            <th class="min-tablet-p">Cancel</th>
+                        {% endif %}
+                        <th class="min-tablet-l">Streaming</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for file in files %}
+                <tr>
+                    <td><a class="link" href="{{file.path}}">{{ file.filename }}</a></td>
+                    <td>{{file.size}}</td>
+                    {% if file.isAlfredEncoding %}
+                        <td>Yes</td>
+                    {% else %}
+                        <td>No</td>
+                    {% endif %}
+                    {% if not file.ismovie %}
+                    <td class="autodownloadtext">
+                        <span id="countdown" class="timer" onclick="cancelClick(document.getElementById('cancel-btn'))"></span>
+                    </td>
+                    <td>
+                        <a class='btn btn-info' name='cancel-btn' id='cancel-btn' onclick='cancelClick(this)'>Stop Download</a>
+                    </td>
+                    {% endif %}
+                    {% if file.streamable %}
+                    <td>
+                        <a class='btn btn-info' name='streaming-btn' id='streaming-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_blank", "height=600, width=800, resizeable=yes")'>Stream It!</a>
+                    </td>
+                    {% else %}
+                    <td>
+                        Not Streamable
+                    </td>
+                    {% endif %}
+                    <td></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </body>
+    <div class="hiddenframe">
+        <iframe id="download" width="1" height="1" frameborder="0"></iframe>
+    </div>
+</html>
+<script src="/assets/js/jquery-1.10.1.min.js"></script>
+<script src="/assets/DataTables-1.10.4/media/js/jquery.dataTables.min.js" %}"></script>
+<script src="/assets/js/dataTables.bootstrap.js" %}"></script>
+<script src="/assets/js/dataTables.responsive.min.js" %}"></script>
+<script src="/assets/bootstrap-dist/js/bootstrap.min.js" %}"></script>
+<script src="/assets/js/waiter.js"></script>
+<script>
+    $(document).ready(function (){
+        prepareDataTable($);
+        {% if not files.0.ismovie %}
+            filePath = "{{files.0.path}}";
+            setupAutoDownloadCountdown();
+        {% endif %}
+    });
+</script>

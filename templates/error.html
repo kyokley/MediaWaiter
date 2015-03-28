@@ -1,0 +1,31 @@
+<html>
+    <link href="/assets/bootstrap-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/bootstrap-dist/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="/assets/css/waiter.css" rel="stylesheet">
+    {% if theme == 'darkly' %}
+        <link href="/assets/css/darkly.css" rel="stylesheet">
+    {% elif theme == 'united' %}
+        <link href="/assets/css/united.css" rel="stylesheet">
+    {% elif theme == 'journal' %}
+        <link href="/assets/css/journal.css" rel="stylesheet">
+    {% elif theme == 'readable' %}
+        <link href="/assets/css/readable.css" rel="stylesheet">
+    {% endif %}
+    <link href="/assets/css/waiter.css" rel="stylesheet">
+    <head>
+        {% if title %}
+        <title>Alfred - {{title}}</title>
+        {% else %}
+        <title>Alfred v1.0</title>
+        {% endif %}
+
+        {% if title %}
+        <h1>Alfred - {{title}}</h1>
+        {% else %}
+        <h1>Alfred v1.0</h1>
+        {% endif %}
+    </head>
+    <body>
+        {{errorText}}
+    </body>
+</html>

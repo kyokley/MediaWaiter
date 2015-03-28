@@ -1,0 +1,5 @@
+flask
+ipython
+ipdb
+uwsgi
+simplejson
