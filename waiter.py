@@ -1,6 +1,3 @@
-import sys
-import simplejson
-sys.modules['json'] = simplejson
 import os
 import mimetypes
 from flask import (Flask,
@@ -181,7 +178,7 @@ def get_file2(guid):
                                theme=theme)
 
     ext = os.path.splitext(res['path'])[-1].lower()
-    streamingPath = (ext in STREAMABLE_FILE_TYPES and 
+    streamingPath = (ext in STREAMABLE_FILE_TYPES and
                      buildWaiterPath('stream', guid, res['path']) or
                      None)
     files = []
