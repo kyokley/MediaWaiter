@@ -15,6 +15,7 @@ from settings import (BASE_PATH,
                       USE_NGINX,
                       WAITER_USERNAME,
                       WAITER_PASSWORD,
+                      MEDIAVIEWER_SUFFIX,
                       )
 from utils import (humansize,
                    delayedRetry,
@@ -35,7 +36,7 @@ STREAMABLE_FILE_TYPES = ('.mp4',)
 app = Flask(__name__, static_url_path='')
 
 def isAlfredEncoding(filename):
-    return 'ALFRED-ENCODED' in filename
+    return MEDIAVIEWER_SUFFIX in filename
 
 @delayedRetry(attempts=5, interval=1)
 def getTokenByGUID(guid):

@@ -1,5 +1,5 @@
 DEBUG = False
-PORT=5000
+PORT = 5000
 USE_NGINX = True
 
 # The system expects the Movie and tv show folders to exist in a
@@ -13,6 +13,8 @@ LOG_FILE_NAME = 'waiterLog'
 MEDIAVIEWER_GUID_URL = 'http://127.0.0.1/mediaviewer/api/downloadtoken/%(guid)s/'
 MEDIAVIEWER_DOWNLOADCLICK_URL = 'http://127.0.0.1/mediaviewer/api/downloadclick/'
 MEDIAVIEWER_VIEWED_URL = 'http://127.0.0.1/mediaviewer/ajaxsuperviewed/'
+
+MEDIAVIEWER_SUFFIX = 'mv-encoded'
 
 WAITER_USERNAME = 'username'
 WAITER_PASSWORD = 'password'
