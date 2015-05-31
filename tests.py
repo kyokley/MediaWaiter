@@ -2,6 +2,8 @@ from waiter import app, isAlfredEncoding, APP_NAME
 from utils import humansize
 from flask import render_template
 
+import mock
+
 @app.route(APP_NAME + '/test2/')
 def get_test2():
     fileDict = {'path': 'some/path/',
