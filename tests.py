@@ -32,13 +32,15 @@ class TestWaiterAlfredEncodingCheck(unittest.TestCase):
         self.assertFalse(isAlfredEncoding(filename))
 
 class TestWaiterUpdateDownloadClick(unittest.TestCase):
+    @mock.patch('waiter.urllib2.urlopen')
     @mock.patch('waiter.urllib2.Request')
     @mock.patch('waiter.base64.encodestring')
     @mock.patch('waiter.urllib.urlencode')
     def test_updateDownloadClick(self,
                                  mock_urlencode,
                                  mock_base64encodestring,
-                                 mock_Request):
+                                 mock_Request,
+                                 mock_urlopen):
         userid = 123
         tokenid = 234
         filename = 'somefile.mp4'
