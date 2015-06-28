@@ -6,21 +6,14 @@ from waiter import (app,
                     )
 from utils import humansize
 from flask import render_template
-from settings import MEDIAVIEWER_SUFFIX
+from settings import (MEDIAVIEWER_SUFFIX,
+                      MEDIAVIEWER_DOWNLOADCLICK_URL,
+                      WAITER_USERNAME,
+                      WAITER_PASSWORD,
+                      )
 
 import mock
 from mock import call
-
-#@app.route(APP_NAME + '/test2/')
-#def get_test2():
-    #fileDict = {'path': 'some/path/',
-                #'filename': 'a filename',
-                #'size': humansize(100000),
-                #'isAlfredEncoding': isAlfredEncoding('a filename')}
-    #files = [fileDict]
-    #return render_template("display.html",
-                           #title='testpage',
-                           #files=files)
 
 class TestWaiterAlfredEncodingCheck(unittest.TestCase):
     def test_isAlfredEncoded_True(self):
@@ -32,27 +25,13 @@ class TestWaiterAlfredEncodingCheck(unittest.TestCase):
         self.assertFalse(isAlfredEncoding(filename))
 
 class TestWaiterUpdateDownloadClick(unittest.TestCase):
-    @mock.patch('waiter.urllib2.urlopen')
-    @mock.patch('waiter.urllib2.Request')
-    @mock.patch('waiter.base64.encodestring')
-    @mock.patch('waiter.urllib.urlencode')
+    @mock.patch('waiter.requests')
     def test_updateDownloadClick(self,
-                                 mock_urlencode,
-                                 mock_base64encodestring,
-                                 mock_Request,
-                                 mock_urlopen):
+                                 mock_requests):
         userid = 123
         tokenid = 234
         filename = 'somefile.mp4'
         size = 456
-
-        base64encodedString = 'base64 encoded string'
-        urlencodeSentinel = object()
-        mock_requestObj = mock.MagicMock()
-
-        mock_urlencode.return_value = urlencodeSentinel
-        mock_base64encodestring.return_value = base64encodedString
-        mock_Request.return_value = mock_requestObj
 
         updateDownloadClick(userid,
                             tokenid,
@@ -60,9 +39,12 @@ class TestWaiterUpdateDownloadClick(unittest.TestCase):
                             size,
                             )
 
-        self.assertEquals(call(dict(userid=123,
-                                    tokenid=234,
-                                    filename='somefile.mp4',
-                                    size=456,
-                                    )),
-                          mock_urlencode.call_args)
+        self.assertEquals(call(MEDIAVIEWER_DOWNLOADCLICK_URL,
+                               data=dict(userid=123,
+                                         tokenid=234,
+                                         filename='somefile.mp4',
+                                         size=456,
+                                         ),
+                               auth=(WAITER_USERNAME, WAITER_PASSWORD),
+                               verify=False),
+                        mock_requests.post.call_args)
