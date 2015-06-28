@@ -1,11 +1,7 @@
 import unittest
-from waiter import (app,
-                    isAlfredEncoding,
-                    APP_NAME,
+from waiter import (isAlfredEncoding,
                     updateDownloadClick,
                     )
-from utils import humansize
-from flask import render_template
 from settings import (MEDIAVIEWER_SUFFIX,
                       MEDIAVIEWER_DOWNLOADCLICK_URL,
                       WAITER_USERNAME,
