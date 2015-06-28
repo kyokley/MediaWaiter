@@ -2,3 +2,4 @@ py27
 *.pyc
 local_settings*
 *.ini
+*.log

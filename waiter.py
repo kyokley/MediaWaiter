@@ -88,29 +88,7 @@ def get_dirPath(guid):
     try:
         files = []
         if res['ismovie']:
-            searchPath = os.path.join(BASE_PATH, res['path'])
-            for root, subFolders, filenames in os.walk(searchPath):
-                for filename in filenames:
-                    path = os.path.join(root, filename)
-                    size = os.path.getsize(path)
-
-                    waiterPath = path[1:]
-
-                    # Files smaller than 10MB probably aren't video files
-                    if size < 10000000:
-                        continue
-                    ext = os.path.splitext(filename)[-1].lower()
-                    streamingPath = (ext in STREAMABLE_FILE_TYPES and
-                                     buildWaiterPath('stream', guid, waiterPath, includeLastSlash=True) or
-                                     None)
-                    fileDict = {'path': buildWaiterPath('file', guid, waiterPath, includeLastSlash=True),
-                                'streamingPath': streamingPath,
-                                'streamable': bool(streamingPath),
-                                'filename': filename,
-                                'size': humansize(size),
-                                'isAlfredEncoding': isAlfredEncoding(filename),
-                                'ismovie': True}
-                    files.append(fileDict)
+            files.extend(buildMovieEntries(guid, res['path']))
         else:
             fileDict = {'path': buildWaiterPath('file', guid, res['path']),
                         'filename': res['filename']}
@@ -128,6 +106,33 @@ def get_dirPath(guid):
                                title="Error",
                                errorText=errorText,
                                theme=theme)
+
+def buildMovieEntries(guid, moviePath):
+    files = []
+    searchPath = os.path.join(BASE_PATH, moviePath)
+    for root, subFolders, filenames in os.walk(searchPath):
+        for filename in filenames:
+            path = os.path.join(root, filename)
+            size = os.path.getsize(path)
+
+            waiterPath = path[1:]
+
+            # Files smaller than 10MB probably aren't video files
+            if size < 10000000:
+                continue
+            ext = os.path.splitext(filename)[-1].lower()
+            streamingPath = (ext in STREAMABLE_FILE_TYPES and
+                             buildWaiterPath('stream', guid, waiterPath, includeLastSlash=True) or
+                             None)
+            fileDict = {'path': buildWaiterPath('file', guid, waiterPath, includeLastSlash=True),
+                        'streamingPath': streamingPath,
+                        'streamable': bool(streamingPath),
+                        'filename': filename,
+                        'size': humansize(size),
+                        'isAlfredEncoding': isAlfredEncoding(filename),
+                        'ismovie': True}
+            files.append(fileDict)
+    return files
 
 @app.route(APP_NAME + '/file/<guid>/<path:dirPath>')
 @logErrorsAndContinue
