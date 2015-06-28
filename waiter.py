@@ -25,11 +25,7 @@ from utils import (humansize,
                    buildWaiterPath,
                    )
 from log import log
-import urllib
-import urllib2
-import json
-import base64
-
+import requests
 
 STREAMABLE_FILE_TYPES = ('.mp4',)
 
@@ -41,9 +37,10 @@ def isAlfredEncoding(filename):
 @delayedRetry(attempts=5, interval=1)
 def getTokenByGUID(guid):
     try:
-        url = urllib2.urlopen(MEDIAVIEWER_GUID_URL % {'guid': guid}, timeout=2)
-        data = json.load(url)
-        return data
+        data = requests.get(MEDIAVIEWER_GUID_URL % {'guid': guid},
+                            auth=(WAITER_USERNAME, WAITER_PASSWORD),
+                            verify=False)
+        return data.json()
     except Exception, e:
         log.error(e)
         raise
@@ -58,18 +55,15 @@ def updateDownloadClick(userid,
               'filename': filename,
               'size': size}
     log.debug(values)
-    data = urllib.urlencode(values)
-    base64string = base64.encodestring('%s:%s' % (WAITER_USERNAME, WAITER_PASSWORD)).replace('\n', '')
-    auth_header = 'Basic %s' % base64string
-    log.debug(auth_header)
-    req = urllib2.Request(MEDIAVIEWER_DOWNLOADCLICK_URL, data)
-    req.add_header("Authorization", auth_header)
 
     try:
-        urllib2.urlopen(req)
-    except urllib2.HTTPError, e:
-        log.error(e.code)
-        log.error(e.read())
+        req = requests.post(MEDIAVIEWER_DOWNLOADCLICK_URL,
+                            data=values,
+                            auth=(WAITER_USERNAME, WAITER_PASSWORD),
+                            verify=False) 
+        req.raise_for_status()
+    except Exception, e:
+        log.error(e)
         raise
 
 def modifyCookie(resp):

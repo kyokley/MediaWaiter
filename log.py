@@ -22,7 +22,7 @@ class LogFile(object):
             log.setLevel(logging.DEBUG)
             rfh = RotatingFileHandler(fullLogPath,
                                       mode='a',
-                                      maxBytes=10000000,
+                                      maxBytes=1000000,
                                       backupCount=10,
                                       )
             rfh.setFormatter(formatter)
