@@ -90,15 +90,30 @@ function jsonCallback(data){
 }
 
 function markViewed(guid){
+    //if(!viewed){
+    //    viewed = true;
+    //    jQuery.ajax({url: viewedUrl,
+    //            type: 'GET',
+    //            dataType: 'jsonp',
+    //            data: {viewed: 'true',
+    //                   guid: guid,
+    //                   },  
+    //            jsonpCallback: 'jsonCallback',
+    //            success: function(json){
+    //                console.log(json);
+    //            },
+    //            error: function(xhr, errmsg, err){}
+    //            });
+    //}
+
     if(!viewed){
         viewed = true;
-        jQuery.ajax({url: viewedUrl,
-                type: 'GET',
-                dataType: 'jsonp',
+        jQuery.ajax({url: '/viewed/' + guid,
+                type: 'POST',
+                dataType: 'json',
                 data: {viewed: 'true',
                        guid: guid,
                        },  
-                jsonpCallback: 'jsonCallback',
                 success: function(json){
                     console.log(json);
                 },

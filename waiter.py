@@ -317,6 +317,23 @@ def video(guid, dirPath):
                            guid=guid,
                            theme=theme)
 
+@app.route(APP_NAME + '/viewed/<guid>')
+@app.route(APP_NAME + '/viewed/<guid>/')
+def ajaxviewed(guid):
+    values = {'viewed': True,
+              'guid': guid,
+              }
+    try:
+        req = requests.post(MEDIAVIEWER_VIEWED_URL,
+                            data=values,
+                            auth=(WAITER_USERNAME, WAITER_PASSWORD),
+                            )
+
+        req.raise_for_status()
+    except Exception, e:
+        log.error(e)
+        raise
+
 app.wsgi_app = ProxyFix(app.wsgi_app)
 if __name__ == '__main__':
     from settings import DEBUG, PORT
