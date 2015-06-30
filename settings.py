@@ -13,6 +13,7 @@ LOG_FILE_NAME = 'waiterLog'
 MEDIAVIEWER_GUID_URL = 'http://127.0.0.1/mediaviewer/api/downloadtoken/%(guid)s/'
 MEDIAVIEWER_DOWNLOADCLICK_URL = 'http://127.0.0.1/mediaviewer/api/downloadclick/'
 MEDIAVIEWER_VIEWED_URL = 'http://127.0.0.1/mediaviewer/ajaxsuperviewed/'
+WAITER_VIEWED_URL = 'http://127.0.0.1/waiter/viewed/'
 
 MEDIAVIEWER_SUFFIX = 'mv-encoded'
 

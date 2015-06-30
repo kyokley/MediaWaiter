@@ -108,7 +108,7 @@ function markViewed(guid){
 
     if(!viewed){
         viewed = true;
-        jQuery.ajax({url: '/viewed/' + guid,
+        jQuery.ajax({url: viewedUrl + guid,
                 type: 'POST',
                 dataType: 'json',
                 data: {viewed: 'true',

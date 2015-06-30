@@ -16,6 +16,7 @@ from settings import (BASE_PATH,
                       WAITER_USERNAME,
                       WAITER_PASSWORD,
                       MEDIAVIEWER_SUFFIX,
+                      WAITER_VIEWED_URL,
                       )
 from utils import (humansize,
                    delayedRetry,
@@ -313,7 +314,7 @@ def video(guid, dirPath):
                            title=res['displayname'],
                            filename=res['filename'],
                            video_file=fullPath,
-                           viewedUrl=MEDIAVIEWER_VIEWED_URL,
+                           viewedUrl=WAITER_VIEWED_URL,
                            guid=guid,
                            theme=theme)
 
