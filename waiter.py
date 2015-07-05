@@ -328,6 +328,7 @@ def ajaxviewed(guid):
         req = requests.post(MEDIAVIEWER_VIEWED_URL,
                             data=values,
                             auth=(WAITER_USERNAME, WAITER_PASSWORD),
+                            verify=False,
                             )
 
         req.raise_for_status()
