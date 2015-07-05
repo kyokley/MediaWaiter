@@ -82,13 +82,6 @@ function clearVideoPosition(filename){
     localStorage.removeItem(filename);
 }
 
-function jsonCallback(data){
-   if(data.errmsg === ''){
-       var text = document.getElementById('viewedText');
-       text.innerText = "Marking file viewed!";
-   }
-}
-
 function markViewed(guid){
     if(!viewed){
         viewed = true;
@@ -100,12 +93,13 @@ function markViewed(guid){
                        },  
                 success: function(json){
                     console.log(json);
+                    var text = document.getElementById('viewedText');
+                    text.innerText = "Marking file viewed!";
                 },
                 error: function(xhr, errmsg, err){}
                 });
     }
 }
-
 
 function setVideoPosition(filename, video){
     var offset = localStorage.getItem(filename);

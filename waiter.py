@@ -336,6 +336,8 @@ def ajaxviewed(guid):
         log.error(e)
         raise
 
+    return jsonify({'msg': 'Viewed set successfully'})
+
 app.wsgi_app = ProxyFix(app.wsgi_app)
 if __name__ == '__main__':
     from settings import DEBUG, PORT
