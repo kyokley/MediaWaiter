@@ -89,7 +89,7 @@ def get_dirPath(guid):
     try:
         files = []
         if res['ismovie']:
-            files.extend(buildMovieEntries(guid, res['path']))
+            files.extend(buildMovieEntries(guid, res['filename']))
         else:
             fileDict = {'path': buildWaiterPath('file', guid, res['path']),
                         'filename': res['filename']}
@@ -108,15 +108,15 @@ def get_dirPath(guid):
                                errorText=errorText,
                                theme=theme)
 
-def buildMovieEntries(guid, moviePath):
+def buildMovieEntries(guid, movieFilename):
     files = []
-    searchPath = os.path.join(BASE_PATH, moviePath)
+    searchPath = os.path.join(BASE_PATH, 'Movies', movieFilename)
     for root, subFolders, filenames in os.walk(searchPath):
         for filename in filenames:
             path = os.path.join(root, filename)
             size = os.path.getsize(path)
 
-            waiterPath = path[1:]
+            waiterPath = path.partition(searchPath)[2][1:]
 
             # Files smaller than 10MB probably aren't video files
             if size < 10000000:
@@ -135,9 +135,9 @@ def buildMovieEntries(guid, moviePath):
             files.append(fileDict)
     return files
 
-@app.route(APP_NAME + '/file/<guid>/<path:dirPath>')
+@app.route(APP_NAME + '/file/<guid>/<path:filePath>')
 @logErrorsAndContinue
-def get_file(guid, dirPath):
+def send_file_for_download(guid, filePath):
     '''Send the file specified at dirPath'''
     res = getTokenByGUID(guid)
     errorStr = checkForValidToken(res, guid)
@@ -148,7 +148,10 @@ def get_file(guid, dirPath):
                                errorText=errorStr,
                                theme=theme)
 
-    fullPath = os.path.join('/', dirPath)
+    if res['ismovie']:
+        fullPath = os.path.join(BASE_PATH, 'Movies', res['filename'], filePath)
+    else:
+        fullPath = os.path.join(res['path'], filePath)
 
     if res and res['path'] in fullPath:
         path, filename = os.path.split(fullPath)
@@ -167,26 +170,29 @@ def get_file(guid, dirPath):
 
 @app.route(APP_NAME + '/file/<guid>/')
 @logErrorsAndContinue
-def get_file2(guid):
+def get_file(guid):
     '''Display a page that lists a single file'''
     res = getTokenByGUID(guid)
     errorStr = checkForValidToken(res, guid)
-    if errorStr:
+    if errorStr or res['ismovie']:
         theme = res and res.get('waitertheme') or None
         return render_template("error.html",
                                title="Error",
                                errorText=errorStr,
                                theme=theme)
 
-    ext = os.path.splitext(res['path'])[-1].lower()
+    ext = os.path.splitext(res['filename'])[-1].lower()
     streamingPath = (ext in STREAMABLE_FILE_TYPES and
-                     buildWaiterPath('stream', guid, res['path']) or
+                     buildWaiterPath('stream', guid, res['filename']) or
                      None)
+
+    fullPath = os.path.join(res['path'], res['filename'])
+
     files = []
-    fileDict = {'path': buildWaiterPath('file', guid, res['path']),
+    fileDict = {'path': buildWaiterPath('file', guid, res['filename']),
                 'streamingPath': streamingPath,
                 'streamable': bool(streamingPath),
-                'size': humansize(os.path.getsize(res['path'])),
+                'size': humansize(os.path.getsize(fullPath)),
                 'filename': res['filename'],
                 'displayName': res['displayname'],
                 'ismovie': False}

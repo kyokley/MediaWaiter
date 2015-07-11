@@ -72,7 +72,7 @@ def parseRangeHeaders(size, range_header):
         length = byte2 - byte1
     return (length, byte1, byte2)
 
-def buildWaiterPath(place, guid, filePath, includeLastSlash=False):
+def buildWaiterPath(place, guid, filePath, includeLastSlash=True):
     path = '%s/%s/%s%s%s' % (APP_NAME,
                              place,
                              guid,
