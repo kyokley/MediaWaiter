@@ -89,7 +89,8 @@ def get_dirPath(guid):
     try:
         files = []
         if res['ismovie']:
-            files.extend(buildMovieEntries(guid, res['filename']))
+            moviePath = os.path.join(res['path'], res['filename'])
+            files.extend(buildMovieEntries(guid, moviePath))
         else:
             fileDict = {'path': buildWaiterPath('file', guid, res['path']),
                         'filename': res['filename']}
@@ -110,7 +111,7 @@ def get_dirPath(guid):
 
 def buildMovieEntries(guid, movieFilename):
     files = []
-    searchPath = os.path.join(BASE_PATH, 'Movies', movieFilename)
+    searchPath = os.path.join(BASE_PATH, movieFilename)
     for root, subFolders, filenames in os.walk(searchPath):
         for filename in filenames:
             path = os.path.join(root, filename)
@@ -149,7 +150,7 @@ def send_file_for_download(guid, filePath):
                                theme=theme)
 
     if res['ismovie']:
-        fullPath = os.path.join(BASE_PATH, 'Movies', res['filename'], filePath)
+        fullPath = os.path.join(BASE_PATH, res['path'], res['filename'], filePath)
     else:
         fullPath = os.path.join(res['path'], filePath)
 
