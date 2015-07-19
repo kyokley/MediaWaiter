@@ -196,6 +196,7 @@ def get_file(guid):
                 'size': humansize(os.path.getsize(fullPath)),
                 'filename': res['filename'],
                 'displayName': res['displayname'],
+                'isAlfredEncoding': isAlfredEncoding(res['filename']),
                 'ismovie': False}
     files.append(fileDict)
     theme = res['waitertheme'] or None
