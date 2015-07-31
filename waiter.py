@@ -24,6 +24,7 @@ from utils import (humansize,
                    checkForValidToken,
                    parseRangeHeaders,
                    buildWaiterPath,
+                   support_jsonp,
                    )
 from log import log
 import requests
@@ -207,6 +208,7 @@ def get_file(guid):
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
 @app.route(APP_NAME + '/status', methods=['GET'])
+@support_jsonp
 def get_status():
     res = dict()
     try:
