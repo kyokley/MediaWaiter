@@ -35,8 +35,10 @@ function secondPassed() {
         document.getElementById("download").src=filePath;
         clearInterval(countdownTimer);
         countdownTimer = 0;
-        cancelBtn.removeEventListener("click", cancelClickEvent);
-        cancelBtn.setAttribute("disabled", "disabled");
+        if (cancelBtn){
+            cancelBtn.removeEventListener("click", cancelClickEvent);
+            cancelBtn.setAttribute("disabled", "disabled");
+        }
     } else {
         seconds--;
     }
