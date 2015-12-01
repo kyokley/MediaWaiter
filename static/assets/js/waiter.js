@@ -4,7 +4,7 @@ var pretext = "This file will be downloaded automatically in <b>";
 var cancelBtn;
 var filePath;
 var video;
-var VIDEO_RESET_PERCENT = .98;
+var VIDEO_RESET_PERCENT = 0.98;
 var viewedUrl;
 var guid;
 var viewed;
@@ -112,7 +112,7 @@ function setVideoPosition(filename, video){
 
 function setupVideoPlayerPage(filename){
     video = document.getElementsByTagName("video")[0];
-    setVideoPosition(filename, video);
+    //setVideoPosition(filename, video);
 
     var timer = null;
     function tick() {
