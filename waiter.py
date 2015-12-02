@@ -62,7 +62,7 @@ def updateDownloadClick(userid,
         req = requests.post(MEDIAVIEWER_DOWNLOADCLICK_URL,
                             data=values,
                             auth=(WAITER_USERNAME, WAITER_PASSWORD),
-                            verify=False) 
+                            verify=False)
         req.raise_for_status()
     except Exception, e:
         log.error(e)
