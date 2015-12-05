@@ -4,3 +4,4 @@
 *.key.org
 *.cnf
 *.crt-extensions
+*_bak

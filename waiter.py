@@ -24,6 +24,7 @@ from utils import (humansize,
                    checkForValidToken,
                    parseRangeHeaders,
                    buildWaiterPath,
+                   support_jsonp,
                    )
 from log import log
 import requests
@@ -61,7 +62,7 @@ def updateDownloadClick(userid,
         req = requests.post(MEDIAVIEWER_DOWNLOADCLICK_URL,
                             data=values,
                             auth=(WAITER_USERNAME, WAITER_PASSWORD),
-                            verify=False) 
+                            verify=False)
         req.raise_for_status()
     except Exception, e:
         log.error(e)
@@ -196,6 +197,7 @@ def get_file(guid):
                 'size': humansize(os.path.getsize(fullPath)),
                 'filename': res['filename'],
                 'displayName': res['displayname'],
+                'isAlfredEncoding': isAlfredEncoding(res['filename']),
                 'ismovie': False}
     files.append(fileDict)
     theme = res['waitertheme'] or None
@@ -206,6 +208,7 @@ def get_file(guid):
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
 @app.route(APP_NAME + '/status', methods=['GET'])
+@support_jsonp
 def get_status():
     res = dict()
     try:

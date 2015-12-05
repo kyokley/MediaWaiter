@@ -1,10 +1,12 @@
+/*global document: false */
+/*global localStorage: false */
 var seconds = 15;
 var countdownTimer;
 var pretext = "This file will be downloaded automatically in <b>";
 var cancelBtn;
 var filePath;
 var video;
-var VIDEO_RESET_PERCENT = .98;
+var VIDEO_RESET_PERCENT = 0.98;
 var viewedUrl;
 var guid;
 var viewed;
@@ -14,7 +16,7 @@ function cancelClick(srcElement){
     var countdown = document.getElementById('countdown');
     if(countdown){
         countdown.innerHTML = "Download canceled";
-        if(srcElement != null){
+        if(srcElement !== null){
             srcElement.setAttribute("disabled", "disabled");
         }
     }
@@ -23,20 +25,22 @@ function cancelClick(srcElement){
 function secondPassed() {
     var remainingSeconds = seconds;
     var text;
-    if (remainingSeconds == 1){
+    if (remainingSeconds === 1){
         text = pretext + remainingSeconds + " </b>sec.";
     } else {
         text = pretext + remainingSeconds + " </b>secs.";
     }
     document.getElementById('countdown').innerHTML = text;
 
-    if (seconds == 0) {
+    if (seconds === 0) {
         document.getElementById('countdown').innerHTML = "Download started";
         document.getElementById("download").src=filePath;
         clearInterval(countdownTimer);
         countdownTimer = 0;
-        cancelBtn.removeEventListener("click", cancelClickEvent);
-        cancelBtn.setAttribute("disabled", "disabled");
+        if (cancelBtn){
+            cancelBtn.removeEventListener("click", cancelClickEvent);
+            cancelBtn.setAttribute("disabled", "disabled");
+        }
     } else {
         seconds--;
     }
@@ -95,8 +99,7 @@ function markViewed(guid){
                     console.log(json);
                     var text = document.getElementById('viewedText');
                     text.innerText = "Marking file viewed!";
-                },
-                error: function(xhr, errmsg, err){}
+                }
                 });
     }
 }
@@ -109,43 +112,46 @@ function setVideoPosition(filename, video){
 }
 
 function setupVideoPlayerPage(filename){
-    video = document.getElementsByTagName("video")[0];
-    setVideoPosition(filename, video);
+    video = document.getElementsByTagName('video')[0];
 
     var timer = null;
     function tick() {
-        if(video.currentTime / video.duration < VIDEO_RESET_PERCENT){
-            storeVideoPosition(filename, video);
-        } else {
-            clearVideoPosition();
-            markViewed(guid);
+        if(video.duration > 10){
+            if(video.currentTime / video.duration < VIDEO_RESET_PERCENT){
+                storeVideoPosition(filename, video);
+            } else {
+                clearVideoPosition();
+                markViewed(guid);
+            }
         }
         video.removeEventListener('pause', onpause);
-        start();
-    };
+        start(); // Need to reset the timer
+    }
 
     function start() {
         timer = setTimeout(tick, 15000);
         video.removeEventListener('play', start);
         video.addEventListener('pause', onpause);
-    };
+    }
 
     function stop() {
         clearTimeout(timer);
-    };
+    }
 
     function stopAndClearStorage(){
         stop();
         clearVideoPosition(filename);
-    };
+    }
 
     function onpause() {
         stop();
-        if(video.currentTime / video.duration < VIDEO_RESET_PERCENT){
-            storeVideoPosition(filename, video);
-        } else {
-            clearVideoPosition(filename);
-            markViewed(guid);
+        if(video.duration > 10){
+            if(video.currentTime / video.duration < VIDEO_RESET_PERCENT){
+                storeVideoPosition(filename, video);
+            } else {
+                clearVideoPosition(filename);
+                markViewed(guid);
+            }
         }
         video.addEventListener('play', start);
         video.removeEventListener('pause', onpause);

@@ -3,6 +3,7 @@ from werkzeug import url_fix
 from functools import wraps
 from log import log
 from settings import APP_NAME
+from flask import request, current_app
 
 suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
 def humansize(nbytes):
@@ -79,3 +80,16 @@ def buildWaiterPath(place, guid, filePath, includeLastSlash=True):
                              includeLastSlash and '/' or '',
                              url_fix(filePath))
     return path
+
+def support_jsonp(f):
+    """Wraps JSONified output for JSONP"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        callback = request.args.get('callback', False)
+        res = f(*args, **kwargs)
+        if callback:
+            content = '%s(%s);' % (callback, res.data)
+            return current_app.response_class(content, mimetype='application/javascript')
+        else:
+            return f(*args, **kwargs)
+    return decorated_function
