@@ -308,7 +308,17 @@ def send_file_partial(path,
 def video(guid, dirPath):
     '''Display streaming page'''
     res = getTokenByGUID(guid)
+
     errorStr = checkForValidToken(res, guid)
+
+    if res['ismovie']:
+        filePath = os.path.join(BASE_PATH, res['path'], res['filename'], dirPath)
+    else:
+        filePath = os.path.join(BASE_PATH, res['path'], dirPath)
+
+    if not errorStr and not os.path.exists(filePath):
+        errorStr = 'Bad path or filename'
+
     if errorStr:
         theme = res and res.get('waitertheme') or None
         return render_template("error.html",
