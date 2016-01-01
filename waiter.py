@@ -329,7 +329,6 @@ def video(guid, dirPath):
     fullPath = buildWaiterPath('file', guid, dirPath, includeLastSlash=True)
 
     theme = res and res.get('waitertheme') or None
-    path, filename = os.path.split(fullPath)
     return render_template('video.html',
                            title=res['displayname'],
                            filename=res['filename'],
