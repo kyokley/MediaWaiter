@@ -94,7 +94,7 @@ function markViewed(guid){
                 dataType: 'json',
                 data: {viewed: 'true',
                        guid: guid,
-                       },  
+                       },
                 success: function(json){
                     console.log(json);
                     var text = document.getElementById('viewedText');
