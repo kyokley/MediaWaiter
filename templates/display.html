@@ -40,7 +40,7 @@
                         <th class="all">Filename</th>
                         <th class="desktop">Size</th>
                         <th class="desktop">Is Alfred Encoded?</th>
-                        {% if not files.0.ismovie %}
+                        {% if not files.0.ismovie and auto_download %}
                             <th class="all">Autodownload</th>
                             <th class="min-tablet-p">Cancel</th>
                         {% endif %}
@@ -58,7 +58,7 @@
                     {% else %}
                         <td>No</td>
                     {% endif %}
-                    {% if not file.ismovie %}
+                    {% if not file.ismovie and auto_download %}
                     <td class="autodownloadtext">
                         <span id="countdown" class="timer" onclick="cancelClick(document.getElementById('cancel-btn'))"></span>
                     </td>
@@ -95,7 +95,7 @@
 <script>
     $(document).ready(function (){
         prepareDataTable($);
-        {% if not files.0.ismovie %}
+        {% if not files.0.ismovie and auto_download %}
             filePath = "{{files.0.path}}";
             setupAutoDownloadCountdown();
         {% endif %}

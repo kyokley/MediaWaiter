@@ -204,7 +204,8 @@ def get_file(guid):
     return render_template("display.html",
                            title=res['displayname'],
                            files=files,
-                           theme=theme)
+                           theme=theme,
+                           auto_download=res['auto_download'])
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
 @app.route(APP_NAME + '/status', methods=['GET'])
