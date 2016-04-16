@@ -2,7 +2,11 @@
     <link href="/assets/css/waiter.css" rel="stylesheet">
     <link href="/assets/DataTables-1.10.4/media/css/jquery.dataTables.css" rel="stylesheet">
     <link href="/assets/css/dataTables.responsive.css" rel="stylesheet">
-    {% if theme == 'darkly' %}
+
+    {% if theme == 'default' %}
+        <link href="/assets/bootstrap-dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/assets/bootstrap-dist/css/bootstrap-theme.min.css" rel="stylesheet">
+    {% elif theme == 'darkly' %}
         <link href="/assets/css/darkly.css" rel="stylesheet">
     {% elif theme == 'united' %}
         <link href="/assets/css/united.css" rel="stylesheet">
