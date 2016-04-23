@@ -189,6 +189,14 @@ def get_file(guid):
                      None)
 
     fullPath = os.path.join(res['path'], res['filename'])
+    if not os.path.exists(fullPath):
+        log.error('File %s does not exists' % fullPath)
+        errorText = 'An error has occurred'
+        theme = res and res.get('waitertheme') or None
+        return render_template("error.html",
+                               title="Error",
+                               errorText=errorText,
+                               theme=theme)
 
     files = []
     fileDict = {'path': buildWaiterPath('file', guid, res['filename']),
