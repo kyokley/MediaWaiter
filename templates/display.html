@@ -42,13 +42,15 @@
                 <thead>
                     <tr>
                         <th class="all">Filename</th>
-                        <th class="desktop">Size</th>
-                        <th class="desktop">Is Alfred Encoded?</th>
                         {% if not files.0.ismovie and auto_download %}
+                            <th class="desktop">Streaming</th>
                             <th class="all">Autodownload</th>
                             <th class="min-tablet-p">Cancel</th>
+                        {% else %}
+                            <th class="all">Streaming</th>
                         {% endif %}
-                        <th class="min-tablet-l">Streaming</th>
+                        <th class="desktop">Size</th>
+                        <th class="desktop">Is Alfred Encoded?</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -56,11 +58,14 @@
                 {% for file in files %}
                 <tr>
                     <td><a class="link" href="{{file.path}}">{{ file.filename }}</a></td>
-                    <td>{{file.size}}</td>
-                    {% if file.isAlfredEncoding %}
-                        <td>Yes</td>
+                    {% if file.streamable %}
+                    <td>
+                        <a class='btn btn-info' name='streaming-btn' id='streaming-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_blank", "height=600, width=800, resizeable=yes")'>Stream It!</a>
+                    </td>
                     {% else %}
-                        <td>No</td>
+                    <td>
+                        Not Streamable
+                    </td>
                     {% endif %}
                     {% if not file.ismovie and auto_download %}
                     <td class="autodownloadtext">
@@ -70,14 +75,11 @@
                         <a class='btn btn-info' name='cancel-btn' id='cancel-btn' onclick='cancelClick(this)'>Stop Download</a>
                     </td>
                     {% endif %}
-                    {% if file.streamable %}
-                    <td>
-                        <a class='btn btn-info' name='streaming-btn' id='streaming-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_blank", "height=600, width=800, resizeable=yes")'>Stream It!</a>
-                    </td>
+                    <td>{{file.size}}</td>
+                    {% if file.isAlfredEncoding %}
+                        <td>Yes</td>
                     {% else %}
-                    <td>
-                        Not Streamable
-                    </td>
+                        <td>No</td>
                     {% endif %}
                     <td></td>
                 </tr>
