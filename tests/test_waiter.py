@@ -6,6 +6,7 @@ from settings import (MEDIAVIEWER_SUFFIX,
                       MEDIAVIEWER_DOWNLOADCLICK_URL,
                       WAITER_USERNAME,
                       WAITER_PASSWORD,
+                      VERIFY_REQUESTS,
                       )
 
 import mock
@@ -42,5 +43,5 @@ class TestWaiterUpdateDownloadClick(unittest.TestCase):
                                          size=456,
                                          ),
                                auth=(WAITER_USERNAME, WAITER_PASSWORD),
-                               verify=False),
+                               verify=VERIFY_REQUESTS),
                         mock_requests.post.call_args)
