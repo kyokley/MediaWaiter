@@ -17,6 +17,7 @@ from settings import (BASE_PATH,
                       WAITER_PASSWORD,
                       MEDIAVIEWER_SUFFIX,
                       WAITER_VIEWED_URL,
+                      VERIFY_REQUESTS,
                       )
 from utils import (humansize,
                    delayedRetry,
@@ -41,7 +42,7 @@ def getTokenByGUID(guid):
     try:
         data = requests.get(MEDIAVIEWER_GUID_URL % {'guid': guid},
                             auth=(WAITER_USERNAME, WAITER_PASSWORD),
-                            verify=False)
+                            verify=VERIFY_REQUESTS)
         return data.json()
     except Exception, e:
         log.error(e)
@@ -62,7 +63,7 @@ def updateDownloadClick(userid,
         req = requests.post(MEDIAVIEWER_DOWNLOADCLICK_URL,
                             data=values,
                             auth=(WAITER_USERNAME, WAITER_PASSWORD),
-                            verify=False)
+                            verify=VERIFY_REQUESTS)
         req.raise_for_status()
     except Exception, e:
         log.error(e)

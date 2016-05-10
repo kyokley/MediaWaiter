@@ -19,6 +19,7 @@ MEDIAVIEWER_SUFFIX = 'mv-encoded'
 
 WAITER_USERNAME = 'username'
 WAITER_PASSWORD = 'password'
+VERIFY_REQUESTS = True
 
 try:
     from local_settings import *
