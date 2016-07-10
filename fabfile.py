@@ -32,6 +32,8 @@ redirect_stderr=true
 user={user}
 stopsignal=QUIT
 environment=LANG=en_US.UTF-8, LC_ALL=en_US.UTF-8, LC_LANG=en_US.UTF-8
+stdout_logfile_maxbytes=500000
+stdout_logfile_backups=10
 '''
 
 uwsgiTextTemplate = '''
