@@ -97,6 +97,7 @@ def get_dirPath(guid):
             fileDict = {'path': buildWaiterPath('file', guid, res['path']),
                         'filename': res['filename']}
             files.append(fileDict)
+        files.sort()
         theme = res['waitertheme'] or None
         return render_template("display.html",
                                title=res['displayname'],
