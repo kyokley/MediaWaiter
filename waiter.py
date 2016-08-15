@@ -157,7 +157,9 @@ def send_file_for_download(guid, filePath):
     else:
         fullPath = os.path.join(res['path'], filePath)
 
-    if res and res['path'] in fullPath:
+    if (res and
+            res['path'] in fullPath and
+            '..' not in filePath):
         path, filename = os.path.split(fullPath)
         return send_file_partial(fullPath,
                                  filename=filename,
@@ -327,7 +329,9 @@ def video(guid, dirPath):
     else:
         filePath = os.path.join(BASE_PATH, res['path'], dirPath)
 
-    if not errorStr and not os.path.exists(filePath):
+    if (not errorStr and
+            (not os.path.exists(filePath) or
+                '..' in dirPath)):
         errorStr = 'Bad path or filename'
 
     if errorStr:
