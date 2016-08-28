@@ -25,7 +25,6 @@ from utils import (humansize,
                    checkForValidToken,
                    parseRangeHeaders,
                    buildWaiterPath,
-                   support_jsonp,
                    )
 from log import log
 import requests
@@ -67,7 +66,6 @@ def updateDownloadClick(userid,
         req.raise_for_status()
     except Exception, e:
         log.error(e)
-        raise
 
 def modifyCookie(resp):
     resp.set_cookie('fileDownload', 'true')
@@ -78,7 +76,15 @@ def modifyCookie(resp):
 @logErrorsAndContinue
 def get_dirPath(guid):
     '''Display a page that lists all media files in a given directory'''
-    res = getTokenByGUID(guid)
+    try:
+        res = getTokenByGUID(guid)
+    except Exception, e:
+        log.debug(e, exc_info=True)
+        errorText = "An error has occurred"
+        return render_template("error.html",
+                               title="Error",
+                               errorText=errorText,
+                               theme=None)
 
     errorStr = checkForValidToken(res, guid)
     if errorStr:
@@ -143,7 +149,16 @@ def buildMovieEntries(guid, movieFilename):
 @logErrorsAndContinue
 def send_file_for_download(guid, filePath):
     '''Send the file specified at dirPath'''
-    res = getTokenByGUID(guid)
+    try:
+        res = getTokenByGUID(guid)
+    except Exception, e:
+        log.debug(e, exc_info=True)
+        errorText = "An error has occurred"
+        return render_template("error.html",
+                               title="Error",
+                               errorText=errorText,
+                               theme=None)
+
     errorStr = checkForValidToken(res, guid)
     if errorStr:
         theme = res and res.get('waitertheme') or None
@@ -178,7 +193,16 @@ def send_file_for_download(guid, filePath):
 @logErrorsAndContinue
 def get_file(guid):
     '''Display a page that lists a single file'''
-    res = getTokenByGUID(guid)
+    try:
+        res = getTokenByGUID(guid)
+    except Exception, e:
+        log.debug(e, exc_info=True)
+        errorText = "An error has occurred"
+        return render_template("error.html",
+                               title="Error",
+                               errorText=errorText,
+                               theme=None)
+
     errorStr = checkForValidToken(res, guid)
     if errorStr or res['ismovie']:
         theme = res and res.get('waitertheme') or None
@@ -221,7 +245,6 @@ def get_file(guid):
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
 @app.route(APP_NAME + '/status', methods=['GET'])
-@support_jsonp
 def get_status():
     res = dict()
     try:
@@ -320,7 +343,15 @@ def send_file_partial(path,
 @app.route(APP_NAME + '/stream/<guid>/<path:dirPath>')
 def video(guid, dirPath):
     '''Display streaming page'''
-    res = getTokenByGUID(guid)
+    try:
+        res = getTokenByGUID(guid)
+    except Exception, e:
+        log.debug(e, exc_info=True)
+        errorText = "An error has occurred"
+        return render_template("error.html",
+                               title="Error",
+                               errorText=errorText,
+                               theme=None)
 
     errorStr = checkForValidToken(res, guid)
 
@@ -362,7 +393,7 @@ def ajaxviewed(guid):
         req = requests.post(MEDIAVIEWER_VIEWED_URL,
                             data=values,
                             auth=(WAITER_USERNAME, WAITER_PASSWORD),
-                            verify=False,
+                            verify=VERIFY_REQUESTS,
                             )
 
         req.raise_for_status()
