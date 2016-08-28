@@ -1,8 +1,16 @@
-import time, re
+import time
+import re
+import requests
+
 from werkzeug import url_fix
 from functools import wraps
 from log import log
-from settings import APP_NAME
+from settings import (APP_NAME,
+                      MEDIAVIEWER_GUID_OFFSET_URL,
+                      WAITER_USERNAME,
+                      WAITER_PASSWORD,
+                      VERIFY_REQUESTS,
+                      )
 from flask import request, current_app
 
 suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
@@ -65,8 +73,8 @@ def parseRangeHeaders(size, range_header):
         m = re.search('(\d+)-(\d*)', range_header)
         g = m.groups()
 
-        if g[0]: byte1 = int(g[0])
-        if g[1]: byte2 = int(g[1])
+        byte1 = int(g[0]) if g[0] else 0
+        byte2 = int(g[1]) if g[1] else None
 
     length = size - byte1
     if byte2 is not None:
@@ -81,15 +89,39 @@ def buildWaiterPath(place, guid, filePath, includeLastSlash=True):
                              url_fix(filePath))
     return path
 
-def support_jsonp(f):
-    """Wraps JSONified output for JSONP"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        callback = request.args.get('callback', False)
-        res = f(*args, **kwargs)
-        if callback:
-            content = '%s(%s);' % (callback, res.data)
-            return current_app.response_class(content, mimetype='application/javascript')
-        else:
-            return f(*args, **kwargs)
-    return decorated_function
+def getVideoOffset(filename, guid):
+    try:
+        resp = requests.get(MEDIAVIEWER_GUID_OFFSET_URL % {'guid': guid,
+                                                           'filename': filename},
+                            auth=(WAITER_USERNAME, WAITER_PASSWORD),
+                            verify=VERIFY_REQUESTS,
+                            )
+        resp.raise_for_status()
+        data = resp.json()
+        offset = data['offset']
+    except Exception, e:
+        log.error(e)
+        offset = 0
+    return offset
+
+def setVideoOffset(filename, guid):
+    try:
+        resp = requests.post(MEDIAVIEWER_GUID_OFFSET_URL % {'guid': guid,
+                                                            'filename': filename},
+                             auth=(WAITER_USERNAME, WAITER_PASSWORD),
+                             verify=VERIFY_REQUESTS,
+                             )
+        resp.raise_for_status()
+    except Exception, e:
+        log.error(e)
+
+def deleteVideoOffset(filename, guid):
+    try:
+        resp = requests.delete(MEDIAVIEWER_GUID_OFFSET_URL % {'guid': guid,
+                                                              'filename': filename},
+                               auth=(WAITER_USERNAME, WAITER_PASSWORD),
+                               verify=VERIFY_REQUESTS,
+                               )
+        resp.raise_for_status()
+    except Exception, e:
+        log.error(e)
