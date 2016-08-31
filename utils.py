@@ -104,12 +104,14 @@ def getVideoOffset(filename, guid):
         offset = 0
     return offset
 
-def setVideoOffset(filename, guid):
+def setVideoOffset(filename, guid, offset):
+    data = {'offset': offset}
     try:
         resp = requests.post(MEDIAVIEWER_GUID_OFFSET_URL % {'guid': guid,
                                                             'filename': filename},
                              auth=(WAITER_USERNAME, WAITER_PASSWORD),
                              verify=VERIFY_REQUESTS,
+                             data=data,
                              )
         resp.raise_for_status()
     except Exception, e:

@@ -15,6 +15,7 @@ MEDIAVIEWER_GUID_OFFSET_URL = 'http://127.0.0.1/mediaviewer/api/progress/%(guid)
 MEDIAVIEWER_DOWNLOADCLICK_URL = 'http://127.0.0.1/mediaviewer/api/downloadclick/'
 MEDIAVIEWER_VIEWED_URL = 'http://127.0.0.1/mediaviewer/ajaxsuperviewed/'
 WAITER_VIEWED_URL = '/waiter/viewed/'
+WAITER_OFFSET_URL = '/waiter/offset/'
 
 MEDIAVIEWER_SUFFIX = 'mv-encoded'
 

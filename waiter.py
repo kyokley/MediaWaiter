@@ -25,6 +25,9 @@ from utils import (humansize,
                    checkForValidToken,
                    parseRangeHeaders,
                    buildWaiterPath,
+                   getVideoOffset,
+                   setVideoOffset,
+                   deleteVideoOffset,
                    )
 from log import log
 import requests
@@ -402,6 +405,17 @@ def ajaxviewed(guid):
         raise
 
     return jsonify({'msg': 'Viewed set successfully'})
+
+@app.route(APP_NAME + '/offset/<guid>/<path:filename>')
+def videoOffset(guid, filename):
+    if request.method == 'GET':
+        getVideoOffset(filename, guid)
+    elif request.method == 'POST':
+        setVideoOffset(filename, guid, request.POST['offset'])
+    elif request.method == 'DELETE':
+        deleteVideoOffset(filename, guid)
+    else:
+        pass
 
 app.wsgi_app = ProxyFix(app.wsgi_app)
 if __name__ == '__main__':
