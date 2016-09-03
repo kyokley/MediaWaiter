@@ -48,8 +48,8 @@
     </body>
 </html>
 <script src="/assets/js/jquery-1.10.1.min.js"></script>
-<script src="/assets/video-js/responsive-video.js"></script>
-<!-- <script src="https://vjs.zencdn.net/c/video.js"></script> Uncomment the above to host locally -->
+<!-- <script src="/assets/video-js/responsive-video.js"></script> -->
+<script src="https://vjs.zencdn.net/c/video.js"></script> <!-- Uncomment the above to host locally -->
 <script src="/assets/js/waiter.js"></script>
 <script>
     $(document).ready(function (){
@@ -57,9 +57,9 @@
         guid = '{{ guid }}';
         offsetUrl = '{{ offsetUrl }}';
 
-        var offset = setVideoPosition('{{filename}}', guid, _V_('video1'));
         _V_("video1").ready(function(){
 
+          var offset = getVideoPosition('{{filename}}', guid, this);
           var myPlayer = this;    // Store the video object
           var aspectRatio = 9/16; // Make up an aspect ratio
 

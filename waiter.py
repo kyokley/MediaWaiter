@@ -408,7 +408,7 @@ def ajaxviewed(guid):
 
     return jsonify({'msg': 'Viewed set successfully'})
 
-@app.route(APP_NAME + '/offset/<guid>/<path:filename>')
+@app.route(APP_NAME + '/offset/<guid>/<path:filename>', methods=['GET', 'POST', 'DELETE'])
 def videoOffset(guid, filename):
     if request.method == 'GET':
         print 'GET-ing video offset'
@@ -416,9 +416,8 @@ def videoOffset(guid, filename):
         offset = 1
         return jsonify({'offset': offset})
     elif request.method == 'POST':
-        import pdb; pdb.set_trace()
         print 'POST-ing video offset:'
-        print 'offset: %s' % request.POST['offset']
+        print 'offset: %s' % request.form['offset']
         #setVideoOffset(filename, guid, request.POST['offset'])
         return jsonify({'msg': 'success'})
     elif request.method == 'DELETE':
