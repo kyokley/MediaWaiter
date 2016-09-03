@@ -424,7 +424,7 @@ def videoOffset(guid, filename):
         deleteVideoOffset(filename, guid)
         return jsonify({'msg': 'deleted'})
     else:
-        pass
+        raise Exception('Method not supported')
 
 app.wsgi_app = ProxyFix(app.wsgi_app)
 if __name__ == '__main__':
