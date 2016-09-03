@@ -412,17 +412,16 @@ def ajaxviewed(guid):
 def videoOffset(guid, filename):
     if request.method == 'GET':
         print 'GET-ing video offset'
-        #offset = getVideoOffset(filename, guid)
-        offset = 1
+        offset = getVideoOffset(filename, guid)
         return jsonify({'offset': offset})
     elif request.method == 'POST':
         print 'POST-ing video offset:'
         print 'offset: %s' % request.form['offset']
-        #setVideoOffset(filename, guid, request.POST['offset'])
+        setVideoOffset(filename, guid, request.POST['offset'])
         return jsonify({'msg': 'success'})
     elif request.method == 'DELETE':
         print 'DELETE-ing video offset:'
-        #deleteVideoOffset(filename, guid)
+        deleteVideoOffset(filename, guid)
         return jsonify({'msg': 'deleted'})
     else:
         pass
