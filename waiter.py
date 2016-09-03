@@ -417,7 +417,7 @@ def videoOffset(guid, filename):
     elif request.method == 'POST':
         print 'POST-ing video offset:'
         print 'offset: %s' % request.form['offset']
-        setVideoOffset(filename, guid, request.POST['offset'])
+        setVideoOffset(filename, guid, request.form['offset'])
         return jsonify({'msg': 'success'})
     elif request.method == 'DELETE':
         print 'DELETE-ing video offset:'

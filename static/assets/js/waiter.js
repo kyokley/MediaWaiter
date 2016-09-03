@@ -143,7 +143,7 @@ function setupVideoPlayerPage(filename){
             if(video.currentTime / video.duration < VIDEO_RESET_PERCENT){
                 storeVideoPosition(filename, video);
             } else {
-                clearVideoPosition();
+                clearVideoPosition(filename);
                 markViewed(guid);
             }
         }
