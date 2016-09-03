@@ -17,6 +17,7 @@ from settings import (BASE_PATH,
                       WAITER_PASSWORD,
                       MEDIAVIEWER_SUFFIX,
                       WAITER_VIEWED_URL,
+                      WAITER_OFFSET_URL,
                       VERIFY_REQUESTS,
                       )
 from utils import (humansize,
@@ -383,6 +384,7 @@ def video(guid, dirPath):
                            filename=res['filename'],
                            video_file=fullPath,
                            viewedUrl=WAITER_VIEWED_URL,
+                           offsetUrl=WAITER_OFFSET_URL,
                            guid=guid,
                            theme=theme)
 
@@ -409,11 +411,20 @@ def ajaxviewed(guid):
 @app.route(APP_NAME + '/offset/<guid>/<path:filename>')
 def videoOffset(guid, filename):
     if request.method == 'GET':
-        getVideoOffset(filename, guid)
+        print 'GET-ing video offset'
+        #offset = getVideoOffset(filename, guid)
+        offset = 1
+        return jsonify({'offset': offset})
     elif request.method == 'POST':
-        setVideoOffset(filename, guid, request.POST['offset'])
+        import pdb; pdb.set_trace()
+        print 'POST-ing video offset:'
+        print 'offset: %s' % request.POST['offset']
+        #setVideoOffset(filename, guid, request.POST['offset'])
+        return jsonify({'msg': 'success'})
     elif request.method == 'DELETE':
-        deleteVideoOffset(filename, guid)
+        print 'DELETE-ing video offset:'
+        #deleteVideoOffset(filename, guid)
+        return jsonify({'msg': 'deleted'})
     else:
         pass
 

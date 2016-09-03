@@ -60,7 +60,8 @@
                     <td><a class="link" href="{{file.path}}">{{ file.filename }}</a></td>
                     {% if file.streamable %}
                     <td>
-                        <a class='btn btn-info' name='streaming-btn' id='streaming-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_blank", "height=600, width=800, resizeable=yes")'>Stream It!</a>
+                        <!--<a class='btn btn-info' name='streaming-btn' id='streaming-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_blank", "height=600, width=800, resizeable=yes")'>Stream It!</a>-->
+                        <a href='{{ file.streamingPath }}' class='btn btn-info' name='streaming-btn' id='streaming-btn' onclick='cancelClick(this)'>Stream It!</a>
                     </td>
                     {% else %}
                     <td>

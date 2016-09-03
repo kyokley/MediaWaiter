@@ -78,7 +78,7 @@ function prepareDataTable($){
 
 function storeVideoPosition(filename, video){
     var offset = Math.max(video.currentTime - 30, 0);
-    jQuery.ajax({url: offsetUrl + '/' + guid + '/' + filename,
+    jQuery.ajax({url: offsetUrl + guid + '/' + filename,
                  type: 'POST',
                  dataType: 'json',
                  data: {'offset': offset},
@@ -90,7 +90,7 @@ function storeVideoPosition(filename, video){
 
 function clearVideoPosition(filename){
     console.log("Attempting to clear video position");
-    jQuery.ajax({url: offsetUrl + '/' + guid + '/' + filename,
+    jQuery.ajax({url: offsetUrl + guid + '/' + filename,
                  type: 'DELETE',
                  dataType: 'json',
                  success: function(json){
@@ -119,7 +119,7 @@ function markViewed(guid){
 
 function setVideoPosition(filename, guid, video){
     console.log("Getting video position");
-    jQuery.ajax({url: offsetUrl + '/' + guid + '/' + filename,
+    jQuery.ajax({url: offsetUrl + guid + '/' + filename,
                  type: 'GET',
                  dataType: 'json',
                  success: function(json){
