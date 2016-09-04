@@ -79,7 +79,7 @@ function prepareDataTable($){
 function storeVideoPosition(filename, video){
     var offset = Math.max(video.currentTime - 30, 0);
     console.log("Attempting to store video position");
-    jQuery.ajax({url: offsetUrl + guid + '/' + filename,
+    jQuery.ajax({url: offsetUrl + guid + '/' + filename + '/',
                  type: 'POST',
                  data: {'offset': offset},
                  success: function(json){
@@ -94,7 +94,7 @@ function getVideoPosition(filename, guid, video){
         video.currentTime(localStorage.getItem(filename));
         localStorage.removeItem(filename);
     } else {
-        jQuery.ajax({url: offsetUrl + guid + '/' + filename,
+        jQuery.ajax({url: offsetUrl + guid + '/' + filename + '/',
                      type: 'GET',
                      dataType: 'json',
                      success: function(json){
@@ -110,7 +110,7 @@ function getVideoPosition(filename, guid, video){
 
 function clearVideoPosition(filename){
     console.log("Attempting to clear video position");
-    jQuery.ajax({url: offsetUrl + guid + '/' + filename,
+    jQuery.ajax({url: offsetUrl + guid + '/' + filename + '/',
                  type: 'DELETE',
                  dataType: 'json',
                  success: function(json){
@@ -122,18 +122,17 @@ function clearVideoPosition(filename){
 function markViewed(guid){
     if(!viewed){
         viewed = true;
-        jQuery.ajax({url: viewedUrl + guid,
+        jQuery.ajax({url: viewedUrl + guid + '/',
                 type: 'POST',
                 dataType: 'json',
                 data: {viewed: 'true',
-                       guid: guid,
-                       },
+                       guid: guid},
                 success: function(json){
                     console.log(json);
                     var text = document.getElementById('viewedText');
                     text.innerText = "Marking file viewed!";
                 }
-                });
+            });
     }
 }
 
