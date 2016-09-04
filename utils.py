@@ -90,6 +90,8 @@ def buildWaiterPath(place, guid, filePath, includeLastSlash=True):
     return path
 
 def getVideoOffset(filename, guid):
+    data = {'offset': 0,
+            'date_edited': None}
     try:
         resp = requests.get(MEDIAVIEWER_GUID_OFFSET_URL % {'guid': guid,
                                                            'filename': filename},
@@ -97,12 +99,13 @@ def getVideoOffset(filename, guid):
                             verify=VERIFY_REQUESTS,
                             )
         resp.raise_for_status()
-        data = resp.json()
-        offset = data['offset']
+        resp = resp.json()
+        data['offset'] = resp['offset']
+        if 'date_edited' in resp:
+            data['date_edited'] = resp['date_edited']
     except Exception, e:
         log.error(e)
-        offset = 0
-    return offset
+    return data
 
 def setVideoOffset(filename, guid, offset):
     data = {'offset': offset}

@@ -136,16 +136,16 @@ function markViewed(guid){
     }
 }
 
-function setupVideoPlayerPage(filename){
+function setupVideoPlayerPage(dirPath){
     video = document.getElementsByTagName('video')[0];
 
     var timer = null;
     function tick() {
         if(video.duration > 10){
             if(video.currentTime / video.duration < VIDEO_RESET_PERCENT){
-                storeVideoPosition(filename, video);
+                storeVideoPosition(dirPath, video);
             } else {
-                clearVideoPosition(filename);
+                clearVideoPosition(dirPath);
                 markViewed(guid);
             }
         }
@@ -165,16 +165,16 @@ function setupVideoPlayerPage(filename){
 
     function stopAndClearStorage(){
         stop();
-        clearVideoPosition(filename);
+        clearVideoPosition(dirPath);
     }
 
     function onpause() {
         stop();
         if(video.duration > 10){
             if(video.currentTime / video.duration < VIDEO_RESET_PERCENT){
-                storeVideoPosition(filename, video);
+                storeVideoPosition(dirPath, video);
             } else {
-                clearVideoPosition(filename);
+                clearVideoPosition(dirPath);
                 markViewed(guid);
             }
         }

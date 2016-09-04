@@ -382,6 +382,7 @@ def video(guid, dirPath):
     return render_template('video.html',
                            title=res['displayname'],
                            filename=res['filename'],
+                           dirPath=dirPath,
                            video_file=fullPath,
                            viewedUrl=WAITER_VIEWED_URL,
                            offsetUrl=WAITER_OFFSET_URL,
@@ -412,8 +413,8 @@ def ajaxviewed(guid):
 def videoOffset(guid, filename):
     if request.method == 'GET':
         print 'GET-ing video offset'
-        offset = getVideoOffset(filename, guid)
-        return jsonify({'offset': offset})
+        data = getVideoOffset(filename, guid)
+        return jsonify(data)
     elif request.method == 'POST':
         print 'POST-ing video offset:'
         print 'offset: %s' % request.form['offset']
