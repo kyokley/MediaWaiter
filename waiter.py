@@ -388,8 +388,8 @@ def video(guid, dirPath):
                            guid=guid,
                            theme=theme)
 
-@app.route(APP_NAME + '/viewed/<guid>')
-@app.route(APP_NAME + '/viewed/<guid>/')
+@app.route(APP_NAME + '/viewed/<guid>', methods=['POST'])
+@app.route(APP_NAME + '/viewed/<guid>/', methods=['POST'])
 def ajaxviewed(guid):
     values = {'viewed': True,
               'guid': guid,
