@@ -408,7 +408,7 @@ def ajaxviewed(guid):
 
     return jsonify({'msg': 'Viewed set successfully'})
 
-@app.route(APP_NAME + '/offset/<guid>/<path:filename>', methods=['GET', 'POST', 'DELETE'])
+@app.route(APP_NAME + '/offset/<guid>/<path:filename>/', methods=['GET', 'POST', 'DELETE'])
 def videoOffset(guid, filename):
     if request.method == 'GET':
         print 'GET-ing video offset'

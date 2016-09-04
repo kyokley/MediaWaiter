@@ -57,7 +57,7 @@
                 <tbody>
                 {% for file in files %}
                 <tr>
-                    <td><a class="link" href="{{file.path}}">{{ file.filename }}</a></td>
+                    <td><a class="link" href="#" onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_blank", "height=600, width=800, resizeable=yes")'>{{ file.filename }}</a></td>
                     {% if file.streamable %}
                     <td>
                         <a class='btn btn-info' name='streaming-btn' id='streaming-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_blank", "height=600, width=800, resizeable=yes")'>Stream It!</a>
