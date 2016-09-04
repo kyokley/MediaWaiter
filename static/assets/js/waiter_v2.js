@@ -81,7 +81,6 @@ function storeVideoPosition(filename, video){
     console.log("Attempting to store video position");
     jQuery.ajax({url: offsetUrl + guid + '/' + filename,
                  type: 'POST',
-                 //dataType: 'json',
                  data: {'offset': offset},
                  success: function(json){
                     console.log("Stored position at " + offset);
@@ -91,17 +90,21 @@ function storeVideoPosition(filename, video){
 
 function getVideoPosition(filename, guid, video){
     console.log("Attempting to get video position");
-    jQuery.ajax({url: offsetUrl + guid + '/' + filename,
-                 type: 'GET',
-                 dataType: 'json',
-                 success: function(json){
-                     console.log("Got video position: " + json.offset);
-                     if(json.offset !== null){
-                         //video.currentTime = parseInt(json.offset);
-                         video.currentTime(parseInt(json.offset));
+    if(localStorage.getItem(filename)){
+        video.currentTime(localStorage.getItem(filename));
+        localStorage.removeItem(filename);
+    } else {
+        jQuery.ajax({url: offsetUrl + guid + '/' + filename,
+                     type: 'GET',
+                     dataType: 'json',
+                     success: function(json){
+                         console.log("Got video position: " + json.offset);
+                         if(json.offset !== null){
+                             video.currentTime(parseInt(json.offset));
+                         }
                      }
-                 }
-            });
+        });
+    }
 }
 
 
