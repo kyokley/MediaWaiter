@@ -379,11 +379,16 @@ def video(guid, dirPath):
     fullPath = buildWaiterPath('file', guid, dirPath, includeLastSlash=True)
 
     theme = res and res.get('waitertheme') or None
+
+    subtitle_filename = filePath[:-4] + '.vtt'
+    subtitle_file = fullPath[:-4] + '.vtt' if os.path.exists(subtitle_filename) else None
+
     return render_template('video.html',
                            title=res['displayname'],
                            filename=res['filename'],
                            dirPath=dirPath,
                            video_file=fullPath,
+                           subtitle_file=subtitle_file,
                            viewedUrl=WAITER_VIEWED_URL,
                            offsetUrl=WAITER_OFFSET_URL,
                            guid=guid,
