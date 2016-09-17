@@ -36,7 +36,7 @@
 
                         <source src="{{ video_file }}" type="video/mp4" />
                         {% if subtitle_file %}
-                        <track label="English" kind="subtitles" srclang="en" src="{{ subtitle_file }}" default>
+                        <track label="English" kind="subtitles" srclang="en" src="{{ subtitle_file }}">
                         {% endif %}
                         <p class="vjs-no-js">Sorry, your browser doesn't support HTML5 video.</p>
                     </video>
