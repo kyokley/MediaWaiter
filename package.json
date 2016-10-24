@@ -1,0 +1,25 @@
+{
+  "name": "mediawaiter",
+  "version": "1.0.0",
+  "description": "Serve media files",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kyokley/MediaWaiter.git"
+  },
+  "author": "Kevin Yokley",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kyokley/MediaWaiter/issues"
+  },
+  "homepage": "https://github.com/kyokley/MediaWaiter#readme",
+  "dependencies": {
+    "bower": "^1.7.9"
+  }
+}
