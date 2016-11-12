@@ -423,9 +423,9 @@ def videoOffset(guid, filename):
 
 app.wsgi_app = ProxyFix(app.wsgi_app)
 if __name__ == '__main__':
-    from settings import DEBUG, PORT
+    from settings import DEBUG, PORT, HOST
     app.debug = DEBUG
     if not DEBUG:
-        app.run(host='0.0.0.0', port=PORT)
+        app.run(host=HOST, port=PORT)
     else:
         app.run(port=PORT, threaded=True)
