@@ -428,4 +428,4 @@ if __name__ == '__main__':
     if not DEBUG:
         app.run(host='0.0.0.0', port=PORT)
     else:
-        app.run(port=PORT)
+        app.run(port=PORT, threaded=True)
