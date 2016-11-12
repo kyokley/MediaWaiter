@@ -88,15 +88,14 @@ def get_dirPath(guid):
         return render_template("error.html",
                                title="Error",
                                errorText=errorText,
-                               theme=None)
+                               )
 
     errorStr = checkForValidToken(res, guid)
     if errorStr:
-        theme = res and res.get('waitertheme') or None
         return render_template("error.html",
                                title="Error",
                                errorText=errorStr,
-                               theme=theme)
+                               )
 
     try:
         files = []
@@ -108,19 +107,17 @@ def get_dirPath(guid):
                         'filename': res['filename']}
             files.append(fileDict)
         files.sort()
-        theme = res['waitertheme'] or None
         return render_template("display.html",
                                title=res['displayname'],
                                files=files,
-                               theme=theme)
+                               )
     except Exception, e:
         log.debug(e, exc_info=True)
-        theme = res and res.get('waitertheme') or None
         errorText = "An error has occurred"
         return render_template("error.html",
                                title="Error",
                                errorText=errorText,
-                               theme=theme)
+                               )
 
 def buildMovieEntries(guid, movieFilename):
     files = []
@@ -161,15 +158,14 @@ def send_file_for_download(guid, filePath):
         return render_template("error.html",
                                title="Error",
                                errorText=errorText,
-                               theme=None)
+                               )
 
     errorStr = checkForValidToken(res, guid)
     if errorStr:
-        theme = res and res.get('waitertheme') or None
         return render_template("error.html",
                                title="Error",
                                errorText=errorStr,
-                               theme=theme)
+                               )
 
     if res['ismovie']:
         fullPath = os.path.join(BASE_PATH, res['path'], res['filename'], filePath)
@@ -187,11 +183,10 @@ def send_file_for_download(guid, filePath):
         log.error('Unauthorized use of GUID attempted')
         log.error('GUID: %s' % (guid,))
         errorText = 'Access is unauthorized!'
-        theme = res and res.get('waitertheme') or None
         return render_template("error.html",
                                title="Error",
                                errorText=errorText,
-                               theme=theme)
+                               )
 
 @app.route(APP_NAME + '/file/<guid>/')
 @logErrorsAndContinue
@@ -205,15 +200,14 @@ def get_file(guid):
         return render_template("error.html",
                                title="Error",
                                errorText=errorText,
-                               theme=None)
+                               )
 
     errorStr = checkForValidToken(res, guid)
     if errorStr or res['ismovie']:
-        theme = res and res.get('waitertheme') or None
         return render_template("error.html",
                                title="Error",
                                errorText=errorStr,
-                               theme=theme)
+                               )
 
     ext = os.path.splitext(res['filename'])[-1].lower()
     streamingPath = (ext in STREAMABLE_FILE_TYPES and
@@ -224,11 +218,10 @@ def get_file(guid):
     if not os.path.exists(fullPath):
         log.error('File %s does not exists' % fullPath)
         errorText = 'An error has occurred'
-        theme = res and res.get('waitertheme') or None
         return render_template("error.html",
                                title="Error",
                                errorText=errorText,
-                               theme=theme)
+                               )
 
     files = []
     fileDict = {'path': buildWaiterPath('file', guid, res['filename']),
@@ -240,11 +233,9 @@ def get_file(guid):
                 'isAlfredEncoding': isAlfredEncoding(res['filename']),
                 'ismovie': False}
     files.append(fileDict)
-    theme = res['waitertheme'] or None
     return render_template("display.html",
                            title=res['displayname'],
                            files=files,
-                           theme=theme,
                            auto_download=res['auto_download'])
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
@@ -355,7 +346,7 @@ def video(guid, dirPath):
         return render_template("error.html",
                                title="Error",
                                errorText=errorText,
-                               theme=None)
+                               )
 
     errorStr = checkForValidToken(res, guid)
 
@@ -370,15 +361,13 @@ def video(guid, dirPath):
         errorStr = 'Bad path or filename'
 
     if errorStr:
-        theme = res and res.get('waitertheme') or None
         return render_template("error.html",
                                title="Error",
                                errorText=errorStr,
-                               theme=theme)
+                               )
 
     fullPath = buildWaiterPath('file', guid, dirPath, includeLastSlash=True)
 
-    theme = res and res.get('waitertheme') or None
 
     subtitle_filename = filePath[:-4] + '.vtt'
     subtitle_file = fullPath[:-4] + '.vtt' if os.path.exists(subtitle_filename) else None
@@ -392,7 +381,7 @@ def video(guid, dirPath):
                            viewedUrl=WAITER_VIEWED_URL,
                            offsetUrl=WAITER_OFFSET_URL,
                            guid=guid,
-                           theme=theme)
+                           )
 
 @app.route(APP_NAME + '/viewed/<guid>', methods=['POST'])
 @app.route(APP_NAME + '/viewed/<guid>/', methods=['POST'])

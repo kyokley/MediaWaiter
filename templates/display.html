@@ -1,22 +1,10 @@
 <html>
-    <link href="/assets/css/waiter.css" rel="stylesheet">
-    <link href="/assets/DataTables-1.10.4/media/css/jquery.dataTables.css" rel="stylesheet">
-    <link href="/assets/css/dataTables.responsive.css" rel="stylesheet">
+    <link href="/bower_components/waiter.css" rel="stylesheet">
+    <link href="/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <link href="/bower_components/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
 
-    {% if theme == 'default' %}
-        <link href="/assets/bootstrap-dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="/assets/bootstrap-dist/css/bootstrap-theme.min.css" rel="stylesheet">
-    {% elif theme == 'darkly' %}
-        <link href="/assets/css/darkly.css" rel="stylesheet">
-    {% elif theme == 'united' %}
-        <link href="/assets/css/united.css" rel="stylesheet">
-    {% elif theme == 'journal' %}
-        <link href="/assets/css/journal.css" rel="stylesheet">
-    {% elif theme == 'readable' %}
-        <link href="/assets/css/readable.css" rel="stylesheet">
-    {% endif %}
     <head>
-        <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
+        <link rel="shortcut icon" type="image/png" href="/bower_components/favicon.ico"/>
         {% if title %}
         <title>Alfred - {{title}}</title>
         {% else %}
@@ -93,12 +81,12 @@
         <iframe id="download" width="1" height="1" frameborder="0"></iframe>
     </div>
 </html>
-<script src="/assets/js/jquery-1.10.1.min.js"></script>
-<script src="/assets/DataTables-1.10.4/media/js/jquery.dataTables.min.js" %}"></script>
-<script src="/assets/js/dataTables.bootstrap.js" %}"></script>
-<script src="/assets/js/dataTables.responsive.min.js" %}"></script>
-<script src="/assets/bootstrap-dist/js/bootstrap.min.js" %}"></script>
-<script src="/assets/js/waiter_v2.js"></script>
+<script src="/bower_components/jquery/dist/jquery.min.js"></script>
+<script src="/bower_components/datatables.net/js/jquery.dataTables.min.js" %}"></script>
+<script src="/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js" %}"></script>
+<script src="/bower_components/datatables.net-responsive/js/dataTables.responsive.min.js" %}"></script>
+<script src="/bower_components/bootswatch-dist/js/bootstrap.min.js" %}"></script>
+<script src="/bower_components/waiter_v2.js"></script>
 <script>
     $(document).ready(function (){
         prepareDataTable($);
