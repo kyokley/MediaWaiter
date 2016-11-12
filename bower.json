@@ -22,6 +22,7 @@
     "datatables.net-bs": "^1.10.12",
     "datatables.net-responsive": "^2.1.0",
     "datatables.net-responsive-bs": "^2.1.0",
-    "video.js": "^5.12.5"
+    "video.js": "^5.12.5",
+    "bootstrap": "^3.3.7"
   }
 }
