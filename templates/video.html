@@ -1,5 +1,8 @@
 <html>
-    <link href="/bower_components/waiter.css" rel="stylesheet">
+    <link href="/assets/waiter.css" rel="stylesheet">
+    <link href="/bower_components/bootswatch-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <link href="/bower_components/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
     <head>
         <link rel="shortcut icon" type="image/png" href="/bower_components/favicon.ico"/>
         <!-- <link href="/bower_components/video-js/responsive-video-js.css" rel="stylesheet"> -->
@@ -43,9 +46,13 @@
     </body>
 </html>
 <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+<script src="/bower_components/datatables.net/js/jquery.dataTables.min.js" %}"></script>
+<script src="/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js" %}"></script>
+<script src="/bower_components/datatables.net-responsive/js/dataTables.responsive.min.js" %}"></script>
+<script src="/bower_components/bootstrap/dist/js/bootstrap.min.js" %}"></script>
+<script src="/assets/waiter_v2.js"></script>
 <!-- <script src="/bower_components/video-js/responsive-video.js"></script> -->
 <script src="https://vjs.zencdn.net/c/video.js"></script> <!-- Uncomment the above to host locally -->
-<script src="/bower_components/waiter_v2.js"></script>
 <script>
     $(document).ready(function (){
         viewedUrl = '{{ viewedUrl }}';
