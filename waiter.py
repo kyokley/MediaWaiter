@@ -29,6 +29,7 @@ from utils import (humansize,
                    getVideoOffset,
                    setVideoOffset,
                    deleteVideoOffset,
+                   hashed_filename,
                    )
 from log import log
 import requests
@@ -100,8 +101,7 @@ def get_dirPath(guid):
     try:
         files = []
         if res['ismovie']:
-            moviePath = os.path.join(res['path'], res['filename'])
-            files.extend(buildMovieEntries(guid, moviePath))
+            files.extend(buildMovieEntries(res))
         else:
             fileDict = {'path': buildWaiterPath('file', guid, res['path']),
                         'filename': res['filename']}
@@ -119,8 +119,9 @@ def get_dirPath(guid):
                                errorText=errorText,
                                )
 
-def buildMovieEntries(guid, movieFilename):
+def buildMovieEntries(token):
     files = []
+    movieFilename = os.path.join(token['path'], token['filename'])
     searchPath = os.path.join(BASE_PATH, movieFilename)
     for root, subFolders, filenames in os.walk(searchPath):
         for filename in filenames:
@@ -134,10 +135,12 @@ def buildMovieEntries(guid, movieFilename):
                 continue
             ext = os.path.splitext(filename)[-1].lower()
             streamingPath = (ext in STREAMABLE_FILE_TYPES and
-                             buildWaiterPath('stream', guid, waiterPath, includeLastSlash=True) or
+                             buildWaiterPath('stream', token['guid'], hashed_filename(waiterPath), includeLastSlash=True) or
                              None)
-            fileDict = {'path': buildWaiterPath('file', guid, waiterPath, includeLastSlash=True),
+            fileDict = {'path': buildWaiterPath('file', token['guid'], hashed_filename(waiterPath), includeLastSlash=True),
                         'streamingPath': streamingPath,
+                        'waiterPath': waiterPath,
+                        'unhashedPath': path,
                         'streamable': bool(streamingPath),
                         'filename': filename,
                         'size': humansize(size),
@@ -146,9 +149,9 @@ def buildMovieEntries(guid, movieFilename):
             files.append(fileDict)
     return files
 
-@app.route(APP_NAME + '/file/<guid>/<path:filePath>')
+@app.route(APP_NAME + '/file/<guid>/<path:hashPath>')
 @logErrorsAndContinue
-def send_file_for_download(guid, filePath):
+def send_file_for_download(guid, hashPath):
     '''Send the file specified at dirPath'''
     try:
         res = getTokenByGUID(guid)
@@ -167,14 +170,24 @@ def send_file_for_download(guid, filePath):
                                errorText=errorStr,
                                )
 
-    if res['ismovie']:
-        fullPath = os.path.join(BASE_PATH, res['path'], res['filename'], filePath)
-    else:
-        fullPath = os.path.join(res['path'], filePath)
 
+    if res['ismovie']:
+        movieEntries = buildMovieEntries(res)
+        for entry in movieEntries:
+            if hashed_filename(entry['waiterPath']) == hashPath:
+                unhashedPath = entry['unhashedPath']
+                break
+        else:
+            raise Exception('Something meaningful')
+        fullPath = os.path.join(BASE_PATH, res['path'], res['filename'], unhashedPath)
+    else:
+        fullPath = os.path.join(res['path'], res['filename'])
+
+    # Probably don't need to make the following check since the data is trusted
+    # but leaving the check in shouldn't hurt anything
     if (res and
             res['path'] in fullPath and
-            '..' not in filePath):
+            '..' not in fullPath):
         path, filename = os.path.split(fullPath)
         return send_file_partial(fullPath,
                                  filename=filename,
@@ -211,7 +224,7 @@ def get_file(guid):
 
     ext = os.path.splitext(res['filename'])[-1].lower()
     streamingPath = (ext in STREAMABLE_FILE_TYPES and
-                     buildWaiterPath('stream', guid, res['filename']) or
+                     buildWaiterPath('stream', guid, hashed_filename(res['filename'])) or
                      None)
 
     fullPath = os.path.join(res['path'], res['filename'])
@@ -227,6 +240,7 @@ def get_file(guid):
     fileDict = {'path': buildWaiterPath('file', guid, res['filename']),
                 'streamingPath': streamingPath,
                 'streamable': bool(streamingPath),
+                'unhashedPath': fullPath,
                 'size': humansize(os.path.getsize(fullPath)),
                 'filename': res['filename'],
                 'displayName': res['displayname'],
@@ -335,8 +349,8 @@ def send_file_partial(path,
 
         return modifyCookie(rv)
 
-@app.route(APP_NAME + '/stream/<guid>/<path:dirPath>')
-def video(guid, dirPath):
+@app.route(APP_NAME + '/stream/<guid>/<path:hashPath>')
+def video(guid, hashPath):
     '''Display streaming page'''
     try:
         res = getTokenByGUID(guid)
@@ -351,13 +365,20 @@ def video(guid, dirPath):
     errorStr = checkForValidToken(res, guid)
 
     if res['ismovie']:
-        filePath = os.path.join(BASE_PATH, res['path'], res['filename'], dirPath)
+        movieEntries = buildMovieEntries(res)
+        for entry in movieEntries:
+            if hashed_filename(entry['waiterPath']) == hashPath:
+                unhashedPath = entry['unhashedPath']
+                break
+        else:
+            raise Exception('Something meaningful')
+        filePath = os.path.join(BASE_PATH, res['path'], res['filename'], unhashedPath)
     else:
-        filePath = os.path.join(BASE_PATH, res['path'], dirPath)
+        filePath = os.path.join(BASE_PATH, res['path'], res['filename'])
 
     if (not errorStr and
             (not os.path.exists(filePath) or
-                '..' in dirPath)):
+                '..' in hashPath)):
         errorStr = 'Bad path or filename'
 
     if errorStr:
@@ -366,16 +387,16 @@ def video(guid, dirPath):
                                errorText=errorStr,
                                )
 
-    fullPath = buildWaiterPath('file', guid, dirPath, includeLastSlash=True)
+    fullPath = buildWaiterPath('file', guid, hashPath, includeLastSlash=True)
 
 
     subtitle_filename = filePath[:-4] + '.vtt'
-    subtitle_file = fullPath[:-4] + '.vtt' if os.path.exists(subtitle_filename) else None
+    subtitle_file = filePath[:-4] + '.vtt' if os.path.exists(subtitle_filename) else None
 
     return render_template('video.html',
                            title=res['displayname'],
                            filename=res['filename'],
-                           dirPath=dirPath,
+                           hashPath=hashPath,
                            video_file=fullPath,
                            subtitle_file=subtitle_file,
                            viewedUrl=WAITER_VIEWED_URL,
@@ -403,20 +424,20 @@ def ajaxviewed(guid):
 
     return jsonify({'msg': 'Viewed set successfully'})
 
-@app.route(APP_NAME + '/offset/<guid>/<path:filename>/', methods=['GET', 'POST', 'DELETE'])
-def videoOffset(guid, filename):
+@app.route(APP_NAME + '/offset/<guid>/<path:hashedFilename>/', methods=['GET', 'POST', 'DELETE'])
+def videoOffset(guid, hashedFilename):
     if request.method == 'GET':
         print 'GET-ing video offset'
-        data = getVideoOffset(filename, guid)
+        data = getVideoOffset(hashedFilename, guid)
         return jsonify(data)
     elif request.method == 'POST':
         print 'POST-ing video offset:'
         print 'offset: %s' % request.form['offset']
-        setVideoOffset(filename, guid, request.form['offset'])
+        setVideoOffset(hashedFilename, guid, request.form['offset'])
         return jsonify({'msg': 'success'})
     elif request.method == 'DELETE':
         print 'DELETE-ing video offset:'
-        deleteVideoOffset(filename, guid)
+        deleteVideoOffset(hashedFilename, guid)
         return jsonify({'msg': 'deleted'})
     else:
         raise Exception('Method not supported')

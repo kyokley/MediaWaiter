@@ -11,7 +11,7 @@ from settings import (APP_NAME,
                       WAITER_PASSWORD,
                       VERIFY_REQUESTS,
                       )
-from flask import request, current_app
+import hashlib
 
 suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
 def humansize(nbytes):
@@ -130,3 +130,9 @@ def deleteVideoOffset(filename, guid):
         resp.raise_for_status()
     except Exception, e:
         log.error(e)
+
+def hashed_filename(filename):
+    if isinstance(filename, unicode):
+        return hashlib.sha256(filename.encode('utf-8')).hexdigest()
+    else:
+        return hashlib.sha256(filename).hexdigest()
