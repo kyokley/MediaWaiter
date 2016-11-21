@@ -3,6 +3,7 @@ from waiter import (isAlfredEncoding,
                     updateDownloadClick,
                     getTokenByGUID,
                     get_dirPath,
+                    buildMovieEntries,
                     )
 from settings import (MEDIAVIEWER_DOWNLOADCLICK_URL,
                       WAITER_USERNAME,
@@ -177,3 +178,4 @@ class TestGetDirPath(unittest.TestCase):
         self.mock_buildWaiterPath.assert_called_once_with('file',
                                                           self.test_guid,
                                                           'test_path')
+

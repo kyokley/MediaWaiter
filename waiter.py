@@ -83,22 +83,13 @@ def get_dirPath(guid):
     '''Display a page that lists all media files in a given directory'''
     try:
         res = getTokenByGUID(guid)
-    except Exception, e:
-        log.debug(e, exc_info=True)
-        errorText = "An error has occurred"
-        return render_template("error.html",
-                               title="Error",
-                               errorText=errorText,
-                               )
+        errorStr = checkForValidToken(res, guid)
+        if errorStr:
+            return render_template("error.html",
+                                   title="Error",
+                                   errorText=errorStr,
+                                   )
 
-    errorStr = checkForValidToken(res, guid)
-    if errorStr:
-        return render_template("error.html",
-                               title="Error",
-                               errorText=errorStr,
-                               )
-
-    try:
         files = []
         if res['ismovie']:
             files.extend(buildMovieEntries(res))
