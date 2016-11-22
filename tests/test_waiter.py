@@ -179,3 +179,31 @@ class TestGetDirPath(unittest.TestCase):
                                                           self.test_guid,
                                                           'test_path')
 
+class TestBuildMovieEntries(unittest.TestCase):
+    def setUp(self):
+        self.os_patcher = mock.patch('waiter.os')
+        self.mock_os = self.os_patcher.start()
+        self._buildFileDictHelper_patcher = mock.patch('waiter._buildFileDictHelper')
+        self.mock_buildFileDictHelper = self._buildFileDictHelper_patcher.start()
+        self.BASE_PATH_patcher = mock.patch('waiter.BASE_PATH', '/base/path')
+        self.BASE_PATH_patcher.start()
+
+        self.mock_os.path.join.side_effect = ['path/to/movie',
+                                              '/base/path/to/movie']
+        self.mock_os.walk.return_value = [('/root/path', [], ['file1',
+                                                              'file2',
+                                                              'file3'])]
+
+        self.token = {'path': 'a/movie/path',
+                      'filename': 'test_movie_name'}
+
+
+    def tearDown(self):
+        self.os_patcher.stop()
+        self._buildFileDictHelper_patcher.stop()
+        self.BASE_PATH_patcher.stop()
+
+    def test_(self):
+        expected = [{}]
+        actual = buildMovieEntries(self.token)
+        self.assertEqual(expected, actual)
