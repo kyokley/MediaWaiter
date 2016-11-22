@@ -19,6 +19,7 @@ from settings import (BASE_PATH,
                       WAITER_VIEWED_URL,
                       WAITER_OFFSET_URL,
                       VERIFY_REQUESTS,
+                      MINIMUM_FILE_SIZE,
                       )
 from utils import (humansize,
                    delayedRetry,
@@ -113,32 +114,38 @@ def get_dirPath(guid):
 def buildMovieEntries(token):
     files = []
     movieFilename = os.path.join(token['path'], token['filename'])
-    searchPath = os.path.join(BASE_PATH, movieFilename)
-    for root, subFolders, filenames in os.walk(searchPath):
+    fullMoviePath = os.path.join(BASE_PATH, movieFilename)
+    for root, subFolders, filenames in os.walk(fullMoviePath):
         for filename in filenames:
-            path = os.path.join(root, filename)
-            size = os.path.getsize(path)
-
-            waiterPath = path.partition(searchPath)[2][1:]
-
-            # Files smaller than 10MB probably aren't video files
-            if size < 10000000:
-                continue
-            ext = os.path.splitext(filename)[-1].lower()
-            streamingPath = (ext in STREAMABLE_FILE_TYPES and
-                             buildWaiterPath('stream', token['guid'], hashed_filename(waiterPath), includeLastSlash=True) or
-                             None)
-            fileDict = {'path': buildWaiterPath('file', token['guid'], hashed_filename(waiterPath), includeLastSlash=True),
-                        'streamingPath': streamingPath,
-                        'waiterPath': waiterPath,
-                        'unhashedPath': path,
-                        'streamable': bool(streamingPath),
-                        'filename': filename,
-                        'size': humansize(size),
-                        'isAlfredEncoding': isAlfredEncoding(filename),
-                        'ismovie': True}
-            files.append(fileDict)
+            filesDict = _buildFileDictHelper(root, filename, token)
+            if filesDict:
+                files.append(filesDict)
     return files
+
+def _buildFileDictHelper(root, filename, token):
+    path = os.path.join(root, filename)
+    size = os.path.getsize(path)
+    ext = os.path.splitext(filename)[-1].lower()
+
+    # Files smaller than 10MB probably aren't video files
+    if (size < MINIMUM_FILE_SIZE or
+            ext not in STREAMABLE_FILE_TYPES or
+            not isAlfredEncoding(filename)):
+        return None
+
+    waiterPath = os.path.join(token['filename'], filename)
+
+    streamingPath = buildWaiterPath('stream', token['guid'], hashed_filename(waiterPath), includeLastSlash=True)
+    fileDict = {'path': buildWaiterPath('file', token['guid'], hashed_filename(waiterPath), includeLastSlash=True),
+                'streamingPath': streamingPath,
+                'waiterPath': waiterPath,
+                'unhashedPath': path,
+                'streamable': True,
+                'filename': filename,
+                'size': humansize(size),
+                'isAlfredEncoding': True,
+                'ismovie': True}
+    return fileDict
 
 @app.route(APP_NAME + '/file/<guid>/<path:hashPath>')
 @logErrorsAndContinue

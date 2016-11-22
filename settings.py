@@ -2,6 +2,8 @@ DEBUG = False
 PORT = 5000
 USE_NGINX = True
 
+MINIMUM_FILE_SIZE = 10000000
+
 # The system expects the Movie and tv show folders to exist in a
 # BASE_PATH folder. The path to that folder is defined below
 BASE_PATH = '/path/to/base/folder'
