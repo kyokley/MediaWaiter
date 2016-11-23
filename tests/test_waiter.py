@@ -4,6 +4,7 @@ from waiter import (isAlfredEncoding,
                     getTokenByGUID,
                     get_dirPath,
                     buildMovieEntries,
+                    _buildFileDictHelper,
                     )
 from settings import (MEDIAVIEWER_DOWNLOADCLICK_URL,
                       WAITER_USERNAME,
@@ -224,3 +225,37 @@ class TestBuildMovieEntries(unittest.TestCase):
         self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file1', self.token)
         self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file2', self.token)
         self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file3', self.token)
+
+class TestBuildFileDictHelper(unittest.TestCase):
+    def setUp(self):
+        self.os_patcher = mock.patch('waiter.os')
+        self.mock_os = self.os_patcher.start()
+        self.MINIMUM_FILE_SIZE_patcher = mock.patch('waiter.MINIMUM_FILE_SIZE', 10000000)
+        self.MINIMUM_FILE_SIZE_patcher.start()
+        self.STREAMABLE_FILE_TYPES_patcher = mock.patch('waiter.STREAMABLE_FILE_TYPES', '.mp4')
+        self.STREAMABLE_FILE_TYPES_patcher.start()
+        self.isAlfredEncoding_patcher = mock.patch('waiter.isAlfredEncoding')
+        self.mock_isAlfredEncoding = self.isAlfredEncoding_patcher.start()
+        self.hashed_filename_patcher = mock.patch('waiter.hashed_filename')
+        self.mock_hashed_filename = self.hashed_filename_patcher.start()
+        self.buildWaiterPath_patcher = mock.patch('waiter.buildWaiterPath')
+        self.mock_buildWaiterPath = self.buildWaiterPath_patcher.start()
+        self.humansize_patcher = mock.patch('waiter.humansize')
+        self.mock_humansize = self.humansize_patcher.start()
+
+        self.mock_os.path.join.side_effect = ['root/filename',
+                                              'token/filename']
+        self.token = {'filename': 'some.file.mp4',
+                      'guid': 'asdf1234'}
+
+    def tearDown(self):
+        self.os_patcher.stop()
+        self.MINIMUM_FILE_SIZE_patcher.stop()
+        self.STREAMABLE_FILE_TYPES_patcher.stop()
+        self.isAlfredEncoding_patcher.stop()
+        self.humansize_patcher.stop()
+        self.hashed_filename_patcher.stop()
+        self.buildWaiterPath_patcher.stop()
+
+    def test_file_too_small(self):
+        self.mock_os.path.getsize.return_value = 1000000

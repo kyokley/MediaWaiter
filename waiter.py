@@ -134,9 +134,10 @@ def _buildFileDictHelper(root, filename, token):
         return None
 
     waiterPath = os.path.join(token['filename'], filename)
+    hashedWaiterPath = hashed_filename(waiterPath)
 
-    streamingPath = buildWaiterPath('stream', token['guid'], hashed_filename(waiterPath), includeLastSlash=True)
-    fileDict = {'path': buildWaiterPath('file', token['guid'], hashed_filename(waiterPath), includeLastSlash=True),
+    streamingPath = buildWaiterPath('stream', token['guid'], hashedWaiterPath, includeLastSlash=True)
+    fileDict = {'path': buildWaiterPath('file', token['guid'], hashedWaiterPath, includeLastSlash=True),
                 'streamingPath': streamingPath,
                 'waiterPath': waiterPath,
                 'unhashedPath': path,
