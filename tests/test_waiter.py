@@ -203,7 +203,24 @@ class TestBuildMovieEntries(unittest.TestCase):
         self._buildFileDictHelper_patcher.stop()
         self.BASE_PATH_patcher.stop()
 
-    def test_(self):
-        expected = [{}]
+    def test_all_valid_files(self):
+        expected = [self.mock_buildFileDictHelper.return_value,
+                    self.mock_buildFileDictHelper.return_value,
+                    self.mock_buildFileDictHelper.return_value]
         actual = buildMovieEntries(self.token)
         self.assertEqual(expected, actual)
+
+        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file1', self.token)
+        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file2', self.token)
+        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file3', self.token)
+
+    def test_no_valid_files(self):
+        self.mock_buildFileDictHelper.return_value = None
+
+        expected = []
+        actual = buildMovieEntries(self.token)
+        self.assertEqual(expected, actual)
+
+        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file1', self.token)
+        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file2', self.token)
+        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file3', self.token)
