@@ -2,3 +2,5 @@
 mock
 nose
 bandit
+coverage
+diff-cover
