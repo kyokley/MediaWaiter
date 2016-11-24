@@ -5,3 +5,5 @@ local_settings*
 *.log
 node_modules
 bower_components
+.coverage
+coverage.xml
