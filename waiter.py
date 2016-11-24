@@ -154,47 +154,47 @@ def send_file_for_download(guid, hashPath):
     '''Send the file specified at dirPath'''
     try:
         res = getTokenByGUID(guid)
-    except Exception, e:
-        log.debug(e, exc_info=True)
-        errorText = "An error has occurred"
-        return render_template("error.html",
-                               title="Error",
-                               errorText=errorText,
-                               )
 
-    errorStr = checkForValidToken(res, guid)
-    if errorStr:
-        return render_template("error.html",
-                               title="Error",
-                               errorText=errorStr,
-                               )
+        errorStr = checkForValidToken(res, guid)
+        if errorStr:
+            return render_template("error.html",
+                                   title="Error",
+                                   errorText=errorStr,
+                                   )
 
 
-    if res['ismovie']:
-        movieEntries = buildMovieEntries(res)
-        for entry in movieEntries:
-            if hashed_filename(entry['waiterPath']) == hashPath:
-                unhashedPath = entry['unhashedPath']
-                break
+        if res['ismovie']:
+            movieEntries = buildMovieEntries(res)
+            for entry in movieEntries:
+                if hashed_filename(entry['waiterPath']) == hashPath:
+                    unhashedPath = entry['unhashedPath']
+                    break
+            else:
+                raise Exception('Something meaningful')
+            fullPath = os.path.join(BASE_PATH, res['path'], res['filename'], unhashedPath)
         else:
-            raise Exception('Something meaningful')
-        fullPath = os.path.join(BASE_PATH, res['path'], res['filename'], unhashedPath)
-    else:
-        fullPath = os.path.join(res['path'], res['filename'])
+            fullPath = os.path.join(res['path'], res['filename'])
 
-    # Probably don't need to make the following check since the data is trusted
-    # but leaving the check in shouldn't hurt anything
-    if (res and
-            res['path'] in fullPath and
-            '..' not in fullPath):
-        path, filename = os.path.split(fullPath)
-        return send_file_partial(fullPath,
-                                 filename=filename,
-                                 token=res)
-    else:
-        log.error('Unauthorized use of GUID attempted')
-        log.error('GUID: %s' % (guid,))
-        errorText = 'Access is unauthorized!'
+        # Probably don't need to make the following check since the data is trusted
+        # but leaving the check in shouldn't hurt anything
+        if (res and
+                res['path'] in fullPath and
+                '..' not in fullPath):
+            path, filename = os.path.split(fullPath)
+            return send_file_partial(fullPath,
+                                     filename=filename,
+                                     token=res)
+        else:
+            log.error('Unauthorized use of GUID attempted')
+            log.error('GUID: %s' % (guid,))
+            errorText = 'Access is unauthorized!'
+            return render_template("error.html",
+                                   title="Error",
+                                   errorText=errorText,
+                                   )
+    except Exception, e:
+        log.error(e, exc_info=True)
+        errorText = "An error has occurred"
         return render_template("error.html",
                                title="Error",
                                errorText=errorText,
