@@ -6,7 +6,5 @@ install:
 before_script:
     - cp travis_settings local_settings.py
 script:
-    - nosetests --with-coverage
-    - coverage xml
-    - diff-cover coverage.xml
+    - nosetests --with-coverage --cover-package=. --cover-erase --cover-min-percentage=75
     - bandit -x tests -r .
