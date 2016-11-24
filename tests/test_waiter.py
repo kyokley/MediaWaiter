@@ -228,8 +228,9 @@ class TestBuildMovieEntries(unittest.TestCase):
 
 class TestBuildFileDictHelper(unittest.TestCase):
     def setUp(self):
-        self.os_patcher = mock.patch('waiter.os')
-        self.mock_os = self.os_patcher.start()
+        self.getsize_patcher = mock.patch('waiter.os.path.getsize')
+        self.mock_getsize = self.getsize_patcher.start()
+
         self.MINIMUM_FILE_SIZE_patcher = mock.patch('waiter.MINIMUM_FILE_SIZE', 10000000)
         self.MINIMUM_FILE_SIZE_patcher.start()
         self.STREAMABLE_FILE_TYPES_patcher = mock.patch('waiter.STREAMABLE_FILE_TYPES', '.mp4')
@@ -243,13 +244,11 @@ class TestBuildFileDictHelper(unittest.TestCase):
         self.humansize_patcher = mock.patch('waiter.humansize')
         self.mock_humansize = self.humansize_patcher.start()
 
-        self.mock_os.path.join.side_effect = ['root/filename',
-                                              'token/filename']
         self.token = {'filename': 'some.file.mp4',
                       'guid': 'asdf1234'}
 
     def tearDown(self):
-        self.os_patcher.stop()
+        self.getsize_patcher.stop()
         self.MINIMUM_FILE_SIZE_patcher.stop()
         self.STREAMABLE_FILE_TYPES_patcher.stop()
         self.isAlfredEncoding_patcher.stop()
@@ -258,4 +257,23 @@ class TestBuildFileDictHelper(unittest.TestCase):
         self.buildWaiterPath_patcher.stop()
 
     def test_file_too_small(self):
-        self.mock_os.path.getsize.return_value = 1000000
+        self.mock_getsize.return_value = 1000000
+
+        expected = None
+        actual = _buildFileDictHelper('root', 'filename.mp4', self.token)
+        self.assertEqual(expected, actual)
+        self.mock_getsize.assert_called_once_with('root/filename.mp4')
+        self.assertFalse(self.mock_buildWaiterPath.called)
+        self.assertFalse(self.mock_hashed_filename.called)
+        self.assertFalse(self.mock_isAlfredEncoding.called)
+
+    def test_file_not_streamable(self):
+        self.mock_getsize.return_value = 100000000
+
+        expected = None
+        actual = _buildFileDictHelper('root', 'filename.mkv', self.token)
+        self.assertEqual(expected, actual)
+        self.mock_getsize.assert_called_once_with('root/filename.mkv')
+        self.assertFalse(self.mock_buildWaiterPath.called)
+        self.assertFalse(self.mock_hashed_filename.called)
+        self.assertFalse(self.mock_isAlfredEncoding.called)
