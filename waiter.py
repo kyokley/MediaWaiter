@@ -160,37 +160,36 @@ def _buildFileDictHelper(root, filename, token):
 @logErrorsAndContinue
 def send_file_for_download(guid, hashPath):
     '''Send the file specified at dirPath'''
-    res = getTokenByGUID(guid)
+    token = getTokenByGUID(guid)
 
-    errorStr = checkForValidToken(res, guid)
+    errorStr = checkForValidToken(token, guid)
     if errorStr:
         return render_template("error.html",
                                title="Error",
                                errorText=errorStr,
                                )
 
-
-    if res['ismovie']:
-        movieEntries = buildMovieEntries(res)
+    if token['ismovie']:
+        movieEntries = buildMovieEntries(token)
         for entry in movieEntries:
             if hashed_filename(entry['waiterPath']) == hashPath:
                 unhashedPath = entry['unhashedPath']
                 break
         else:
-            raise Exception('Something meaningful')
-        fullPath = os.path.join(BASE_PATH, res['path'], res['filename'], unhashedPath)
+            raise Exception('Unable to find matching path')
+        fullPath = os.path.join(BASE_PATH, token['path'], token['filename'], unhashedPath)
     else:
-        fullPath = os.path.join(res['path'], res['filename'])
+        fullPath = os.path.join(token['path'], token['filename'])
 
     # Probably don't need to make the following check since the data is trusted
     # but leaving the check in shouldn't hurt anything
-    if (res and
-            res['path'] in fullPath and
+    if (token and
+            token['path'] in fullPath and
             '..' not in fullPath):
         path, filename = os.path.split(fullPath)
         return send_file_partial(fullPath,
                                  filename=filename,
-                                 token=res)
+                                 token=token)
     else:
         log.error('Unauthorized use of GUID attempted')
         log.error('GUID: %s' % (guid,))

@@ -325,6 +325,11 @@ class TestSendFileForDownload(unittest.TestCase):
         self.checkForValidToken_patcher = mock.patch('waiter.checkForValidToken')
         self.mock_checkForValidToken = self.checkForValidToken_patcher.start()
 
+        self.token = {'path': 'test_path',
+                      'filename': 'test_filename',
+                      }
+        self.mock_getTokenByGUID.return_value = self.token
+
     def tearDown(self):
         self.getTokenByGUID_patcher.stop()
         self.render_template_patcher.stop()
@@ -338,3 +343,15 @@ class TestSendFileForDownload(unittest.TestCase):
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
                                                           errorText='An error has occurred')
+
+    def test_invalid_token(self):
+        self.mock_checkForValidToken.return_value = 'got some error'
+
+        expected = self.mock_render_template.return_value
+        actual = send_file_for_download('guid', 'hashPath')
+        self.assertEqual(expected, actual)
+        self.mock_getTokenByGUID.assert_called_once_with('guid')
+        self.mock_checkForValidToken.assert_called_once_with(self.token, 'guid')
+        self.mock_render_template.assert_called_once_with('error.html',
+                                                          title='Error',
+                                                          errorText='got some error')
