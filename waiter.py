@@ -1,5 +1,6 @@
 import os
 import mimetypes
+from functools import wraps
 from flask import (Flask,
                    Response,
                    request,
@@ -23,7 +24,6 @@ from settings import (BASE_PATH,
                       )
 from utils import (humansize,
                    delayedRetry,
-                   logErrorsAndContinue,
                    checkForValidToken,
                    parseRangeHeaders,
                    buildWaiterPath,
@@ -38,6 +38,22 @@ import requests
 STREAMABLE_FILE_TYPES = ('.mp4',)
 
 app = Flask(__name__, static_url_path='')
+
+def logErrorsAndContinue(func):
+    @wraps(func)
+    def func_wrapper(*args, **kwargs):
+        log.debug('Attempting %s' % func.__name__)
+        try:
+            res = func(*args, **kwargs)
+            return res
+        except Exception, e:
+            log.error(e, exc_info=True)
+            errorText = "An error has occurred"
+            return render_template("error.html",
+                                   title="Error",
+                                   errorText=errorText,
+                                   )
+    return func_wrapper
 
 def isAlfredEncoding(filename):
     return MEDIAVIEWER_SUFFIX in filename
@@ -82,34 +98,26 @@ def modifyCookie(resp):
 @logErrorsAndContinue
 def get_dirPath(guid):
     '''Display a page that lists all media files in a given directory'''
-    try:
-        res = getTokenByGUID(guid)
-        errorStr = checkForValidToken(res, guid)
-        if errorStr:
-            return render_template("error.html",
-                                   title="Error",
-                                   errorText=errorStr,
-                                   )
-
-        files = []
-        if res['ismovie']:
-            files.extend(buildMovieEntries(res))
-        else:
-            fileDict = {'path': buildWaiterPath('file', guid, res['path']),
-                        'filename': res['filename']}
-            files.append(fileDict)
-        files.sort()
-        return render_template("display.html",
-                               title=res['displayname'],
-                               files=files,
-                               )
-    except Exception, e:
-        log.debug(e, exc_info=True)
-        errorText = "An error has occurred"
+    res = getTokenByGUID(guid)
+    errorStr = checkForValidToken(res, guid)
+    if errorStr:
         return render_template("error.html",
                                title="Error",
-                               errorText=errorText,
+                               errorText=errorStr,
                                )
+
+    files = []
+    if res['ismovie']:
+        files.extend(buildMovieEntries(res))
+    else:
+        fileDict = {'path': buildWaiterPath('file', guid, res['path']),
+                    'filename': res['filename']}
+        files.append(fileDict)
+    files.sort()
+    return render_template("display.html",
+                           title=res['displayname'],
+                           files=files,
+                           )
 
 def buildMovieEntries(token):
     files = []
@@ -152,49 +160,41 @@ def _buildFileDictHelper(root, filename, token):
 @logErrorsAndContinue
 def send_file_for_download(guid, hashPath):
     '''Send the file specified at dirPath'''
-    try:
-        res = getTokenByGUID(guid)
+    res = getTokenByGUID(guid)
 
-        errorStr = checkForValidToken(res, guid)
-        if errorStr:
-            return render_template("error.html",
-                                   title="Error",
-                                   errorText=errorStr,
-                                   )
+    errorStr = checkForValidToken(res, guid)
+    if errorStr:
+        return render_template("error.html",
+                               title="Error",
+                               errorText=errorStr,
+                               )
 
 
-        if res['ismovie']:
-            movieEntries = buildMovieEntries(res)
-            for entry in movieEntries:
-                if hashed_filename(entry['waiterPath']) == hashPath:
-                    unhashedPath = entry['unhashedPath']
-                    break
-            else:
-                raise Exception('Something meaningful')
-            fullPath = os.path.join(BASE_PATH, res['path'], res['filename'], unhashedPath)
+    if res['ismovie']:
+        movieEntries = buildMovieEntries(res)
+        for entry in movieEntries:
+            if hashed_filename(entry['waiterPath']) == hashPath:
+                unhashedPath = entry['unhashedPath']
+                break
         else:
-            fullPath = os.path.join(res['path'], res['filename'])
+            raise Exception('Something meaningful')
+        fullPath = os.path.join(BASE_PATH, res['path'], res['filename'], unhashedPath)
+    else:
+        fullPath = os.path.join(res['path'], res['filename'])
 
-        # Probably don't need to make the following check since the data is trusted
-        # but leaving the check in shouldn't hurt anything
-        if (res and
-                res['path'] in fullPath and
-                '..' not in fullPath):
-            path, filename = os.path.split(fullPath)
-            return send_file_partial(fullPath,
-                                     filename=filename,
-                                     token=res)
-        else:
-            log.error('Unauthorized use of GUID attempted')
-            log.error('GUID: %s' % (guid,))
-            errorText = 'Access is unauthorized!'
-            return render_template("error.html",
-                                   title="Error",
-                                   errorText=errorText,
-                                   )
-    except Exception, e:
-        log.error(e, exc_info=True)
-        errorText = "An error has occurred"
+    # Probably don't need to make the following check since the data is trusted
+    # but leaving the check in shouldn't hurt anything
+    if (res and
+            res['path'] in fullPath and
+            '..' not in fullPath):
+        path, filename = os.path.split(fullPath)
+        return send_file_partial(fullPath,
+                                 filename=filename,
+                                 token=res)
+    else:
+        log.error('Unauthorized use of GUID attempted')
+        log.error('GUID: %s' % (guid,))
+        errorText = 'Access is unauthorized!'
         return render_template("error.html",
                                title="Error",
                                errorText=errorText,
@@ -204,15 +204,7 @@ def send_file_for_download(guid, hashPath):
 @logErrorsAndContinue
 def get_file(guid):
     '''Display a page that lists a single file'''
-    try:
-        res = getTokenByGUID(guid)
-    except Exception, e:
-        log.debug(e, exc_info=True)
-        errorText = "An error has occurred"
-        return render_template("error.html",
-                               title="Error",
-                               errorText=errorText,
-                               )
+    res = getTokenByGUID(guid)
 
     errorStr = checkForValidToken(res, guid)
     if errorStr or res['ismovie']:
@@ -351,15 +343,7 @@ def send_file_partial(path,
 @app.route(APP_NAME + '/stream/<guid>/<path:hashPath>')
 def video(guid, hashPath):
     '''Display streaming page'''
-    try:
-        res = getTokenByGUID(guid)
-    except Exception, e:
-        log.debug(e, exc_info=True)
-        errorText = "An error has occurred"
-        return render_template("error.html",
-                               title="Error",
-                               errorText=errorText,
-                               )
+    res = getTokenByGUID(guid)
 
     errorStr = checkForValidToken(res, guid)
 
@@ -387,7 +371,6 @@ def video(guid, hashPath):
                                )
 
     fullPath = buildWaiterPath('file', guid, hashPath, includeLastSlash=True)
-
 
     subtitle_filename = filePath[:-4] + '.vtt'
     subtitle_file = filePath[:-4] + '.vtt' if os.path.exists(subtitle_filename) else None

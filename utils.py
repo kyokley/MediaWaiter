@@ -3,7 +3,6 @@ import re
 import requests
 
 from werkzeug import url_fix
-from functools import wraps
 from log import log
 from settings import (APP_NAME,
                       MEDIAVIEWER_GUID_OFFSET_URL,
@@ -43,20 +42,6 @@ class delayedRetry(object):
             else:
                 raise Exception('Failure after %s attempts' % self.attempts)
         return wrap
-
-def logErrorsAndContinue(func):
-    @wraps(func)
-    def func_wrapper(*args, **kwargs):
-        log.debug('logErrorsAndContinue')
-        log.debug('Attempting %s' % func.__name__)
-        try:
-            res = func(*args, **kwargs)
-            return res
-        except Exception, e:
-            log.error(e, exc_info=True)
-            print e
-            return 'An error has occurred'
-    return func_wrapper
 
 def checkForValidToken(token, guid):
     if not token:

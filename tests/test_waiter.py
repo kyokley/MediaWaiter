@@ -335,3 +335,6 @@ class TestSendFileForDownload(unittest.TestCase):
         expected = self.mock_render_template.return_value
         actual = send_file_for_download('guid', 'hashPath')
         self.assertEqual(expected, actual)
+        self.mock_render_template.assert_called_once_with('error.html',
+                                                          title='Error',
+                                                          errorText='An error has occurred')
