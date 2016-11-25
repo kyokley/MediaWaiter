@@ -181,23 +181,10 @@ def send_file_for_download(guid, hashPath):
     else:
         fullPath = os.path.join(token['path'], token['filename'])
 
-    # Probably don't need to make the following check since the data is trusted
-    # but leaving the check in shouldn't hurt anything
-    if (token and
-            token['path'] in fullPath and
-            '..' not in fullPath):
-        path, filename = os.path.split(fullPath)
-        return send_file_partial(fullPath,
-                                 filename=filename,
-                                 token=token)
-    else:
-        log.error('Unauthorized use of GUID attempted')
-        log.error('GUID: %s' % (guid,))
-        errorText = 'Access is unauthorized!'
-        return render_template("error.html",
-                               title="Error",
-                               errorText=errorText,
-                               )
+    path, filename = os.path.split(fullPath)
+    return send_file_partial(fullPath,
+                             filename=filename,
+                             token=token)
 
 @app.route(APP_NAME + '/file/<guid>/')
 @logErrorsAndContinue

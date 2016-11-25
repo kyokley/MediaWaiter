@@ -318,22 +318,40 @@ class TestBuildFileDictHelper(unittest.TestCase):
 
 class TestSendFileForDownload(unittest.TestCase):
     def setUp(self):
+        self.BASE_PATH_patcher = mock.patch('waiter.BASE_PATH', 'BASE_PATH')
+        self.BASE_PATH_patcher.start()
         self.getTokenByGUID_patcher = mock.patch('waiter.getTokenByGUID')
         self.mock_getTokenByGUID = self.getTokenByGUID_patcher.start()
         self.render_template_patcher = mock.patch('waiter.render_template')
         self.mock_render_template = self.render_template_patcher.start()
         self.checkForValidToken_patcher = mock.patch('waiter.checkForValidToken')
         self.mock_checkForValidToken = self.checkForValidToken_patcher.start()
+        self.buildMovieEntries_patcher = mock.patch('waiter.buildMovieEntries')
+        self.mock_buildMovieEntries = self.buildMovieEntries_patcher.start()
+        self.hashed_filename_patcher = mock.patch('waiter.hashed_filename')
+        self.mock_hashed_filename = self.hashed_filename_patcher.start()
+        self.send_file_partial_patcher = mock.patch('waiter.send_file_partial')
+        self.mock_send_file_partial = self.send_file_partial_patcher.start()
 
         self.token = {'path': 'test_path',
                       'filename': 'test_filename',
+                      'ismovie': False,
                       }
         self.mock_getTokenByGUID.return_value = self.token
+        self.mock_checkForValidToken.return_value = None
+        self.mock_buildMovieEntries.return_value = [{'waiterPath': 'path/to/file',
+                                                     'unhashedPath': 'unhashed/path/to/file',
+                                                     }]
+        self.mock_hashed_filename.return_value = 'hashPath'
 
     def tearDown(self):
+        self.BASE_PATH_patcher.stop()
         self.getTokenByGUID_patcher.stop()
         self.render_template_patcher.stop()
         self.checkForValidToken_patcher.stop()
+        self.buildMovieEntries_patcher.stop()
+        self.hashed_filename_patcher.stop()
+        self.send_file_partial_patcher.stop()
 
     def test_handle_exception(self):
         self.mock_checkForValidToken.side_effect = Exception('some error')
@@ -355,3 +373,38 @@ class TestSendFileForDownload(unittest.TestCase):
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
                                                           errorText='got some error')
+
+    def test_movie_file(self):
+        self.token['ismovie'] = True
+
+        expected = self.mock_send_file_partial.return_value
+        actual = send_file_for_download('guid', 'hashPath')
+        self.assertEqual(expected, actual)
+        self.mock_buildMovieEntries.assert_called_once_with(self.token)
+        self.mock_hashed_filename.assert_called_once_with('path/to/file')
+        self.mock_send_file_partial.assert_called_once_with('BASE_PATH/test_path/test_filename/unhashed/path/to/file',
+                                                            filename='file',
+                                                            token=self.token)
+
+    def test_bad_movie_file(self):
+        self.token['ismovie'] = True
+
+        expected = self.mock_render_template.return_value
+        actual = send_file_for_download('guid', 'badHashPath')
+        self.assertEqual(expected, actual)
+        self.mock_buildMovieEntries.assert_called_once_with(self.token)
+        self.mock_hashed_filename.assert_called_once_with('path/to/file')
+        self.assertFalse(self.mock_send_file_partial.called)
+        self.mock_render_template.assert_called_once_with('error.html',
+                                                          title='Error',
+                                                          errorText='An error has occurred')
+
+    def test_tv_file(self):
+        expected = self.mock_send_file_partial.return_value
+        actual = send_file_for_download('guid', 'hashPath')
+        self.assertEqual(expected, actual)
+        self.assertFalse(self.mock_buildMovieEntries.called)
+        self.assertFalse(self.mock_hashed_filename.called)
+        self.mock_send_file_partial.assert_called_once_with('test_path/test_filename',
+                                                            filename='test_filename',
+                                                            token=self.token)
