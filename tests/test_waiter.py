@@ -7,6 +7,7 @@ from waiter import (isAlfredEncoding,
                     _buildFileDictHelper,
                     send_file_for_download,
                     get_file,
+                    get_status,
                     )
 from settings import (MEDIAVIEWER_DOWNLOADCLICK_URL,
                       WAITER_USERNAME,
@@ -508,6 +509,8 @@ class TestGetFile(unittest.TestCase):
                                                           title='test_displayname',
                                                           files=[expected_file_dict],
                                                           auto_download='test_auto_download')
+        self.mock_humansize.assert_called_once_with(self.mock_getsize.return_value)
+        self.mock_getsize.assert_called_once_with('test/path/test_filename.mp4')
         self.mock_buildWaiterPath.assert_any_call('stream',
                                                   'guid',
                                                   'test_hash',
@@ -516,3 +519,43 @@ class TestGetFile(unittest.TestCase):
                                                   'guid',
                                                   'test_hash',
                                                   )
+        self.mock_isAlfredEncoding.assert_called_once_with('test_filename.mp4')
+
+class TestGetStatus(unittest.TestCase):
+    def setUp(self):
+        self.BASE_PATH_patcher = mock.patch('waiter.BASE_PATH', 'BASE_PATH')
+        self.BASE_PATH_patcher.start()
+        self.exists_patcher = mock.patch('waiter.os.path.exists')
+        self.mock_exists = self.exists_patcher.start()
+        self.log_patcher = mock.patch('waiter.log')
+        self.mock_log = self.log_patcher.start()
+        self.jsonify_patcher = mock.patch('waiter.jsonify')
+        self.mock_jsonify = self.jsonify_patcher.start()
+
+    def tearDown(self):
+        self.BASE_PATH_patcher.stop()
+        self.exists_patcher.stop()
+        self.log_patcher.stop()
+        self.jsonify_patcher.stop()
+
+    def test_bad_tv_status(self):
+        self.mock_exists.side_effect = [True, False]
+
+        expected = self.mock_jsonify.return_value
+        actual = get_status()
+        self.assertEqual(expected, actual)
+        self.mock_log.debug.assert_any_call('Movies directory is good')
+        self.mock_log.debug.assert_any_call('tv shows directory failed')
+        self.mock_log.debug.assert_any_call('status: False')
+        self.mock_jsonify.assert_called_once_with({'status': False})
+
+    def test_bad_movie_status(self):
+        self.mock_exists.side_effect = [False, True]
+
+        expected = self.mock_jsonify.return_value
+        actual = get_status()
+        self.assertEqual(expected, actual)
+        self.mock_log.debug.assert_any_call('tv shows directory is good')
+        self.mock_log.debug.assert_any_call('Movies directory failed')
+        self.mock_log.debug.assert_any_call('status: False')
+        self.mock_jsonify.assert_called_once_with({'status': False})
