@@ -412,6 +412,8 @@ class TestSendFileForDownload(unittest.TestCase):
 
 class TestGetFile(unittest.TestCase):
     def setUp(self):
+        self.log_patcher = mock.patch('waiter.log')
+        self.mock_log = self.log_patcher.start()
         self.STREAMABLE_FILE_TYPES_patcher = mock.patch('waiter.STREAMABLE_FILE_TYPES', ('.mp4',))
         self.STREAMABLE_FILE_TYPES_patcher.start()
         self.getTokenByGUID_patcher = mock.patch('waiter.getTokenByGUID')
@@ -422,20 +424,39 @@ class TestGetFile(unittest.TestCase):
         self.mock_render_template = self.render_template_patcher.start()
         self.buildWaiterPath_patcher = mock.patch('waiter.buildWaiterPath')
         self.mock_buildWaiterPath = self.buildWaiterPath_patcher.start()
+        self.hashed_filename_patcher = mock.patch('waiter.hashed_filename')
+        self.mock_hashed_filename = self.hashed_filename_patcher.start()
+        self.exists_patcher = mock.patch('waiter.os.path.exists')
+        self.mock_exists = self.exists_patcher.start()
+        self.getsize_patcher = mock.patch('waiter.os.path.getsize')
+        self.mock_getsize = self.getsize_patcher.start()
+        self.humansize_patcher = mock.patch('waiter.humansize')
+        self.mock_humansize = self.humansize_patcher.start()
+        self.isAlfredEncoding_patcher = mock.patch('waiter.isAlfredEncoding')
+        self.mock_isAlfredEncoding = self.isAlfredEncoding_patcher.start()
 
         self.token = {'ismovie': False,
                       'filename': 'test_filename.mp4',
                       'path': 'test/path',
+                      'displayname': 'test_displayname',
+                      'auto_download': 'test_auto_download',
                       }
         self.mock_getTokenByGUID.return_value = self.token
         self.mock_checkForValidToken.return_value = None
+        self.mock_hashed_filename.return_value = 'test_hash'
 
     def tearDown(self):
+        self.log_patcher.stop()
         self.STREAMABLE_FILE_TYPES_patcher.stop()
         self.getTokenByGUID_patcher.stop()
         self.render_template_patcher.stop()
         self.checkForValidToken_patcher.stop()
         self.buildWaiterPath_patcher.stop()
+        self.hashed_filename_patcher.stop()
+        self.exists_patcher.stop()
+        self.getsize_patcher.stop()
+        self.humansize_patcher.stop()
+        self.isAlfredEncoding_patcher.stop()
 
     def test_invalid_token(self):
         self.mock_checkForValidToken.return_value = 'got an error'
@@ -456,3 +477,42 @@ class TestGetFile(unittest.TestCase):
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
                                                           errorText='Invalid URL for movie type')
+
+    def test_file_does_not_exist(self):
+        self.mock_exists.return_value = False
+
+        expected = self.mock_render_template.return_value
+        actual = get_file('guid')
+        self.assertEqual(expected, actual)
+        self.mock_render_template.assert_called_once_with('error.html',
+                                                          title='Error',
+                                                          errorText='An error has occurred')
+        self.mock_exists.assert_called_once_with('test/path/test_filename.mp4')
+        self.mock_log.error.assert_called_once_with('File test/path/test_filename.mp4 does not exists')
+        self.assertFalse(self.mock_buildWaiterPath.called)
+
+    def test_valid(self):
+        expected_file_dict = {'path': self.mock_buildWaiterPath.return_value,
+                              'streamingPath': self.mock_buildWaiterPath.return_value,
+                              'streamable': True,
+                              'unhashedPath': 'test/path/test_filename.mp4',
+                              'size': self.mock_humansize.return_value,
+                              'filename': 'test_filename.mp4',
+                              'displayName': 'test_displayname',
+                              'isAlfredEncoding': self.mock_isAlfredEncoding.return_value,
+                              'ismovie': False}
+        expected = self.mock_render_template.return_value
+        actual = get_file('guid')
+        self.assertEqual(expected, actual)
+        self.mock_render_template.assert_called_once_with('display.html',
+                                                          title='test_displayname',
+                                                          files=[expected_file_dict],
+                                                          auto_download='test_auto_download')
+        self.mock_buildWaiterPath.assert_any_call('stream',
+                                                  'guid',
+                                                  'test_hash',
+                                                  )
+        self.mock_buildWaiterPath.assert_any_call('file',
+                                                  'guid',
+                                                  'test_hash',
+                                                  )
