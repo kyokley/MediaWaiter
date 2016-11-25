@@ -196,7 +196,7 @@ def get_file(guid):
     if errorStr or res['ismovie']:
         return render_template("error.html",
                                title="Error",
-                               errorText=errorStr,
+                               errorText='Invalid URL for movie type' if res['ismovie'] else errorStr,
                                )
 
     ext = os.path.splitext(res['filename'])[-1].lower()

@@ -6,6 +6,7 @@ from waiter import (isAlfredEncoding,
                     buildMovieEntries,
                     _buildFileDictHelper,
                     send_file_for_download,
+                    get_file,
                     )
 from settings import (MEDIAVIEWER_DOWNLOADCLICK_URL,
                       WAITER_USERNAME,
@@ -408,3 +409,50 @@ class TestSendFileForDownload(unittest.TestCase):
         self.mock_send_file_partial.assert_called_once_with('test_path/test_filename',
                                                             filename='test_filename',
                                                             token=self.token)
+
+class TestGetFile(unittest.TestCase):
+    def setUp(self):
+        self.STREAMABLE_FILE_TYPES_patcher = mock.patch('waiter.STREAMABLE_FILE_TYPES', ('.mp4',))
+        self.STREAMABLE_FILE_TYPES_patcher.start()
+        self.getTokenByGUID_patcher = mock.patch('waiter.getTokenByGUID')
+        self.mock_getTokenByGUID = self.getTokenByGUID_patcher.start()
+        self.checkForValidToken_patcher = mock.patch('waiter.checkForValidToken')
+        self.mock_checkForValidToken = self.checkForValidToken_patcher.start()
+        self.render_template_patcher = mock.patch('waiter.render_template')
+        self.mock_render_template = self.render_template_patcher.start()
+        self.buildWaiterPath_patcher = mock.patch('waiter.buildWaiterPath')
+        self.mock_buildWaiterPath = self.buildWaiterPath_patcher.start()
+
+        self.token = {'ismovie': False,
+                      'filename': 'test_filename.mp4',
+                      'path': 'test/path',
+                      }
+        self.mock_getTokenByGUID.return_value = self.token
+        self.mock_checkForValidToken.return_value = None
+
+    def tearDown(self):
+        self.STREAMABLE_FILE_TYPES_patcher.stop()
+        self.getTokenByGUID_patcher.stop()
+        self.render_template_patcher.stop()
+        self.checkForValidToken_patcher.stop()
+        self.buildWaiterPath_patcher.stop()
+
+    def test_invalid_token(self):
+        self.mock_checkForValidToken.return_value = 'got an error'
+
+        expected = self.mock_render_template.return_value
+        actual = get_file('guid')
+        self.assertEqual(expected, actual)
+        self.mock_render_template.assert_called_once_with('error.html',
+                                                          title='Error',
+                                                          errorText='got an error')
+
+    def test_movie_file(self):
+        self.token['ismovie'] = True
+
+        expected = self.mock_render_template.return_value
+        actual = get_file('guid')
+        self.assertEqual(expected, actual)
+        self.mock_render_template.assert_called_once_with('error.html',
+                                                          title='Error',
+                                                          errorText='Invalid URL for movie type')
