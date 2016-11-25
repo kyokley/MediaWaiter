@@ -8,6 +8,7 @@ from waiter import (isAlfredEncoding,
                     send_file_for_download,
                     get_file,
                     get_status,
+                    xsendfile,
                     )
 from settings import (MEDIAVIEWER_DOWNLOADCLICK_URL,
                       WAITER_USERNAME,
@@ -559,3 +560,52 @@ class TestGetStatus(unittest.TestCase):
         self.mock_log.debug.assert_any_call('Movies directory failed')
         self.mock_log.debug.assert_any_call('status: False')
         self.mock_jsonify.assert_called_once_with({'status': False})
+
+    def test_bad_bad_status(self):
+        self.mock_exists.side_effect = [False, False]
+
+        expected = self.mock_jsonify.return_value
+        actual = get_status()
+        self.assertEqual(expected, actual)
+        self.mock_log.debug.assert_any_call('tv shows directory failed')
+        self.mock_log.debug.assert_any_call('Movies directory failed')
+        self.mock_log.debug.assert_any_call('status: False')
+        self.mock_jsonify.assert_called_once_with({'status': False})
+
+    def test_good_status(self):
+        self.mock_exists.side_effect = [True, True]
+
+        expected = self.mock_jsonify.return_value
+        actual = get_status()
+        self.assertEqual(expected, actual)
+        self.mock_log.debug.assert_any_call('tv shows directory is good')
+        self.mock_log.debug.assert_any_call('Movies directory is good')
+        self.mock_log.debug.assert_any_call('status: True')
+        self.mock_jsonify.assert_called_once_with({'status': True})
+
+class TestXSendfile(unittest.TestCase):
+    def setUp(self):
+        self.log_patcher = mock.patch('waiter.log')
+        self.mock_log = self.log_patcher.start()
+        self.mimetypes_patcher = mock.patch('waiter.mimetypes')
+        self.mock_mimetypes = self.mimetypes_patcher.start()
+        self.Response_patcher = mock.patch('waiter.Response')
+        self.mock_response = self.Response_patcher.start()
+
+        self.response_obj = mock.MagicMock()
+
+        self.mock_response.return_value = self.response_obj
+
+    def tearDown(self):
+        self.log_patcher.stop()
+        self.mimetypes_patcher.stop()
+        self.Response_patcher.stop()
+
+    def test_(self):
+        path = 'path/to/file'
+        filename = 'test_filename.mp4'
+        size = 100
+
+        expected = self.response_obj
+        actual = xsendfile(path, filename, size)
+        self.assertEqual(expected, actual)
