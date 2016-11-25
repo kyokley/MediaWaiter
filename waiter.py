@@ -199,11 +199,6 @@ def get_file(guid):
                                errorText='Invalid URL for movie type' if res['ismovie'] else errorStr,
                                )
 
-    ext = os.path.splitext(res['filename'])[-1].lower()
-    streamingPath = (ext in STREAMABLE_FILE_TYPES and
-                     buildWaiterPath('stream', guid, hashed_filename(res['filename'])) or
-                     None)
-
     fullPath = os.path.join(res['path'], res['filename'])
     if not os.path.exists(fullPath):
         log.error('File %s does not exists' % fullPath)
@@ -213,8 +208,14 @@ def get_file(guid):
                                errorText=errorText,
                                )
 
+    ext = os.path.splitext(res['filename'])[-1].lower()
+    streamingPath = (ext in STREAMABLE_FILE_TYPES and
+                     buildWaiterPath('stream', guid, hashed_filename(res['filename'])) or
+                     None)
+
+
     files = []
-    fileDict = {'path': buildWaiterPath('file', guid, res['filename']),
+    fileDict = {'path': buildWaiterPath('file', guid, hashed_filename(res['filename'])),
                 'streamingPath': streamingPath,
                 'streamable': bool(streamingPath),
                 'unhashedPath': fullPath,
