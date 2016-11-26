@@ -625,6 +625,8 @@ class TestSendFilePartialWithNginx(unittest.TestCase):
         self.mock_updateDownloadClick = self.updateDownloadClick_patcher.start()
         self.xsendfile_patcher = mock.patch('waiter.xsendfile')
         self.mock_xsendfile = self.xsendfile_patcher.start()
+        self.app_sendfile_patcher = mock.patch('waiter.app_sendfile')
+        self.mock_app_sendfile = self.app_sendfile_patcher.start()
 
         self.mock_request.headers.get.return_value = 'test_range_header'
 
@@ -642,13 +644,14 @@ class TestSendFilePartialWithNginx(unittest.TestCase):
         self.parseRangeHeaders_patcher.stop()
         self.updateDownloadClick_patcher.stop()
         self.xsendfile_patcher.stop()
+        self.app_sendfile_patcher.stop()
 
     def test_with_range_header(self):
         expected = self.mock_xsendfile.return_value
         actual = send_file_partial(self.path, self.filename, self.token)
         self.assertEqual(expected, actual)
         self.mock_getsize.assert_called_once_with('path/to/file')
-        self.mock_parseRangeHeaders.assert_called_once_with(100, self.mock_request.headers.get.return_value)
+        self.assertFalse(self.mock_parseRangeHeaders.called)
         self.mock_updateDownloadClick.assert_called_once_with(self.token['userid'],
                                                               self.token['tokenid'],
                                                               self.filename,
@@ -657,6 +660,7 @@ class TestSendFilePartialWithNginx(unittest.TestCase):
                                                     self.filename,
                                                     100,
                                                     range_header='test_range_header')
+        self.assertFalse(self.mock_app_sendfile.called)
 
     def test_no_range_header(self):
         self.mock_request.headers.get.return_value = None
@@ -674,3 +678,99 @@ class TestSendFilePartialWithNginx(unittest.TestCase):
                                                     self.filename,
                                                     100,
                                                     range_header=None)
+        self.assertFalse(self.mock_app_sendfile.called)
+
+    def test_test(self):
+        expected = self.mock_xsendfile.return_value
+        actual = send_file_partial(self.path, self.filename, self.token, test=True)
+        self.assertEqual(expected, actual)
+        self.mock_getsize.assert_called_once_with('path/to/file')
+        self.assertFalse(self.mock_parseRangeHeaders.called)
+        self.assertFalse(self.mock_updateDownloadClick.called)
+        self.mock_xsendfile.assert_called_once_with(self.path,
+                                                    self.filename,
+                                                    100,
+                                                    range_header='test_range_header')
+        self.assertFalse(self.mock_app_sendfile.called)
+
+class TestSendFilePartialWithoutNginx(unittest.TestCase):
+    def setUp(self):
+        self.USE_NGINX_patcher = mock.patch('waiter.USE_NGINX', False)
+        self.USE_NGINX_patcher.start()
+        self.request_patcher = mock.patch('waiter.request')
+        self.mock_request = self.request_patcher.start()
+        self.getsize_patcher = mock.patch('waiter.os.path.getsize')
+        self.mock_getsize = self.getsize_patcher.start()
+        self.parseRangeHeaders_patcher = mock.patch('waiter.parseRangeHeaders')
+        self.mock_parseRangeHeaders = self.parseRangeHeaders_patcher.start()
+        self.updateDownloadClick_patcher = mock.patch('waiter.updateDownloadClick')
+        self.mock_updateDownloadClick = self.updateDownloadClick_patcher.start()
+        self.xsendfile_patcher = mock.patch('waiter.xsendfile')
+        self.mock_xsendfile = self.xsendfile_patcher.start()
+        self.app_sendfile_patcher = mock.patch('waiter.app_sendfile')
+        self.mock_app_sendfile = self.app_sendfile_patcher.start()
+
+        self.mock_request.headers.get.return_value = 'test_range_header'
+
+        self.path = 'path/to/file'
+        self.filename = 'test_filename.mp4'
+        self.token = {'userid': 123,
+                      'tokenid': 234}
+        self.mock_getsize.return_value = 100
+        self.mock_parseRangeHeaders.return_value = (100, 0, 100)
+
+    def tearDown(self):
+        self.USE_NGINX_patcher.stop()
+        self.request_patcher.stop()
+        self.getsize_patcher.stop()
+        self.parseRangeHeaders_patcher.stop()
+        self.updateDownloadClick_patcher.stop()
+        self.xsendfile_patcher.stop()
+        self.app_sendfile_patcher.stop()
+
+    def test_with_range_header(self):
+        expected = self.mock_app_sendfile.return_value
+        actual = send_file_partial(self.path, self.filename, self.token)
+        self.assertEqual(expected, actual)
+        self.mock_getsize.assert_called_once_with('path/to/file')
+        self.assertFalse(self.mock_parseRangeHeaders.called)
+        self.mock_updateDownloadClick.assert_called_once_with(self.token['userid'],
+                                                              self.token['tokenid'],
+                                                              self.filename,
+                                                              100)
+        self.mock_app_sendfile.assert_called_once_with(self.path,
+                                                       self.filename,
+                                                       100,
+                                                       range_header='test_range_header')
+        self.assertFalse(self.mock_xsendfile.called)
+
+    def test_no_range_header(self):
+        self.mock_request.headers.get.return_value = None
+
+        expected = self.mock_app_sendfile.return_value
+        actual = send_file_partial(self.path, self.filename, self.token)
+        self.assertEqual(expected, actual)
+        self.mock_getsize.assert_called_once_with('path/to/file')
+        self.assertFalse(self.mock_parseRangeHeaders.called)
+        self.mock_updateDownloadClick.assert_called_once_with(self.token['userid'],
+                                                              self.token['tokenid'],
+                                                              self.filename,
+                                                              100)
+        self.mock_app_sendfile.assert_called_once_with(self.path,
+                                                       self.filename,
+                                                       100,
+                                                       range_header=None)
+        self.assertFalse(self.mock_xsendfile.called)
+
+    def test_test(self):
+        expected = self.mock_app_sendfile.return_value
+        actual = send_file_partial(self.path, self.filename, self.token, test=True)
+        self.assertEqual(expected, actual)
+        self.mock_getsize.assert_called_once_with('path/to/file')
+        self.assertFalse(self.mock_parseRangeHeaders.called)
+        self.assertFalse(self.mock_updateDownloadClick.called)
+        self.mock_app_sendfile.assert_called_once_with(self.path,
+                                                       self.filename,
+                                                       100,
+                                                       range_header='test_range_header')
+        self.assertFalse(self.mock_xsendfile.called)
