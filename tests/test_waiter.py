@@ -345,7 +345,7 @@ class TestSendFileForDownload(unittest.TestCase):
                       }
         self.mock_getTokenByGUID.return_value = self.token
         self.mock_checkForValidToken.return_value = None
-        self.mock_buildMovieEntries.return_value = [{'waiterPath': 'path/to/file',
+        self.mock_buildMovieEntries.return_value = [{'waiterPath': 'hashPath',
                                                      'unhashedPath': 'unhashed/path/to/file',
                                                      }]
         self.mock_hashed_filename.return_value = 'hashPath'
@@ -387,7 +387,7 @@ class TestSendFileForDownload(unittest.TestCase):
         actual = send_file_for_download('guid', 'hashPath')
         self.assertEqual(expected, actual)
         self.mock_buildMovieEntries.assert_called_once_with(self.token)
-        self.mock_hashed_filename.assert_called_once_with('path/to/file')
+        self.assertFalse(self.mock_hashed_filename.called)
         self.mock_send_file_partial.assert_called_once_with('unhashed/path/to/file',
                                                             'file',
                                                             self.token)
@@ -399,7 +399,7 @@ class TestSendFileForDownload(unittest.TestCase):
         actual = send_file_for_download('guid', 'badHashPath')
         self.assertEqual(expected, actual)
         self.mock_buildMovieEntries.assert_called_once_with(self.token)
-        self.mock_hashed_filename.assert_called_once_with('path/to/file')
+        self.assertFalse(self.mock_hashed_filename.called)
         self.assertFalse(self.mock_send_file_partial.called)
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',

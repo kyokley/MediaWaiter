@@ -147,10 +147,9 @@ def _buildFileDictHelper(root, filename, token):
 
     streamingPath = buildWaiterPath('stream', token['guid'], hashedWaiterPath, includeLastSlash=True)
 
-    subtitle_filename = path[:-4] + '.vtt'
-    if os.path.exists(subtitle_filename):
-        subtitle_file = path[:-4] + '.vtt' if os.path.exists(subtitle_filename) else None
-        subtitle_basename = os.path.basename(subtitle_filename)
+    subtitle_file = path[:-4] + '.vtt'
+    if os.path.exists(subtitle_file):
+        subtitle_basename = os.path.basename(subtitle_file)
         hashedSubtitleFile = hashed_filename(os.path.join(token['filename'], subtitle_basename))
     else:
         subtitle_file = None
@@ -172,12 +171,12 @@ def _buildFileDictHelper(root, filename, token):
 def _getFileEntryFromHash(token, hashPath):
     movieEntries = buildMovieEntries(token)
     for entry in movieEntries:
-        if hashed_filename(entry['waiterPath']) == hashPath:
+        if entry['waiterPath'] == hashPath:
             return entry
+        elif entry['hashedSubtitleFile'] == hashPath:
+            return {'unhashedPath': entry['unhashedSubtitleFile']}
     else:
         raise Exception('Unable to find matching path')
-    #fullPath = os.path.join(BASE_PATH, token['path'], token['filename'], unhashedPath)
-    #return fullPath
 
 @app.route(APP_NAME + '/file/<guid>/<path:hashPath>')
 @logErrorsAndContinue
@@ -197,7 +196,7 @@ def send_file_for_download(guid, hashPath):
     else:
         fullPath = os.path.join(token['path'], token['filename'])
 
-    path, filename = os.path.split(fullPath)
+    filename = os.path.basename(fullPath)
     return send_file_partial(fullPath,
                              filename,
                              token)
