@@ -291,41 +291,48 @@ def send_file_partial(path,
                       test=False):
     range_header = request.headers.get('Range', None)
     size = os.path.getsize(path)
-    length = byte1 = byte2 = 0
-    if range_header:
-        (length, byte1, byte2) = parseRangeHeaders(size, range_header)
 
     if not test:
         updateDownloadClick(token['userid'],
                             token['tokenid'],
                             filename,
-                            length or size)
+                            size)
     if USE_NGINX:
         log.debug("Using NGINX to send %s" % filename)
         return xsendfile(path, filename, size, range_header=range_header)
     else:
-        if not range_header:
-            resp = send_file(path,
-                             as_attachment=True,
-                             attachment_filename=filename)
-            return modifyCookie(resp)
+        return app_sendfile(path, filename, size, range_header=range_header)
 
-        data = None
-        with open(path, 'rb') as f:
-            f.seek(byte1)
-            data = f.read(length)
+def app_sendfile(path,
+                 filename,
+                 size,
+                 range_header=None):
+    if not range_header:
+        resp = send_file(path,
+                         as_attachment=True,
+                         attachment_filename=filename)
+        return modifyCookie(resp)
 
-        rv = Response(data,
-                      206,
-                      mimetype=mimetypes.guess_type(path)[0],
-                      direct_passthrough=True)
-        rv.headers.add('Content-Range', 'bytes {0}-{1}/{2}'.format(byte1, byte1 + length - 1, size))
-        if filename:
-            rv.headers['Content-Disposition'] = "attachement; filename=%s" % (filename,)
-        else:
-            rv.headers['Content-Disposition'] = "attachement;"
+    length = byte1 = byte2 = 0
+    if range_header:
+        (length, byte1, byte2) = parseRangeHeaders(size, range_header)
 
-        return modifyCookie(rv)
+    data = None
+    with open(path, 'rb') as f:
+        f.seek(byte1)
+        data = f.read(length)
+
+    rv = Response(data,
+                  206,
+                  mimetype=mimetypes.guess_type(path)[0],
+                  direct_passthrough=True)
+    rv.headers.add('Content-Range', 'bytes {0}-{1}/{2}'.format(byte1, byte1 + length - 1, size))
+    if filename:
+        rv.headers['Content-Disposition'] = "attachement; filename=%s" % (filename,)
+    else:
+        rv.headers['Content-Disposition'] = "attachement;"
+
+    return modifyCookie(rv)
 
 @app.route(APP_NAME + '/stream/<guid>/<path:hashPath>')
 def video(guid, hashPath):
