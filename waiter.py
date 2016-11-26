@@ -183,8 +183,8 @@ def send_file_for_download(guid, hashPath):
 
     path, filename = os.path.split(fullPath)
     return send_file_partial(fullPath,
-                             filename=filename,
-                             token=token)
+                             filename,
+                             token)
 
 @app.route(APP_NAME + '/file/<guid>/')
 @logErrorsAndContinue
@@ -286,8 +286,8 @@ def xsendfile(path, filename, size, range_header=None):
     return resp
 
 def send_file_partial(path,
-                      filename=None,
-                      token=None,
+                      filename,
+                      token,
                       test=False):
     range_header = request.headers.get('Range', None)
     size = os.path.getsize(path)
