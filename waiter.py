@@ -36,6 +36,7 @@ from log import log
 import requests
 
 STREAMABLE_FILE_TYPES = ('.mp4',)
+SUBTITLE_FILE_TYPES = ('.vtt',)
 
 app = Flask(__name__, static_url_path='')
 
@@ -98,8 +99,8 @@ def modifyCookie(resp):
 @logErrorsAndContinue
 def get_dirPath(guid):
     '''Display a page that lists all media files in a given directory'''
-    res = getTokenByGUID(guid)
-    errorStr = checkForValidToken(res, guid)
+    token = getTokenByGUID(guid)
+    errorStr = checkForValidToken(token, guid)
     if errorStr:
         return render_template("error.html",
                                title="Error",
@@ -107,15 +108,15 @@ def get_dirPath(guid):
                                )
 
     files = []
-    if res['ismovie']:
-        files.extend(buildMovieEntries(res))
+    if token['ismovie']:
+        files.extend(buildMovieEntries(token))
     else:
-        fileDict = {'path': buildWaiterPath('file', guid, res['path']),
-                    'filename': res['filename']}
+        fileDict = {'path': buildWaiterPath('file', guid, token['path']),
+                    'filename': token['filename']}
         files.append(fileDict)
     files.sort()
     return render_template("display.html",
-                           title=res['displayname'],
+                           title=token['displayname'],
                            files=files,
                            )
 
@@ -145,16 +146,38 @@ def _buildFileDictHelper(root, filename, token):
     hashedWaiterPath = hashed_filename(waiterPath)
 
     streamingPath = buildWaiterPath('stream', token['guid'], hashedWaiterPath, includeLastSlash=True)
+
+    subtitle_filename = path[:-4] + '.vtt'
+    if os.path.exists(subtitle_filename):
+        subtitle_file = path[:-4] + '.vtt' if os.path.exists(subtitle_filename) else None
+        subtitle_basename = os.path.basename(subtitle_filename)
+        hashedSubtitleFile = hashed_filename(os.path.join(token['filename'], subtitle_basename))
+    else:
+        subtitle_file = None
+        hashedSubtitleFile = None
+
     fileDict = {'path': buildWaiterPath('file', token['guid'], hashedWaiterPath, includeLastSlash=True),
                 'streamingPath': streamingPath,
-                'waiterPath': waiterPath,
+                'waiterPath': hashedWaiterPath,
                 'unhashedPath': path,
                 'streamable': True,
                 'filename': filename,
                 'size': humansize(size),
                 'isAlfredEncoding': True,
+                'unhashedSubtitleFile': subtitle_file,
+                'hashedSubtitleFile': hashedSubtitleFile,
                 'ismovie': True}
     return fileDict
+
+def _getFileEntryFromHash(token, hashPath):
+    movieEntries = buildMovieEntries(token)
+    for entry in movieEntries:
+        if hashed_filename(entry['waiterPath']) == hashPath:
+            return entry
+    else:
+        raise Exception('Unable to find matching path')
+    #fullPath = os.path.join(BASE_PATH, token['path'], token['filename'], unhashedPath)
+    #return fullPath
 
 @app.route(APP_NAME + '/file/<guid>/<path:hashPath>')
 @logErrorsAndContinue
@@ -170,14 +193,7 @@ def send_file_for_download(guid, hashPath):
                                )
 
     if token['ismovie']:
-        movieEntries = buildMovieEntries(token)
-        for entry in movieEntries:
-            if hashed_filename(entry['waiterPath']) == hashPath:
-                unhashedPath = entry['unhashedPath']
-                break
-        else:
-            raise Exception('Unable to find matching path')
-        fullPath = os.path.join(BASE_PATH, token['path'], token['filename'], unhashedPath)
+        fullPath = _getFileEntryFromHash(token, hashPath)['unhashedPath']
     else:
         fullPath = os.path.join(token['path'], token['filename'])
 
@@ -335,46 +351,26 @@ def app_sendfile(path,
     return modifyCookie(rv)
 
 @app.route(APP_NAME + '/stream/<guid>/<path:hashPath>')
+@logErrorsAndContinue
 def video(guid, hashPath):
     '''Display streaming page'''
-    res = getTokenByGUID(guid)
+    token = getTokenByGUID(guid)
 
-    errorStr = checkForValidToken(res, guid)
-
-    if res['ismovie']:
-        movieEntries = buildMovieEntries(res)
-        for entry in movieEntries:
-            if hashed_filename(entry['waiterPath']) == hashPath:
-                unhashedPath = entry['unhashedPath']
-                break
-        else:
-            raise Exception('Something meaningful')
-        filePath = os.path.join(BASE_PATH, res['path'], res['filename'], unhashedPath)
-    else:
-        filePath = os.path.join(BASE_PATH, res['path'], res['filename'])
-
-    if (not errorStr and
-            (not os.path.exists(filePath) or
-                '..' in hashPath)):
-        errorStr = 'Bad path or filename'
-
+    errorStr = checkForValidToken(token, guid)
     if errorStr:
         return render_template("error.html",
                                title="Error",
                                errorText=errorStr,
                                )
 
-    fullPath = buildWaiterPath('file', guid, hashPath, includeLastSlash=True)
-
-    subtitle_filename = filePath[:-4] + '.vtt'
-    subtitle_file = filePath[:-4] + '.vtt' if os.path.exists(subtitle_filename) else None
+    file_entry = _getFileEntryFromHash(token, hashPath)
 
     return render_template('video.html',
-                           title=res['displayname'],
-                           filename=res['filename'],
+                           title=token['displayname'],
+                           filename=token['filename'],
                            hashPath=hashPath,
-                           video_file=fullPath,
-                           subtitle_file=subtitle_file,
+                           video_file=file_entry['path'],
+                           subtitle_file=file_entry['hashedSubtitleFile'],
                            viewedUrl=WAITER_VIEWED_URL,
                            offsetUrl=WAITER_OFFSET_URL,
                            guid=guid,

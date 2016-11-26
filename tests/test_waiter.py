@@ -300,13 +300,15 @@ class TestBuildFileDictHelper(unittest.TestCase):
 
         expected = {'path': self.mock_buildWaiterPath.return_value,
                     'streamingPath': self.mock_buildWaiterPath.return_value,
-                    'waiterPath': 'some.dir/filename.mp4',
+                    'waiterPath': self.mock_hashed_filename.return_value,
                     'unhashedPath': 'root/filename.mp4',
                     'streamable': True,
                     'filename': 'filename.mp4',
                     'size': self.mock_humansize.return_value,
                     'isAlfredEncoding': True,
-                    'ismovie': True}
+                    'ismovie': True,
+                    'unhashedSubtitleFile': None,
+                    'hashedSubtitleFile': None}
         actual = _buildFileDictHelper('root', 'filename.mp4', self.token)
         self.assertEqual(expected, actual)
         self.mock_getsize.assert_called_once_with('root/filename.mp4')
@@ -386,7 +388,7 @@ class TestSendFileForDownload(unittest.TestCase):
         self.assertEqual(expected, actual)
         self.mock_buildMovieEntries.assert_called_once_with(self.token)
         self.mock_hashed_filename.assert_called_once_with('path/to/file')
-        self.mock_send_file_partial.assert_called_once_with('BASE_PATH/test_path/test_filename/unhashed/path/to/file',
+        self.mock_send_file_partial.assert_called_once_with('unhashed/path/to/file',
                                                             'file',
                                                             self.token)
 
@@ -774,3 +776,6 @@ class TestSendFilePartialWithoutNginx(unittest.TestCase):
                                                        100,
                                                        range_header='test_range_header')
         self.assertFalse(self.mock_xsendfile.called)
+
+class TestVideo(unittest.TestCase):
+    pass
