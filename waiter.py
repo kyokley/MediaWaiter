@@ -164,7 +164,7 @@ def _buildFileDictHelper(root, filename, token):
                 'size': humansize(size),
                 'isAlfredEncoding': True,
                 'unhashedSubtitleFile': subtitle_file,
-                'hashedSubtitleFile': hashedSubtitleFile,
+                'hashedSubtitleFile': hashedSubtitleFile and buildWaiterPath('file', token['guid'], hashedSubtitleFile),
                 'ismovie': True}
     return fileDict
 
