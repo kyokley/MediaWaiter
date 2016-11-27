@@ -169,7 +169,8 @@ def _buildFileDictHelper(root, filename, token):
                 'size': humansize(size),
                 'isAlfredEncoding': True,
                 'unhashedSubtitleFile': subtitle_file,
-                'hashedSubtitleFile': hashedSubtitleFile and buildWaiterPath('file', token['guid'], hashedSubtitleFile),
+                'subtitleWaiterPath': hashedSubtitleFile and buildWaiterPath('file', token['guid'], hashedSubtitleFile),
+                'hashedSubtitleFile': hashedSubtitleFile,
                 'ismovie': token['ismovie'],
                 'displayName': token['displayname']}
     return fileDict
@@ -197,10 +198,7 @@ def send_file_for_download(guid, hashPath):
                                errorText=errorStr,
                                )
 
-    if token['ismovie']:
-        fullPath = _getFileEntryFromHash(token, hashPath)['unhashedPath']
-    else:
-        fullPath = os.path.join(token['path'], token['filename'])
+    fullPath = _getFileEntryFromHash(token, hashPath)['unhashedPath']
 
     filename = os.path.basename(fullPath)
     return send_file_partial(fullPath,
@@ -350,7 +348,7 @@ def video(guid, hashPath):
                            filename=token['filename'],
                            hashPath=hashPath,
                            video_file=file_entry['path'],
-                           subtitle_file=file_entry['hashedSubtitleFile'],
+                           subtitle_file=file_entry['subtitleWaiterPath'],
                            viewedUrl=WAITER_VIEWED_URL,
                            offsetUrl=WAITER_OFFSET_URL,
                            guid=guid,

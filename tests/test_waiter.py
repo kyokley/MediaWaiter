@@ -311,6 +311,7 @@ class TestBuildFileDictHelper(unittest.TestCase):
                     'ismovie': True,
                     'unhashedSubtitleFile': None,
                     'hashedSubtitleFile': None,
+                    'subtitleWaiterPath': None,
                     'ismovie': True,
                     'displayName': 'Some Dir'}
         actual = _buildFileDictHelper('root', 'filename.mp4', self.token)
@@ -413,10 +414,10 @@ class TestSendFileForDownload(unittest.TestCase):
         expected = self.mock_send_file_partial.return_value
         actual = send_file_for_download('guid', 'hashPath')
         self.assertEqual(expected, actual)
-        self.assertFalse(self.mock_buildMovieEntries.called)
+        self.assertTrue(self.mock_buildMovieEntries.called)
         self.assertFalse(self.mock_hashed_filename.called)
-        self.mock_send_file_partial.assert_called_once_with('test_path/test_filename',
-                                                            'test_filename',
+        self.mock_send_file_partial.assert_called_once_with('unhashed/path/to/file',
+                                                            'file',
                                                             self.token)
 
 class TestGetFile(unittest.TestCase):
