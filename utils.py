@@ -9,6 +9,7 @@ from settings import (APP_NAME,
                       WAITER_USERNAME,
                       WAITER_PASSWORD,
                       VERIFY_REQUESTS,
+                      SECRET_KEY,
                       )
 import hashlib
 
@@ -118,6 +119,7 @@ def deleteVideoOffset(filename, guid):
 
 def hashed_filename(filename):
     if isinstance(filename, unicode):
-        return hashlib.sha256(filename.encode('utf-8')).hexdigest()
+        peppered_string = filename.encode('utf-8') + SECRET_KEY
     else:
-        return hashlib.sha256(filename).hexdigest()
+        peppered_string = filename + SECRET_KEY
+    return hashlib.sha256(peppered_string).hexdigest()
