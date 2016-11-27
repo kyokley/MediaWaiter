@@ -124,11 +124,16 @@ def buildMovieEntries(token):
     files = []
     movieFilename = os.path.join(token['path'], token['filename'])
     fullMoviePath = os.path.join(BASE_PATH, movieFilename)
-    for root, subFolders, filenames in os.walk(fullMoviePath):
-        for filename in filenames:
-            filesDict = _buildFileDictHelper(root, filename, token)
-            if filesDict:
-                files.append(filesDict)
+    if os.path.isdir(fullMoviePath):
+        for root, subFolders, filenames in os.walk(fullMoviePath):
+            for filename in filenames:
+                filesDict = _buildFileDictHelper(root, filename, token)
+                if filesDict:
+                    files.append(filesDict)
+    else:
+        files.append(_buildFileDictHelper(os.path.dirname(fullMoviePath),
+                                          os.path.basename(fullMoviePath),
+                                          token))
     return files
 
 def _buildFileDictHelper(root, filename, token):
@@ -157,7 +162,7 @@ def _buildFileDictHelper(root, filename, token):
 
     fileDict = {'path': buildWaiterPath('file', token['guid'], hashedWaiterPath, includeLastSlash=True),
                 'streamingPath': streamingPath,
-                'waiterPath': hashedWaiterPath,
+                'hashedWaiterPath': hashedWaiterPath,
                 'unhashedPath': path,
                 'streamable': True,
                 'filename': filename,
@@ -165,13 +170,14 @@ def _buildFileDictHelper(root, filename, token):
                 'isAlfredEncoding': True,
                 'unhashedSubtitleFile': subtitle_file,
                 'hashedSubtitleFile': hashedSubtitleFile and buildWaiterPath('file', token['guid'], hashedSubtitleFile),
-                'ismovie': True}
+                'ismovie': token['ismovie'],
+                'displayName': token['displayname']}
     return fileDict
 
 def _getFileEntryFromHash(token, hashPath):
     movieEntries = buildMovieEntries(token)
     for entry in movieEntries:
-        if entry['waiterPath'] == hashPath:
+        if entry['hashedWaiterPath'] == hashPath:
             return entry
         elif entry['hashedSubtitleFile'] == hashPath:
             return {'unhashedPath': entry['unhashedSubtitleFile']}
@@ -214,32 +220,7 @@ def get_file(guid):
                                errorText='Invalid URL for movie type' if res['ismovie'] else errorStr,
                                )
 
-    fullPath = os.path.join(res['path'], res['filename'])
-    if not os.path.exists(fullPath):
-        log.error('File %s does not exists' % fullPath)
-        errorText = 'An error has occurred'
-        return render_template("error.html",
-                               title="Error",
-                               errorText=errorText,
-                               )
-
-    ext = os.path.splitext(res['filename'])[-1].lower()
-    streamingPath = (ext in STREAMABLE_FILE_TYPES and
-                     buildWaiterPath('stream', guid, hashed_filename(res['filename'])) or
-                     None)
-
-
-    files = []
-    fileDict = {'path': buildWaiterPath('file', guid, hashed_filename(res['filename'])),
-                'streamingPath': streamingPath,
-                'streamable': bool(streamingPath),
-                'unhashedPath': fullPath,
-                'size': humansize(os.path.getsize(fullPath)),
-                'filename': res['filename'],
-                'displayName': res['displayname'],
-                'isAlfredEncoding': isAlfredEncoding(res['filename']),
-                'ismovie': False}
-    files.append(fileDict)
+    files = buildMovieEntries(res)
     return render_template("display.html",
                            title=res['displayname'],
                            files=files,
