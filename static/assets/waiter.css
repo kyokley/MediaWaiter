@@ -22,3 +22,7 @@ td {
 .container-header {
     text-align: center;
 }
+
+#viewedText {
+    margin-bottom: 20px;
+}

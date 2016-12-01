@@ -118,6 +118,7 @@ def get_dirPath(guid):
     return render_template("display.html",
                            title=token['displayname'],
                            files=files,
+                           username=token['username'],
                            )
 
 def buildMovieEntries(token):
@@ -343,6 +344,7 @@ def video(guid, hashPath):
                                )
 
     file_entry = _getFileEntryFromHash(token, hashPath)
+    files = buildMovieEntries(token)
 
     return render_template('video.html',
                            title=token['displayname'],
@@ -354,6 +356,7 @@ def video(guid, hashPath):
                            offsetUrl=WAITER_OFFSET_URL,
                            guid=guid,
                            username=token['username'],
+                           files=files,
                            )
 
 @app.route(APP_NAME + '/viewed/<guid>', methods=['POST'])

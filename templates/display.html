@@ -11,7 +11,7 @@
 
     <title>MediaViewer - {{title}}</title>
     <div class="container container-header">
-        <h1>MediaViewer - {{title}}</h1>
+        <h1>{{title}}</h1>
     </div>
     {% endblock %}
     </head>
@@ -50,6 +50,7 @@
                     Follow the links below for streaming
                 </h4>
             </div>
+            {% block main_table %}
             <table id="myTable" class="table table-hover dt-responsive">
                 <thead>
                     <tr>
@@ -70,10 +71,10 @@
                 {% for file in files %}
                 <tr>
                     <!-- <td><a class="link" href="{{ file.streamingPath }}">{{ file.filename }}</a></td> -->
-                    <td><a class="link" href="#" onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_blank", "height=600, width=800, resizeable=yes")'>{{ file.filename }}</a></td>
+                    <td><a class="link" href="#" onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'>{{ file.filename }}</a></td>
                     {% if file.streamable %}
                     <td>
-                        <a class='btn btn-info' name='streaming-btn' id='streaming-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_blank", "height=600, width=800, resizeable=yes")'>Stream It!</a>
+                        <a class='btn btn-info' name='streaming-btn' id='streaming-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'>Stream It!</a>
                     </td>
                     {% else %}
                     <td>
@@ -99,6 +100,7 @@
                 {% endfor %}
                 </tbody>
             </table>
+            {% endblock %}
         </div>
         {% endblock %}
     </body>

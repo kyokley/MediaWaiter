@@ -30,6 +30,9 @@
                     <div class="text-center" id="viewedText"></div>
                 </div>
             </div>
+            {% block main_table %}
+                {{ super() }}
+            {% endblock %}
         </div>
         {% endblock %}
     </body>
