@@ -1,27 +1,17 @@
+{% extends "display.html" %}
 <html>
-    <link href="/assets/waiter.css" rel="stylesheet">
-    <link href="/bower_components/bootswatch-dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
-    <link href="/bower_components/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
     <head>
-        <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
-        <!-- <link href="/bower_components/video-js/responsive-video-js.css" rel="stylesheet"> -->
-        <link href="https://vjs.zencdn.net/c/video-js.css" rel="stylesheet"> <!-- Uncomment above to host locally -->
-        {% if title %}
-        <title>Alfred - {{title}}</title>
-        {% else %}
-        <title>Alfred v1.0</title>
-        {% endif %}
-
-        <div class="container container-header">
-            {% if title %}
-            <h1>Alfred - {{title}}</h1>
-            {% else %}
-            <h1>Alfred v1.0</h1>
-            {% endif %}
-        </div>
+    {% block head %}
+        {{ super() }}
+    {% endblock %}
     </head>
+
     <body>
+        {% block body %}
+            {% block navbar %}
+                {{ super() }}
+            {% endblock %}
+
         <div class="container">
             <div class="row">
                     <video id="video1" class="video-js vjs-default-skin vjs-big-play-centered"
@@ -41,18 +31,15 @@
                 </div>
             </div>
         </div>
-        <script type="text/javascript">
-        </script>
+        {% endblock %}
     </body>
 </html>
-<script src="/bower_components/jquery/dist/jquery.min.js"></script>
-<script src="/bower_components/datatables.net/js/jquery.dataTables.min.js" %}"></script>
-<script src="/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js" %}"></script>
-<script src="/bower_components/datatables.net-responsive/js/dataTables.responsive.min.js" %}"></script>
-<script src="/bower_components/bootstrap/dist/js/bootstrap.min.js" %}"></script>
-<script src="/assets/waiter_v2.js"></script>
-<!-- <script src="/bower_components/video-js/responsive-video.js"></script> -->
-<script src="https://vjs.zencdn.net/c/video.js"></script> <!-- Uncomment the above to host locally -->
+
+{% block javascript_includes %}
+    {{ super() }}
+{% endblock %}
+
+{% block javascript %}
 <script>
     $(document).ready(function (){
         viewedUrl = '{{ viewedUrl }}';
@@ -83,3 +70,4 @@
     });
 
 </script>
+{% endblock %}

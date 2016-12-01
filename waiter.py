@@ -222,6 +222,7 @@ def get_file(guid):
     return render_template("display.html",
                            title=res['displayname'],
                            files=files,
+                           username=res['username'],
                            auto_download=res['auto_download'])
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
@@ -352,6 +353,7 @@ def video(guid, hashPath):
                            viewedUrl=WAITER_VIEWED_URL,
                            offsetUrl=WAITER_OFFSET_URL,
                            guid=guid,
+                           username=token['username'],
                            )
 
 @app.route(APP_NAME + '/viewed/<guid>', methods=['POST'])
