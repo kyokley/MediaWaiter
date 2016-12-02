@@ -10,7 +10,21 @@
             {% block navbar %}
                 {{ super() }}
             {% endblock %}
-        {{errorText}}
+
+            {{errorText}}
+
+            {% block main_table %}
+            {% endblock %}
         {% endblock %}
     </body>
+    <footer>
+        {% block footer %}
+        {% endblock %}
+    </footer>
 </html>
+
+{% block javascript_includes %}
+{% endblock %}
+
+{% block javascript %}
+{% endblock %}

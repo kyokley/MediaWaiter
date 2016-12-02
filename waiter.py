@@ -21,6 +21,7 @@ from settings import (BASE_PATH,
                       WAITER_OFFSET_URL,
                       VERIFY_REQUESTS,
                       MINIMUM_FILE_SIZE,
+                      MEDIAVIEWER_BASE_URL,
                       )
 from utils import (humansize,
                    delayedRetry,
@@ -50,9 +51,16 @@ def logErrorsAndContinue(func):
         except Exception, e:
             log.error(e, exc_info=True)
             errorText = "An error has occurred"
+            try:
+                token = getTokenByGUID(kwargs.get('guid'))
+                username = token['username']
+            except:
+                username = None
             return render_template("error.html",
                                    title="Error",
                                    errorText=errorText,
+                                   mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+                                   username=username,
                                    )
     return func_wrapper
 
@@ -105,6 +113,7 @@ def get_dirPath(guid):
         return render_template("error.html",
                                title="Error",
                                errorText=errorStr,
+                               mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
                                )
 
     files = []
@@ -119,6 +128,7 @@ def get_dirPath(guid):
                            title=token['displayname'],
                            files=files,
                            username=token['username'],
+                           mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
                            )
 
 def buildMovieEntries(token):
@@ -197,6 +207,7 @@ def send_file_for_download(guid, hashPath):
         return render_template("error.html",
                                title="Error",
                                errorText=errorStr,
+                               mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
                                )
 
     fullPath = _getFileEntryFromHash(token, hashPath)['unhashedPath']
@@ -217,6 +228,7 @@ def get_file(guid):
         return render_template("error.html",
                                title="Error",
                                errorText='Invalid URL for movie type' if res['ismovie'] else errorStr,
+                               mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
                                )
 
     files = buildMovieEntries(res)
@@ -224,6 +236,7 @@ def get_file(guid):
                            title=res['displayname'],
                            files=files,
                            username=res['username'],
+                           mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
                            auto_download=res['auto_download'])
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
@@ -341,6 +354,7 @@ def video(guid, hashPath):
         return render_template("error.html",
                                title="Error",
                                errorText=errorStr,
+                               mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
                                )
 
     file_entry = _getFileEntryFromHash(token, hashPath)
@@ -357,6 +371,7 @@ def video(guid, hashPath):
                            guid=guid,
                            username=token['username'],
                            files=files,
+                           mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
                            )
 
 @app.route(APP_NAME + '/viewed/<guid>', methods=['POST'])

@@ -28,17 +28,19 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                   </button>
-                  <a class="navbar-brand" href="/mediaviewer/">MediaViewer</a>
+                  <a class="navbar-brand" href="{{ mediaviewer_base_url }}/">MediaViewer</a>
                 </div>
                 <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="/mediaviewer/">Home</a></li>
-                    <li><a href="/mediaviewer/movies/display/0/">Movies</a></li>
-                    <li><a href="/mediaviewer/tvshows/summary/">TV Shows</a></li>
-                    <li><a href="/mediaviewer/requests/">Requests</a></li>
-                    <li class="navbar-right"><a href="/mediaviewer/logout/">Log out</a></li>
+                    <li><a href="{{ mediaviewer_base_url }}/">Home</a></li>
+                    <li><a href="{{ mediaviewer_base_url }}/movies/display/0/">Movies</a></li>
+                    <li><a href="{{ mediaviewer_base_url }}/tvshows/summary/">TV Shows</a></li>
+                    <li><a href="{{ mediaviewer_base_url }}/requests/">Requests</a></li>
+                    <li class="navbar-right"><a href="{{ mediaviewer_base_url }}/logout/">Log out</a></li>
                 </ul>
-                <p class="navbar-text navbar-right">Signed in as <a href="/mediaviewer/settings/" class="navbar-link">{{ username }}</a></p>
+                {% if username %}
+                <p class="navbar-text navbar-right">Signed in as <a href="{{ mediaviewer_base_url }}/settings/" class="navbar-link">{{ username }}</a></p>
+                {% endif %}
                 </div><!--/.nav-collapse -->
               </div>
             </div>
