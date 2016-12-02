@@ -23,6 +23,10 @@ td {
     text-align: center;
 }
 
+.container-header .breadcrumb {
+    text-align: left;
+}
+
 #viewedText {
     margin-bottom: 20px;
 }
