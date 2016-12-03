@@ -11,12 +11,21 @@
 
     <title>MediaViewer - {{title}}</title>
     <div class="container container-header">
+        {% block jumbotron %}
         <div class="jumbotron">
                 <ol class="breadcrumb">
-                      <li><a href="/mediaviewer/">Home</a></li>
-                        <li class="active">Files</li>
+                    <li><a href="{{ mediaviewer_base_url }}/">Home</a></li>
+                    {% if ismovie %}
+                    <li><a href="{{ mediaviewer_base_url }}/movies/">Movies</a></li>
+                    <li class="active">{{ title }}</li>
+                    {% else %}
+                    <li><a href="{{ mediaviewer_base_url }}/tvshows/summary/">TV Shows</a></li>
+                    <li class="active"><a href="{{ mediaviewer_base_url }}/tvshows/{{ pathid }}/">{{ pathname }}</a></li>
+                    {% endif %}
                 </ol>
         <h1>{{title}}</h1>
+        </div>
+        {% endblock %}
     </div>
     {% endblock %}
     </head>

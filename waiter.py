@@ -129,6 +129,9 @@ def get_dirPath(guid):
                            files=files,
                            username=token['username'],
                            mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+                           ismovie=token['ismovie'],
+                           pathid=token['pathid'],
+                           pathname=token['pathname'],
                            )
 
 def buildMovieEntries(token):
@@ -221,23 +224,27 @@ def send_file_for_download(guid, hashPath):
 @logErrorsAndContinue
 def get_file(guid):
     '''Display a page that lists a single file'''
-    res = getTokenByGUID(guid)
+    token = getTokenByGUID(guid)
 
-    errorStr = checkForValidToken(res, guid)
-    if errorStr or res['ismovie']:
+    errorStr = checkForValidToken(token, guid)
+    if errorStr or token['ismovie']:
         return render_template("error.html",
                                title="Error",
-                               errorText='Invalid URL for movie type' if res['ismovie'] else errorStr,
+                               errorText='Invalid URL for movie type' if token['ismovie'] else errorStr,
                                mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
                                )
 
-    files = buildMovieEntries(res)
+    files = buildMovieEntries(token)
     return render_template("display.html",
-                           title=res['displayname'],
+                           title=token['displayname'],
                            files=files,
-                           username=res['username'],
+                           username=token['username'],
                            mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
-                           auto_download=res['auto_download'])
+                           auto_download=token['auto_download'],
+                           ismovie=token['ismovie'],
+                           pathid=token['pathid'],
+                           pathname=token['pathname'],
+                           )
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
 @app.route(APP_NAME + '/status', methods=['GET'])
@@ -372,6 +379,9 @@ def video(guid, hashPath):
                            username=token['username'],
                            files=files,
                            mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+                           ismovie=token['ismovie'],
+                           pathid=token['pathid'],
+                           pathname=token['pathname'],
                            )
 
 @app.route(APP_NAME + '/viewed/<guid>', methods=['POST'])
