@@ -11,6 +11,7 @@
 
     <title>MediaViewer - {{title}}</title>
     <div class="container container-header">
+        <div class="jumbotron">
                 <ol class="breadcrumb">
                       <li><a href="/mediaviewer/">Home</a></li>
                         <li class="active">Files</li>
@@ -51,32 +52,19 @@
             {% endblock %}
 
         <div class="container">
-            <div class="well">
-                <h4 class="top-message">
-                    Follow the links below for streaming
-                </h4>
-            </div>
             {% block main_table %}
             <table id="myTable" class="table table-hover dt-responsive">
                 <thead>
                     <tr>
                         <th class="all">Filename</th>
-                        {% if not files.0.ismovie and auto_download %}
-                            <th class="desktop">Streaming</th>
-                            <th class="all">Autodownload</th>
-                            <th class="min-tablet-p">Cancel</th>
-                        {% else %}
-                            <th class="all">Streaming</th>
-                        {% endif %}
+                        <th class="all">Streaming</th>
                         <th class="desktop">Size</th>
-                        <th class="desktop">Is Alfred Encoded?</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for file in files %}
                 <tr>
-                    <!-- <td><a class="link" href="{{ file.streamingPath }}">{{ file.filename }}</a></td> -->
                     <td><a class="link" href="#" onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'>{{ file.filename }}</a></td>
                     {% if file.streamable %}
                     <td>
@@ -87,20 +75,7 @@
                         Not Streamable
                     </td>
                     {% endif %}
-                    {% if not file.ismovie and auto_download %}
-                    <td class="autodownloadtext">
-                        <span id="countdown" class="timer" onclick="cancelClick(document.getElementById('cancel-btn'))"></span>
-                    </td>
-                    <td>
-                        <a class='btn btn-info' name='cancel-btn' id='cancel-btn' onclick='cancelClick(this)'>Stop Download</a>
-                    </td>
-                    {% endif %}
                     <td>{{file.size}}</td>
-                    {% if file.isAlfredEncoding %}
-                        <td>Yes</td>
-                    {% else %}
-                        <td>No</td>
-                    {% endif %}
                     <td></td>
                 </tr>
                 {% endfor %}
