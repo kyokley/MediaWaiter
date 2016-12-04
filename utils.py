@@ -46,10 +46,10 @@ class delayedRetry(object):
 
 def checkForValidToken(token, guid):
     if not token:
-        log.info('Token is invalid GUID: %s' % (guid,))
+        log.warn('Token is invalid GUID: %s' % (guid,))
         return "This token is invalid! Return to the main site to generate a new one."
     if not token['isvalid']:
-        log.info('Token Expired GUID: %s' % (guid,))
+        log.warn('Token Expired GUID: %s' % (guid,))
         return "This token has expired! Return to the main site to generate a new one."
 
 def parseRangeHeaders(size, range_header):
