@@ -1,29 +1,29 @@
 {% extends "display.html" %}
 <html>
     <head>
-    {% block head %}
+        {% block head %}
         {{ super() }}
-    {% endblock %}
+        {% endblock %}
     </head>
 
     <body>
         {% block body %}
-            {% block navbar %}
-                {{ super() }}
-            {% endblock %}
+        {% block navbar %}
+        {{ super() }}
+        {% endblock %}
 
         <div class="container">
             <div class="row">
-                    <video id="video1" class="video-js vjs-default-skin vjs-big-play-centered"
-                            controls
-                            preload="auto">
+                <video id="video1" class="video-js vjs-default-skin vjs-big-play-centered"
+                controls
+                preload="auto">
 
-                        <source src="{{ video_file }}" type="video/mp4" />
-                        {% if subtitle_file %}
-                        <track id="text1" label="English" kind="subtitles" srclang="en" src="{{ subtitle_file }}">
-                        {% endif %}
-                        <p class="vjs-no-js">Sorry, your browser doesn't support HTML5 video.</p>
-                    </video>
+                <source src="{{ video_file }}" type="video/mp4" />
+                {% if subtitle_file %}
+                <track id="text1" label="English" kind="subtitles" srclang="en" src="{{ subtitle_file }}">
+                {% endif %}
+                <p class="vjs-no-js">Sorry, your browser doesn't support HTML5 video.</p>
+                </video>
             </div>
             <div class="row">
                 <div class="col-xs-12">
@@ -31,7 +31,7 @@
                 </div>
             </div>
             {% block main_table %}
-                {{ super() }}
+            {{ super() }}
             {% endblock %}
         </div>
         {% endblock %}
@@ -39,7 +39,7 @@
 </html>
 
 {% block javascript_includes %}
-    {{ super() }}
+{{ super() }}
 {% endblock %}
 
 {% block javascript %}
@@ -52,23 +52,23 @@
 
         _V_("video1").ready(function(){
 
-          var offset = getVideoPosition('{{hashPath}}', guid, this);
-          var myPlayer = this;    // Store the video object
-          var aspectRatio = 9/16; // Make up an aspect ratio
+            var offset = getVideoPosition('{{hashPath}}', guid, this);
+            var myPlayer = this;    // Store the video object
+            var aspectRatio = 9/16; // Make up an aspect ratio
 
-          function resizeVideoJS(){
-            // Get the parent element's actual width
-            var width = document.getElementById(myPlayer.id).parentElement.offsetWidth;
-            // Set width to fill parent element, Set height
-            myPlayer.width(width).height( width * aspectRatio );
-          }
+            function resizeVideoJS(){
+                // Get the parent element's actual width
+                var width = document.getElementById(myPlayer.id).parentElement.offsetWidth;
+                // Set width to fill parent element, Set height
+                myPlayer.width(width).height( width * aspectRatio );
+            }
 
-          resizeVideoJS(); // Initialize the function
-          window.onresize = resizeVideoJS; // Call the function on resize
+            resizeVideoJS(); // Initialize the function
+            window.onresize = resizeVideoJS; // Call the function on resize
 
-          setupVideoPlayerPage('{{hashPath}}');
+            setupVideoPlayerPage('{{hashPath}}');
 
-          this.play();
+            this.play();
         });
     });
 
