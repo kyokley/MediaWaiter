@@ -99,6 +99,8 @@ class TestGetTokenByGUID(unittest.TestCase):
 
 class TestGetDirPath(unittest.TestCase):
     def setUp(self):
+        self.MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.MEDIAVIEWER_BASE_URL', 'BASE_URL')
+        self.MEDIAVIEWER_BASE_URL_patcher.start()
         self.getTokenByGUID_patcher = mock.patch('waiter.getTokenByGUID')
         self.mock_getTokenByGUID = self.getTokenByGUID_patcher.start()
         self.render_template_patcher = mock.patch('waiter.render_template')
@@ -115,6 +117,7 @@ class TestGetDirPath(unittest.TestCase):
         self.test_guid = 'test_guid'
 
     def tearDown(self):
+        self.MEDIAVIEWER_BASE_URL_patcher.stop()
         self.getTokenByGUID_patcher.stop()
         self.render_template_patcher.stop()
         self.checkForValidToken_patcher.stop()
@@ -128,10 +131,12 @@ class TestGetDirPath(unittest.TestCase):
         actual = get_dirPath(self.test_guid)
 
         self.assertEqual(expected, actual)
-        self.mock_getTokenByGUID.assert_called_once_with(self.test_guid)
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
-                                                          errorText='An error has occurred')
+                                                          errorText='An error has occurred',
+                                                          username=None,
+                                                          mediaviewer_base_url='BASE_URL',
+                                                          )
 
     def test_invalidToken(self):
         self.mock_checkForValidToken.return_value = 'Got an error'
@@ -144,12 +149,17 @@ class TestGetDirPath(unittest.TestCase):
                                                              self.test_guid)
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
-                                                          errorText='Got an error')
+                                                          errorText='Got an error',
+                                                          mediaviewer_base_url='BASE_URL',
+                                                          )
 
     def test_ismovie(self):
         self.mock_checkForValidToken.return_value = ''
         self.mock_getTokenByGUID.return_value = {'ismovie': True,
                                                  'displayname': 'test_display_name',
+                                                 'username': 'some.user',
+                                                 'pathid': 123,
+                                                 'pathname': 'test_pathname',
                                                  }
 
         expected = self.mock_render_template.return_value
@@ -160,7 +170,13 @@ class TestGetDirPath(unittest.TestCase):
                                                              self.test_guid)
         self.mock_render_template.assert_called_once_with('display.html',
                                                           title='test_display_name',
-                                                          files=['asd', 'qwe', 'zxc'])
+                                                          files=['asd', 'qwe', 'zxc'],
+                                                          username='some.user',
+                                                          mediaviewer_base_url='BASE_URL',
+                                                          ismovie=True,
+                                                          pathid=123,
+                                                          pathname='test_pathname',
+                                                          )
 
     def test_not_a_movie(self):
         self.mock_checkForValidToken.return_value = ''
@@ -168,6 +184,9 @@ class TestGetDirPath(unittest.TestCase):
                                                  'displayname': 'test_display_name',
                                                  'filename': 'test_filename',
                                                  'path': 'test_path',
+                                                 'username': 'some.user',
+                                                 'pathid': 123,
+                                                 'pathname': 'test_pathname',
                                                  }
 
         expected = self.mock_render_template.return_value
@@ -179,7 +198,13 @@ class TestGetDirPath(unittest.TestCase):
         self.mock_render_template.assert_called_once_with('display.html',
                                                           title='test_display_name',
                                                           files=[{'path': self.mock_buildWaiterPath.return_value,
-                                                                  'filename': 'test_filename'}])
+                                                                  'filename': 'test_filename'}],
+                                                          username='some.user',
+                                                          mediaviewer_base_url='BASE_URL',
+                                                          ismovie=False,
+                                                          pathid=123,
+                                                          pathname='test_pathname',
+                                                          )
 
         self.mock_buildWaiterPath.assert_called_once_with('file',
                                                           self.test_guid,
@@ -329,6 +354,8 @@ class TestBuildFileDictHelper(unittest.TestCase):
 
 class TestSendFileForDownload(unittest.TestCase):
     def setUp(self):
+        self.MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.MEDIAVIEWER_BASE_URL', 'BASE_URL')
+        self.MEDIAVIEWER_BASE_URL_patcher.start()
         self.BASE_PATH_patcher = mock.patch('waiter.BASE_PATH', 'BASE_PATH')
         self.BASE_PATH_patcher.start()
         self.getTokenByGUID_patcher = mock.patch('waiter.getTokenByGUID')
@@ -356,6 +383,7 @@ class TestSendFileForDownload(unittest.TestCase):
         self.mock_hashed_filename.return_value = 'hashPath'
 
     def tearDown(self):
+        self.MEDIAVIEWER_BASE_URL_patcher.stop()
         self.BASE_PATH_patcher.stop()
         self.getTokenByGUID_patcher.stop()
         self.render_template_patcher.stop()
@@ -371,7 +399,10 @@ class TestSendFileForDownload(unittest.TestCase):
         self.assertEqual(expected, actual)
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
-                                                          errorText='An error has occurred')
+                                                          errorText='An error has occurred',
+                                                          mediaviewer_base_url='BASE_URL',
+                                                          username=None,
+                                                          )
 
     def test_invalid_token(self):
         self.mock_checkForValidToken.return_value = 'got some error'
@@ -383,7 +414,9 @@ class TestSendFileForDownload(unittest.TestCase):
         self.mock_checkForValidToken.assert_called_once_with(self.token, 'guid')
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
-                                                          errorText='got some error')
+                                                          errorText='got some error',
+                                                          mediaviewer_base_url='BASE_URL',
+                                                          )
 
     def test_movie_file(self):
         self.token['ismovie'] = True
@@ -408,7 +441,10 @@ class TestSendFileForDownload(unittest.TestCase):
         self.assertFalse(self.mock_send_file_partial.called)
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
-                                                          errorText='An error has occurred')
+                                                          errorText='An error has occurred',
+                                                          mediaviewer_base_url='BASE_URL',
+                                                          username=None,
+                                                          )
 
     def test_tv_file(self):
         expected = self.mock_send_file_partial.return_value
@@ -422,6 +458,8 @@ class TestSendFileForDownload(unittest.TestCase):
 
 class TestGetFile(unittest.TestCase):
     def setUp(self):
+        self.MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.MEDIAVIEWER_BASE_URL', 'BASE_URL')
+        self.MEDIAVIEWER_BASE_URL_patcher.start()
         self.log_patcher = mock.patch('waiter.log')
         self.mock_log = self.log_patcher.start()
         self.STREAMABLE_FILE_TYPES_patcher = mock.patch('waiter.STREAMABLE_FILE_TYPES', ('.mp4',))
@@ -450,12 +488,16 @@ class TestGetFile(unittest.TestCase):
                       'path': 'test/path',
                       'displayname': 'test_displayname',
                       'auto_download': 'test_auto_download',
+                      'pathid': 123,
+                      'pathname': 'test_pathname',
+                      'username': 'some.user',
                       }
         self.mock_getTokenByGUID.return_value = self.token
         self.mock_checkForValidToken.return_value = None
         self.mock_hashed_filename.return_value = 'test_hash'
 
     def tearDown(self):
+        self.MEDIAVIEWER_BASE_URL_patcher.stop()
         self.log_patcher.stop()
         self.STREAMABLE_FILE_TYPES_patcher.stop()
         self.getTokenByGUID_patcher.stop()
@@ -476,7 +518,9 @@ class TestGetFile(unittest.TestCase):
         self.assertEqual(expected, actual)
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
-                                                          errorText='got an error')
+                                                          errorText='got an error',
+                                                          mediaviewer_base_url='BASE_URL',
+                                                          )
 
     def test_movie_file(self):
         self.token['ismovie'] = True
@@ -486,7 +530,9 @@ class TestGetFile(unittest.TestCase):
         self.assertEqual(expected, actual)
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
-                                                          errorText='Invalid URL for movie type')
+                                                          errorText='Invalid URL for movie type',
+                                                          mediaviewer_base_url='BASE_URL',
+                                                          )
 
     def test_valid(self):
         expected = self.mock_render_template.return_value
@@ -495,7 +541,13 @@ class TestGetFile(unittest.TestCase):
         self.mock_render_template.assert_called_once_with('display.html',
                                                           title='test_displayname',
                                                           files=self.mock_buildMovieEntries.return_value,
-                                                          auto_download='test_auto_download')
+                                                          auto_download='test_auto_download',
+                                                          ismovie=False,
+                                                          pathid=123,
+                                                          pathname='test_pathname',
+                                                          username='some.user',
+                                                          mediaviewer_base_url='BASE_URL',
+                                                          )
 
 class TestGetStatus(unittest.TestCase):
     def setUp(self):

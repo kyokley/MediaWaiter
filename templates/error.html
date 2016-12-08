@@ -1,23 +1,46 @@
+{% extends "display.html" %}
 <html>
+    <head>
+        {% block head %}
     <link href="/assets/waiter.css" rel="stylesheet">
     <link href="/bower_components/bootswatch-dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
     <link href="/bower_components/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
-    <head>
-        <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
-        {% if title %}
-        <title>Alfred - {{title}}</title>
-        {% else %}
-        <title>Alfred v1.0</title>
-        {% endif %}
+    <!-- <link href="/bower_components/video-js/responsive-video-js.css" rel="stylesheet"> -->
+    <link href="https://vjs.zencdn.net/c/video-js.css" rel="stylesheet"> <!-- Uncomment above to host locally -->
+    <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
 
-        {% if title %}
-        <h1>Alfred - {{title}}</h1>
-        {% else %}
-        <h1>Alfred v1.0</h1>
-        {% endif %}
+    <title>MediaViewer - {{title}}</title>
+    <div class="container">
+        {% block jumbotron %}
+        <div class="jumbotron">
+        <h1>Epic Fail :-(</h1>
+        </div>
+        <h3>Sorry...</h3>
+        {% endblock %}
+    </div>
+        {% endblock %}
     </head>
     <body>
-        {{errorText}}
+        {% block body %}
+            {% block navbar %}
+                {{ super() }}
+            {% endblock %}
+
+            <div class="container">
+            {{errorText}}
+            </div>
+
+            {% block main_table %}
+            {% endblock %}
+        {% endblock %}
     </body>
+    <footer>
+    </footer>
 </html>
+
+{% block javascript_includes %}
+{% endblock %}
+
+{% block javascript %}
+{% endblock %}
