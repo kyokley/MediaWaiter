@@ -1,131 +1,131 @@
 <html>
     <head>
         {% block head %}
-        <link href="/assets/waiter.css" rel="stylesheet">
-        <link href="/bower_components/bootswatch-dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
-        <link href="/bower_components/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
-        <!-- <link href="/bower_components/video-js/responsive-video-js.css" rel="stylesheet"> -->
-        <link href="https://vjs.zencdn.net/c/video-js.css" rel="stylesheet"> <!-- Uncomment above to host locally -->
-        <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
+            <link href="/assets/waiter.css" rel="stylesheet">
+            <link href="/bower_components/bootswatch-dist/css/bootstrap.min.css" rel="stylesheet">
+            <link href="/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+            <link href="/bower_components/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
+            <!-- <link href="/bower_components/video-js/responsive-video-js.css" rel="stylesheet"> -->
+            <link href="https://vjs.zencdn.net/c/video-js.css" rel="stylesheet"> <!-- Uncomment above to host locally -->
+            <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
 
-        <title>MediaViewer - {{title}}</title>
-        <div class="container container-header">
-            {% block jumbotron %}
-            <div class="jumbotron">
-                <ol class="breadcrumb">
-                    <li><a href="{{ mediaviewer_base_url }}/">Home</a></li>
-                    {% if ismovie %}
-                    <li><a href="{{ mediaviewer_base_url }}/movies/">Movies</a></li>
-                    <li class="active">{{ title }}</li>
-                    {% else %}
-                    <li><a href="{{ mediaviewer_base_url }}/tvshows/summary/">TV Shows</a></li>
-                    <li class="active"><a href="{{ mediaviewer_base_url }}/tvshows/{{ pathid }}/">{{ pathname }}</a></li>
-                    {% endif %}
-                </ol>
-                <h1>{{title}}</h1>
+            <title>MediaViewer - {{title}}</title>
+            <div class="container container-header">
+                {% block jumbotron %}
+                    <div class="jumbotron">
+                        <ol class="breadcrumb">
+                            <li><a href="{{ mediaviewer_base_url }}/">Home</a></li>
+                            {% if ismovie %}
+                                <li><a href="{{ mediaviewer_base_url }}/movies/">Movies</a></li>
+                                <li class="active">{{ title }}</li>
+                            {% else %}
+                                <li><a href="{{ mediaviewer_base_url }}/tvshows/summary/">TV Shows</a></li>
+                                <li class="active"><a href="{{ mediaviewer_base_url }}/tvshows/{{ pathid }}/">{{ pathname }}</a></li>
+                            {% endif %}
+                        </ol>
+                        <h1>{{title}}</h1>
+                    </div>
+                {% endblock %}
             </div>
-            {% endblock %}
-        </div>
         {% endblock %}
     </head>
 
     <body>
         {% block body %}
-        {% block navbar%}
-        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
-            <div class="container">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="{{ mediaviewer_base_url }}/">MediaViewer</a>
+            {% block navbar%}
+                <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+                    <div class="container">
+                        <div class="navbar-header">
+                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                                <span class="sr-only">Toggle navigation</span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                            </button>
+                            <a class="navbar-brand" href="{{ mediaviewer_base_url }}/">MediaViewer</a>
+                        </div>
+                        <div class="navbar-collapse collapse">
+                            <ul class="nav navbar-nav">
+                                <li><a href="{{ mediaviewer_base_url }}/">Home</a></li>
+                                <li><a href="{{ mediaviewer_base_url }}/movies/display/0/">Movies</a></li>
+                                <li><a href="{{ mediaviewer_base_url }}/tvshows/summary/">TV Shows</a></li>
+                                <li><a href="{{ mediaviewer_base_url }}/requests/">Requests</a></li>
+                                <li class="navbar-right"><a href="{{ mediaviewer_base_url }}/logout/">Log out</a></li>
+                            </ul>
+                            {% if username %}
+                                <p class="navbar-text navbar-right">Signed in as <a href="{{ mediaviewer_base_url }}/settings/" class="navbar-link">{{ username }}</a></p>
+                            {% endif %}
+                        </div><!--/.nav-collapse -->
+                    </div>
                 </div>
-                <div class="navbar-collapse collapse">
-                    <ul class="nav navbar-nav">
-                        <li><a href="{{ mediaviewer_base_url }}/">Home</a></li>
-                        <li><a href="{{ mediaviewer_base_url }}/movies/display/0/">Movies</a></li>
-                        <li><a href="{{ mediaviewer_base_url }}/tvshows/summary/">TV Shows</a></li>
-                        <li><a href="{{ mediaviewer_base_url }}/requests/">Requests</a></li>
-                        <li class="navbar-right"><a href="{{ mediaviewer_base_url }}/logout/">Log out</a></li>
-                    </ul>
-                    {% if username %}
-                    <p class="navbar-text navbar-right">Signed in as <a href="{{ mediaviewer_base_url }}/settings/" class="navbar-link">{{ username }}</a></p>
-                    {% endif %}
-                </div><!--/.nav-collapse -->
-            </div>
-        </div>
-        {% endblock %}
-
-        <div class="container">
-            {% block main_table %}
-            <table id="myTable" class="table table-hover dt-responsive">
-                <thead>
-                    <tr>
-                        <th class="all">Filename</th>
-                        <th class="all">Streaming</th>
-                        <th class="desktop">Size</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for file in files %}
-                    <tr>
-                        <td><a class="link" href="#" onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'>{{ file.filename }}</a></td>
-                        {% if file.streamable %}
-                        <td>
-                            <a class='btn btn-info' name='streaming-btn' id='streaming-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'>Stream It!</a>
-                        </td>
-                        {% else %}
-                        <td>
-                            Not Streamable
-                        </td>
-                        {% endif %}
-                        <td>{{file.size}}</td>
-                        <td></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
             {% endblock %}
-        </div>
+
+            <div class="container">
+                {% block main_table %}
+                    <table id="myTable" class="table table-hover dt-responsive">
+                        <thead>
+                            <tr>
+                                <th class="all">Filename</th>
+                                <th class="all">Streaming</th>
+                                <th class="desktop">Size</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in files %}
+                                <tr>
+                                    <td><a class="link" href="#" onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'>{{ file.filename }}</a></td>
+                                    {% if file.streamable %}
+                                        <td>
+                                            <a class='btn btn-info' name='streaming-btn' id='streaming-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'>Stream It!</a>
+                                        </td>
+                                    {% else %}
+                                        <td>
+                                            Not Streamable
+                                        </td>
+                                    {% endif %}
+                                    <td>{{file.size}}</td>
+                                    <td></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endblock %}
+            </div>
         {% endblock %}
     </body>
 
     <footer>
     {% block footer %}
-    <div class="navbar navbar-default navbar-fixed-bottom">
-        <div class="container">
-            <p class="navbar-text">Alfred status is <span id="waiter-status" class="label label-success">Connected</span></p>
+        <div class="navbar navbar-default navbar-fixed-bottom">
+            <div class="container">
+                <p class="navbar-text">Alfred status is <span id="waiter-status" class="label label-success">Connected</span></p>
+            </div>
         </div>
-    </div>
     {% endblock %}
     </footer>
 
 </html>
 
 {% block javascript_includes %}
-<script src="/bower_components/jquery/dist/jquery.min.js"></script>
-<script src="/bower_components/datatables.net/js/jquery.dataTables.min.js" %}"></script>
-<script src="/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js" %}"></script>
-<script src="/bower_components/datatables.net-responsive/js/dataTables.responsive.min.js" %}"></script>
-<script src="/bower_components/bootstrap/dist/js/bootstrap.min.js" %}"></script>
-<script src="/assets/waiter_v2.js"></script>
-<!-- <script src="/bower_components/video-js/responsive-video.js"></script> -->
-<script src="https://vjs.zencdn.net/c/video.js"></script> <!-- Uncomment the above to host locally -->
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="/bower_components/datatables.net/js/jquery.dataTables.min.js" %}"></script>
+    <script src="/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js" %}"></script>
+    <script src="/bower_components/datatables.net-responsive/js/dataTables.responsive.min.js" %}"></script>
+    <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js" %}"></script>
+    <script src="/assets/waiter_v2.js"></script>
+    <!-- <script src="/bower_components/video-js/responsive-video.js"></script> -->
+    <script src="https://vjs.zencdn.net/c/video.js"></script> <!-- Uncomment the above to host locally -->
 {% endblock %}
 
 {% block javascript %}
-<script>
-    $(document).ready(function (){
-        prepareDataTable($);
-        {% if not files.0.ismovie and auto_download %}
-        filePath = "{{files.0.path}}";
-        setupAutoDownloadCountdown();
-        {% endif %}
-    });
-</script>
+    <script>
+        $(document).ready(function (){
+            prepareDataTable($);
+            {% if not files.0.ismovie and auto_download %}
+                filePath = "{{files.0.path}}";
+                setupAutoDownloadCountdown();
+            {% endif %}
+        });
+    </script>
 {% endblock %}

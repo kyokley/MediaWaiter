@@ -2,37 +2,37 @@
 <html>
     <head>
         {% block head %}
-        <link href="/assets/waiter.css" rel="stylesheet">
-        <link href="/bower_components/bootswatch-dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
-        <link href="/bower_components/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
-        <!-- <link href="/bower_components/video-js/responsive-video-js.css" rel="stylesheet"> -->
-        <link href="https://vjs.zencdn.net/c/video-js.css" rel="stylesheet"> <!-- Uncomment above to host locally -->
-        <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
+            <link href="/assets/waiter.css" rel="stylesheet">
+            <link href="/bower_components/bootswatch-dist/css/bootstrap.min.css" rel="stylesheet">
+            <link href="/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+            <link href="/bower_components/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
+            <!-- <link href="/bower_components/video-js/responsive-video-js.css" rel="stylesheet"> -->
+            <link href="https://vjs.zencdn.net/c/video-js.css" rel="stylesheet"> <!-- Uncomment above to host locally -->
+            <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
 
-        <title>MediaViewer - {{title}}</title>
-        <div class="container">
-            {% block jumbotron %}
-            <div class="jumbotron">
-                <h1>Epic Fail :-(</h1>
+            <title>MediaViewer - {{title}}</title>
+            <div class="container">
+                {% block jumbotron %}
+                    <div class="jumbotron">
+                        <h1>Epic Fail :-(</h1>
+                    </div>
+                    <h3>Sorry...</h3>
+                {% endblock %}
             </div>
-            <h3>Sorry...</h3>
-            {% endblock %}
-        </div>
         {% endblock %}
     </head>
     <body>
         {% block body %}
-        {% block navbar %}
-        {{ super() }}
-        {% endblock %}
+            {% block navbar %}
+                {{ super() }}
+            {% endblock %}
 
-        <div class="container">
-            {{errorText}}
-        </div>
+            <div class="container">
+                {{errorText}}
+            </div>
 
-        {% block main_table %}
-        {% endblock %}
+            {% block main_table %}
+            {% endblock %}
         {% endblock %}
     </body>
     <footer>
