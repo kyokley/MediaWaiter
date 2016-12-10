@@ -87,7 +87,7 @@ class TestCheckForValidToken(unittest.TestCase):
         self.log_patcher.stop()
 
     def test_noToken(self):
-        expected = 'This token is invalid! Return to the main site to generate a new one.'
+        expected = 'This token is invalid! Return to Movie or TV Show tab to generate a new one.'
         actual = checkForValidToken({}, self.guid)
         self.assertEqual(expected, actual)
         self.mock_log.warn.assert_called_once_with('Token is invalid GUID: abc123')
@@ -95,7 +95,7 @@ class TestCheckForValidToken(unittest.TestCase):
     def test_invalidToken(self):
         self.token['isvalid'] = False
 
-        expected = 'This token has expired! Return to the main site to generate a new one.'
+        expected = 'This token has expired! Return to Movie or TV Show tab to generate a new one.'
         actual = checkForValidToken(self.token, self.guid)
         self.assertEqual(expected, actual)
         self.mock_log.warn.assert_called_once_with('Token Expired GUID: abc123')
