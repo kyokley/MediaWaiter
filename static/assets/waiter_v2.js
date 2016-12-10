@@ -11,6 +11,10 @@ var viewedUrl;
 var offsetUrl;
 var guid;
 var viewed;
+var didScroll;
+var lastScrollTop = 0;
+var delta = 10;
+var navbarHeight = $('.navbar-fixed-top').outerHeight() + 20;
 
 function cancelClick(srcElement){
     clearInterval(countdownTimer);
@@ -184,4 +188,33 @@ function setupVideoPlayerPage(dirPath){
 
     video.addEventListener('play', start);
     video.addEventListener('ended', stopAndClearStorage);
+}
+
+function hasScrolled(){
+    var st = $(this).scrollTop();
+    if (Math.abs(lastScrollTop - st) <= delta)
+        return;
+
+    if(st > lastScrollTop && st > navbarHeight){
+        $('.navbar-fixed-top').removeClass('nav-show').addClass('nav-hide');
+        $('.navbar-fixed-bottom').removeClass('nav-show').addClass('nav-hide');
+    } else {
+        $('.navbar-fixed-top').removeClass('nav-hide').addClass('nav-show');
+        $('.navbar-fixed-bottom').removeClass('nav-hide').addClass('nav-show');
+    }
+
+    lastScrollTop = st;
+}
+
+function scrollSetup(){
+    $(window).scroll(function (event) {
+        didScroll = true;
+    });
+
+    setInterval(function(){
+        if(didScroll){
+            hasScrolled();
+            didScroll = false;
+            }
+            }, 250);
 }

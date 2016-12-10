@@ -30,3 +30,23 @@ td {
 #viewedText {
     margin-bottom: 20px;
 }
+
+.navbar.navbar-fixed-top.nav-hide {
+  top: -110px;
+  transition: top 0.3s ease-in-out;
+}
+
+.navbar.navbar-fixed-top.nav-show {
+  top: 0;
+  transition: top 0.3s ease-in-out;
+}
+
+.navbar.navbar-fixed-bottom.nav-hide {
+  bottom: -110px;
+  transition: bottom 0.3s ease-in-out;
+}
+
+.navbar.navbar-fixed-bottom.nav-show {
+  bottom: 0;
+  transition: bottom 0.3s ease-in-out;
+}
