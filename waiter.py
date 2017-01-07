@@ -244,6 +244,8 @@ def get_file(guid):
                            ismovie=token['ismovie'],
                            pathid=token['pathid'],
                            pathname=token['pathname'],
+                           guid=guid,
+                           offsetUrl=WAITER_OFFSET_URL,
                            )
 
 @app.route(APP_NAME + '/status/', methods=['GET'])

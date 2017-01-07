@@ -67,6 +67,7 @@
                             <tr>
                                 <th class="all">Filename</th>
                                 <th class="all">Streaming</th>
+                                <th class="all"></th>
                                 <th class="desktop">Size</th>
                                 <th></th>
                             </tr>
@@ -77,12 +78,19 @@
                                     <td><a class="link" href="#" onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'>{{ file.filename }}</a></td>
                                     {% if file.streamable %}
                                         <td>
-                                            <a class='btn btn-info' name='streaming-btn' id='streaming-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'>Stream It!</a>
+                                            <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'>Resume</a>
+                                        </td>
+                                        <td>
+                                            <a class='btn btn-info'
+                                               name='startover-btn'
+                                               id='startover-btn'
+                                               onclick='cancelClick(this); clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'>Start Over</a>
                                         </td>
                                     {% else %}
                                         <td>
                                             Not Streamable
                                         </td>
+                                        <td></td>
                                     {% endif %}
                                     <td>{{file.size}}</td>
                                     <td></td>
@@ -121,6 +129,9 @@
 {% block javascript %}
     <script>
         $(document).ready(function (){
+            guid = '{{ guid }}';
+            offsetUrl = '{{ offsetUrl }}';
+
             prepareDataTable($);
             {% if not files.0.ismovie and auto_download %}
                 filePath = "{{files.0.path}}";

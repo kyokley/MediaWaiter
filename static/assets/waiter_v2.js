@@ -119,7 +119,10 @@ function clearVideoPosition(filename){
                  dataType: 'json',
                  success: function(json){
                      console.log('Video position cleared');
-                 }
+                 },
+                 error: function(err){
+                    console.log(err);
+                }
             });
 }
 
