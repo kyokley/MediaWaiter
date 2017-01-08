@@ -51,8 +51,6 @@
             dirPath = '{{ hashPath }}';
 
             _V_("video1").ready(function(){
-
-                var offset = getVideoPosition('{{hashPath}}', guid, this);
                 var myPlayer = this;    // Store the video object
                 var aspectRatio = 9/16; // Make up an aspect ratio
 
@@ -67,8 +65,7 @@
                 window.onresize = resizeVideoJS; // Call the function on resize
 
                 setupVideoPlayerPage('{{hashPath}}');
-
-                this.play();
+                getVideoPosition('{{hashPath}}', guid, this);
             });
             scrollSetup();
         });

@@ -91,6 +91,7 @@ def getVideoOffset(filename, guid):
             data['date_edited'] = resp['date_edited']
     except Exception, e:
         log.error(e)
+        raise
     return data
 
 def setVideoOffset(filename, guid, offset):
@@ -105,6 +106,7 @@ def setVideoOffset(filename, guid, offset):
         resp.raise_for_status()
     except Exception, e:
         log.error(e)
+        raise
 
 def deleteVideoOffset(filename, guid):
     try:
@@ -116,6 +118,7 @@ def deleteVideoOffset(filename, guid):
         resp.raise_for_status()
     except Exception, e:
         log.error(e)
+        raise
 
 def hashed_filename(filename):
     if isinstance(filename, unicode):

@@ -81,7 +81,7 @@ function prepareDataTable($){
 }
 
 function storeVideoPosition(filename, video){
-    var offset = Math.max(video.currentTime - 30, 0);
+    var offset = Math.max(video.currentTime, 0);
     console.log("Attempting to store video position");
     jQuery.ajax({url: offsetUrl + guid + '/' + filename + '/',
                  type: 'POST',
@@ -101,12 +101,16 @@ function getVideoPosition(filename, guid, video){
         jQuery.ajax({url: offsetUrl + guid + '/' + filename + '/',
                      type: 'GET',
                      dataType: 'json',
-                     success: function(json){
+                     success: function(json, status, xhr){
                          console.log("Got video position: " + json.offset);
                          if(json.offset !== null){
                              video.currentTime(parseInt(json.offset));
                          }
-                     }
+                         video.play();
+                     },
+                     error: function(err){
+                        console.log(err);
+                    }
         });
     }
 }
