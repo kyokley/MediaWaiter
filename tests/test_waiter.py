@@ -101,6 +101,8 @@ class TestGetDirPath(unittest.TestCase):
     def setUp(self):
         self.MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.MEDIAVIEWER_BASE_URL', 'BASE_URL')
         self.MEDIAVIEWER_BASE_URL_patcher.start()
+        self.WAITER_OFFSET_URL = mock.patch('waiter.WAITER_OFFSET_URL', 'OFFSET_URL')
+        self.WAITER_OFFSET_URL.start()
         self.getTokenByGUID_patcher = mock.patch('waiter.getTokenByGUID')
         self.mock_getTokenByGUID = self.getTokenByGUID_patcher.start()
         self.render_template_patcher = mock.patch('waiter.render_template')
@@ -118,6 +120,7 @@ class TestGetDirPath(unittest.TestCase):
 
     def tearDown(self):
         self.MEDIAVIEWER_BASE_URL_patcher.stop()
+        self.WAITER_OFFSET_URL.stop()
         self.getTokenByGUID_patcher.stop()
         self.render_template_patcher.stop()
         self.checkForValidToken_patcher.stop()
@@ -176,6 +179,8 @@ class TestGetDirPath(unittest.TestCase):
                                                           ismovie=True,
                                                           pathid=123,
                                                           pathname='test_pathname',
+                                                          guid='test_guid',
+                                                          offsetUrl='OFFSET_URL',
                                                           )
 
     def test_not_a_movie(self):
@@ -204,6 +209,8 @@ class TestGetDirPath(unittest.TestCase):
                                                           ismovie=False,
                                                           pathid=123,
                                                           pathname='test_pathname',
+                                                          guid='test_guid',
+                                                          offsetUrl='OFFSET_URL',
                                                           )
 
         self.mock_buildWaiterPath.assert_called_once_with('file',
@@ -277,7 +284,8 @@ class TestBuildFileDictHelper(unittest.TestCase):
         self.token = {'filename': 'some.dir',
                       'guid': 'asdf1234',
                       'ismovie': True,
-                      'displayname': 'Some Dir'}
+                      'displayname': 'Some Dir',
+                      'videoprogresses': []}
 
     def tearDown(self):
         self.getsize_patcher.stop()
@@ -338,7 +346,8 @@ class TestBuildFileDictHelper(unittest.TestCase):
                     'hashedSubtitleFile': None,
                     'subtitleWaiterPath': None,
                     'ismovie': True,
-                    'displayName': 'Some Dir'}
+                    'displayName': 'Some Dir',
+                    'hasProgress': False}
         actual = _buildFileDictHelper('root', 'filename.mp4', self.token)
         self.assertEqual(expected, actual)
         self.mock_getsize.assert_called_once_with('root/filename.mp4')
@@ -460,6 +469,8 @@ class TestGetFile(unittest.TestCase):
     def setUp(self):
         self.MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.MEDIAVIEWER_BASE_URL', 'BASE_URL')
         self.MEDIAVIEWER_BASE_URL_patcher.start()
+        self.WAITER_OFFSET_URL = mock.patch('waiter.WAITER_OFFSET_URL', 'OFFSET_URL')
+        self.WAITER_OFFSET_URL.start()
         self.log_patcher = mock.patch('waiter.log')
         self.mock_log = self.log_patcher.start()
         self.STREAMABLE_FILE_TYPES_patcher = mock.patch('waiter.STREAMABLE_FILE_TYPES', ('.mp4',))
@@ -498,6 +509,7 @@ class TestGetFile(unittest.TestCase):
 
     def tearDown(self):
         self.MEDIAVIEWER_BASE_URL_patcher.stop()
+        self.WAITER_OFFSET_URL.stop()
         self.log_patcher.stop()
         self.STREAMABLE_FILE_TYPES_patcher.stop()
         self.getTokenByGUID_patcher.stop()
@@ -547,6 +559,8 @@ class TestGetFile(unittest.TestCase):
                                                           pathname='test_pathname',
                                                           username='some.user',
                                                           mediaviewer_base_url='BASE_URL',
+                                                          guid='guid',
+                                                          offsetUrl='OFFSET_URL',
                                                           )
 
 class TestGetStatus(unittest.TestCase):
