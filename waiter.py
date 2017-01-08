@@ -132,6 +132,8 @@ def get_dirPath(guid):
                            ismovie=token['ismovie'],
                            pathid=token['pathid'],
                            pathname=token['pathname'],
+                           guid=guid,
+                           offsetUrl=WAITER_OFFSET_URL,
                            )
 
 def buildMovieEntries(token):
@@ -186,7 +188,8 @@ def _buildFileDictHelper(root, filename, token):
                 'subtitleWaiterPath': hashedSubtitleFile and buildWaiterPath('file', token['guid'], hashedSubtitleFile),
                 'hashedSubtitleFile': hashedSubtitleFile,
                 'ismovie': token['ismovie'],
-                'displayName': token['displayname']}
+                'displayName': token['displayname'],
+                'hasProgress': hashedWaiterPath in token['videoprogresses']}
     return fileDict
 
 def _getFileEntryFromHash(token, hashPath):
