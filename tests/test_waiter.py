@@ -330,7 +330,7 @@ class TestBuildFileDictHelper(unittest.TestCase):
         self.assertFalse(self.mock_hashed_filename.called)
         self.mock_isAlfredEncoding.assert_called_once_with('filename.mp4')
 
-    def test_valid_file(self):
+    def test_valid_file_noProgress(self):
         self.mock_getsize.return_value = 100000000
 
         expected = {'path': self.mock_buildWaiterPath.return_value,
@@ -348,6 +348,38 @@ class TestBuildFileDictHelper(unittest.TestCase):
                     'ismovie': True,
                     'displayName': 'Some Dir',
                     'hasProgress': False}
+        actual = _buildFileDictHelper('root', 'filename.mp4', self.token)
+        self.assertEqual(expected, actual)
+        self.mock_getsize.assert_called_once_with('root/filename.mp4')
+        self.mock_buildWaiterPath.assert_any_call('stream',
+                                                  'asdf1234',
+                                                  self.mock_hashed_filename.return_value,
+                                                  includeLastSlash=True)
+        self.mock_buildWaiterPath.assert_any_call('file',
+                                                  'asdf1234',
+                                                  self.mock_hashed_filename.return_value,
+                                                  includeLastSlash=True)
+        self.mock_isAlfredEncoding.assert_called_once_with('filename.mp4')
+
+    def test_valid_file_with_progress(self):
+        self.mock_getsize.return_value = 100000000
+        self.token['videoprogresses'] = [self.mock_hashed_filename.return_value]
+
+        expected = {'path': self.mock_buildWaiterPath.return_value,
+                    'streamingPath': self.mock_buildWaiterPath.return_value,
+                    'hashedWaiterPath': self.mock_hashed_filename.return_value,
+                    'unhashedPath': 'root/filename.mp4',
+                    'streamable': True,
+                    'filename': 'filename.mp4',
+                    'size': self.mock_humansize.return_value,
+                    'isAlfredEncoding': True,
+                    'ismovie': True,
+                    'unhashedSubtitleFile': None,
+                    'hashedSubtitleFile': None,
+                    'subtitleWaiterPath': None,
+                    'ismovie': True,
+                    'displayName': 'Some Dir',
+                    'hasProgress': True}
         actual = _buildFileDictHelper('root', 'filename.mp4', self.token)
         self.assertEqual(expected, actual)
         self.mock_getsize.assert_called_once_with('root/filename.mp4')
