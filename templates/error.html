@@ -11,22 +11,23 @@
             <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
 
             <title>MediaViewer - {{title}}</title>
-            <div class="container">
-                {% block jumbotron %}
-                    <div class="jumbotron">
-                        <h1>Epic Fail :-(</h1>
-                    </div>
-                    <h3>Sorry...</h3>
-                {% endblock %}
-            </div>
         {% endblock %}
     </head>
     <body>
-        {% block body %}
-            {% block navbar %}
-                {{ super() }}
-            {% endblock %}
+        {% block navbar %}
+            {{ super() }}
+        {% endblock %}
 
+        {% block jumbotron %}
+            <div class="container">
+                <div class="jumbotron">
+                    <h1>Epic Fail :-(</h1>
+                </div>
+                <h3>Sorry...</h3>
+            </div>
+        {% endblock %}
+
+        {% block body %}
             <div class="container">
                 {{errorText}}
             </div>
