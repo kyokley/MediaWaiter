@@ -80,13 +80,13 @@
                                     {% if file.streamable %}
                                         {% if file.hasProgress %}
                                             <td>
-                                                <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'>Resume <span class="glyphicon glyphicon-play"></span></a>
+                                                <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'><span class="glyphicon glyphicon-play"></span> Resume</a>
                                             </td>
                                             <td>
                                                 <a class='btn btn-info'
                                                     name='startover-btn'
                                                     id='startover-btn'
-                                                    onclick='cancelClick(this); clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'>Start Over <span class="glyphicon glyphicon-step-backward"></span></a>
+                                                    onclick='cancelClick(this); clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'><span class="glyphicon glyphicon-step-backward"></span> Start Over</a>
                                             </td>
                                         {% else %}
                                             <td>
