@@ -80,17 +80,17 @@
                                     {% if file.streamable %}
                                         {% if file.hasProgress %}
                                             <td>
-                                                <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'><span class="glyphicon glyphicon-play"></span> Resume</a>
+                                                <a class='btn btn-info play-controls' name='resume-btn' id='resume-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'><span class="glyphicon glyphicon-play"></span> Resume</a>
                                             </td>
                                             <td>
-                                                <a class='btn btn-info'
+                                                <a class='btn btn-info play-controls'
                                                     name='startover-btn'
                                                     id='startover-btn'
                                                     onclick='cancelClick(this); clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'><span class="glyphicon glyphicon-step-backward"></span> Start Over</a>
                                             </td>
                                         {% else %}
                                             <td>
-                                                <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'>Play <span class="glyphicon glyphicon-play"></span></a>
+                                                <a class='btn btn-info play-controls' name='resume-btn' id='resume-btn' onclick='cancelClick(this); window.open("{{ file.streamingPath }}", "_self")'><span class="glyphicon glyphicon-play"></span> Play</a>
                                             </td>
                                             <td></td>
                                         {% endif %}

@@ -50,3 +50,7 @@ td {
   bottom: 0;
   transition: bottom 0.3s ease-in-out;
 }
+
+.play-controls {
+    width: 108px;
+}
