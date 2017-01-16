@@ -2,6 +2,7 @@ import unittest
 import mock
 from utils import (humansize,
                    checkForValidToken,
+                   getMediaGenres,
                     )
 
 class TestHumanSize(unittest.TestCase):
@@ -105,3 +106,40 @@ class TestCheckForValidToken(unittest.TestCase):
         actual = checkForValidToken(self.token, self.guid)
         self.assertEqual(expected, actual)
         self.assertFalse(self.mock_log.warn.called)
+
+class TestGetMediaGenres(unittest.TestCase):
+    def setUp(self):
+        self.MEDIAVIEWER_BASE_URL_patcher = mock.patch('utils.MEDIAVIEWER_BASE_URL', 'base_url')
+        self.MEDIAVIEWER_BASE_URL_patcher.start()
+
+        self.get_patcher = mock.patch('utils.requests.get')
+        self.mock_get = self.get_patcher.start()
+
+        self.mock_resp = mock.MagicMock()
+        self.mock_resp.json.return_value = {'tv_genres': [[123, 'Action'],
+                                                          [234, 'Crime'],
+                                                          [345, 'Drama'],
+                                                          ],
+                                            'movie_genres': [[456, 'History'],
+                                                             [567, 'Biography'],
+                                                             [678, 'Thriller'],
+                                                             ]}
+        self.mock_get.return_value = self.mock_resp
+
+        self.test_guid = 'test_guid'
+
+    def tearDown(self):
+        self.MEDIAVIEWER_BASE_URL_patcher.stop()
+        self.get_patcher.stop()
+
+    def test_getMediaGenre(self):
+        expected = ([('Action', 'base_url/tvshows/genre/123/'),
+                     ('Crime', 'base_url/tvshows/genre/234/'),
+                     ('Drama', 'base_url/tvshows/genre/345/')],
+                    [('History', 'base_url/movies/genre/456/'),
+                     ('Biography', 'base_url/movies/genre/567/'),
+                     ('Thriller', 'base_url/movies/genre/678/')])
+        actual = getMediaGenres(self.test_guid)
+
+        self.mock_get.assert_called_once_with('base_url/ajaxgenres/test_guid/')
+        self.assertEqual(expected, actual)
