@@ -29,8 +29,32 @@
                     <div class="navbar-collapse collapse">
                         <ul class="nav navbar-nav">
                             <li><a href="{{ mediaviewer_base_url }}/">Home</a></li>
-                            <li><a href="{{ mediaviewer_base_url }}/movies/display/0/">Movies</a></li>
-                            <li><a href="{{ mediaviewer_base_url }}/tvshows/summary/">TV Shows</a></li>
+                            {% if ismovie %}
+                                <li class="active dropdown">
+                            {% else %}
+                                <li class="dropdown">
+                            {% endif %}
+                                <a href="{{ mediaviewer_base_url }}/movies/" role="button" aria-haspopup="true" aria-expanded="false">Movies <span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    {% for genre in movie_genres %}
+                                        <li><a href="{{ genre[1] }}">{{genre[0]}}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+
+                            {% if not ismovie %}
+                                <li class="active dropdown">
+                            {% else %}
+                                <li class="dropdown">
+                            {% endif %}
+                                <a href="{{ mediaviewer_base_url }}/tvshows/" role="button" aria-haspopup="true" aria-expanded="false">TV Shows <span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    {% for genre in tv_genres %}
+                                        <li><a href="{{ genre[1] }}">{{genre[0]}}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+
                             <li><a href="{{ mediaviewer_base_url }}/requests/">Requests</a></li>
                             <li class="navbar-right"><a href="{{ mediaviewer_base_url }}/logout/">Log out</a></li>
                         </ul>

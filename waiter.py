@@ -32,6 +32,7 @@ from utils import (humansize,
                    setVideoOffset,
                    deleteVideoOffset,
                    hashed_filename,
+                   getMediaGenres,
                    )
 from log import log
 import requests
@@ -124,6 +125,8 @@ def get_dirPath(guid):
                     'filename': token['filename']}
         files.append(fileDict)
     files.sort()
+
+    tv_genres, movie_genres = getMediaGenres(guid)
     return render_template("display.html",
                            title=token['displayname'],
                            files=files,
@@ -134,6 +137,8 @@ def get_dirPath(guid):
                            pathname=token['pathname'],
                            guid=guid,
                            offsetUrl=WAITER_OFFSET_URL,
+                           tv_genres=tv_genres,
+                           movie_genres=movie_genres,
                            )
 
 def buildMovieEntries(token):
@@ -238,6 +243,7 @@ def get_file(guid):
                                )
 
     files = buildMovieEntries(token)
+    tv_genres, movie_genres = getMediaGenres(guid)
     return render_template("display.html",
                            title=token['displayname'],
                            files=files,
@@ -249,6 +255,8 @@ def get_file(guid):
                            pathname=token['pathname'],
                            guid=guid,
                            offsetUrl=WAITER_OFFSET_URL,
+                           tv_genres=tv_genres,
+                           movie_genres=movie_genres,
                            )
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
@@ -371,6 +379,7 @@ def video(guid, hashPath):
 
     file_entry = _getFileEntryFromHash(token, hashPath)
     files = buildMovieEntries(token)
+    tv_genres, movie_genres = getMediaGenres(guid)
 
     return render_template('video.html',
                            title=token['displayname'],
@@ -387,6 +396,8 @@ def video(guid, hashPath):
                            ismovie=token['ismovie'],
                            pathid=token['pathid'],
                            pathname=token['pathname'],
+                           tv_genres=tv_genres,
+                           movie_genres=movie_genres,
                            )
 
 @app.route(APP_NAME + '/viewed/<guid>', methods=['POST'])
