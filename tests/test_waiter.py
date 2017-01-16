@@ -111,6 +111,10 @@ class TestGetDirPath(unittest.TestCase):
         self.mock_buildMovieEntries = self.buildMovieEntries_patcher.start()
         self.mock_buildMovieEntries.return_value = ['qwe', 'asd', 'zxc']
 
+        self.getMediaGenres_patcher = mock.patch('waiter.getMediaGenres')
+        self.mock_getMediaGenres = self.getMediaGenres_patcher.start()
+        self.mock_getMediaGenres.return_value = ('tv_genres', 'movie_genres')
+
         self.buildWaiterPath_patcher = mock.patch('waiter.buildWaiterPath')
         self.mock_buildWaiterPath = self.buildWaiterPath_patcher.start()
 
@@ -126,6 +130,7 @@ class TestGetDirPath(unittest.TestCase):
         self.checkForValidToken_patcher.stop()
         self.buildMovieEntries_patcher.stop()
         self.buildWaiterPath_patcher.stop()
+        self.getMediaGenres_patcher.stop()
 
     def test_getTokenByGUID_raises_exception(self):
         self.mock_getTokenByGUID.side_effect = Exception('Fake Error')
@@ -171,6 +176,7 @@ class TestGetDirPath(unittest.TestCase):
         self.assertEqual(expected, actual)
         self.mock_checkForValidToken.assert_called_once_with(self.mock_getTokenByGUID.return_value,
                                                              self.test_guid)
+        self.mock_getMediaGenres.assert_called_once_with(self.test_guid)
         self.mock_render_template.assert_called_once_with('display.html',
                                                           title='test_display_name',
                                                           files=['asd', 'qwe', 'zxc'],
@@ -181,6 +187,8 @@ class TestGetDirPath(unittest.TestCase):
                                                           pathname='test_pathname',
                                                           guid='test_guid',
                                                           offsetUrl='OFFSET_URL',
+                                                          tv_genres='tv_genres',
+                                                          movie_genres='movie_genres',
                                                           )
 
     def test_not_a_movie(self):
@@ -200,6 +208,7 @@ class TestGetDirPath(unittest.TestCase):
         self.assertEqual(expected, actual)
         self.mock_checkForValidToken.assert_called_once_with(self.mock_getTokenByGUID.return_value,
                                                              self.test_guid)
+        self.mock_getMediaGenres.assert_called_once_with(self.test_guid)
         self.mock_render_template.assert_called_once_with('display.html',
                                                           title='test_display_name',
                                                           files=[{'path': self.mock_buildWaiterPath.return_value,
@@ -211,6 +220,8 @@ class TestGetDirPath(unittest.TestCase):
                                                           pathname='test_pathname',
                                                           guid='test_guid',
                                                           offsetUrl='OFFSET_URL',
+                                                          tv_genres='tv_genres',
+                                                          movie_genres='movie_genres',
                                                           )
 
         self.mock_buildWaiterPath.assert_called_once_with('file',
@@ -526,6 +537,10 @@ class TestGetFile(unittest.TestCase):
         self.buildMovieEntries_patcher = mock.patch('waiter.buildMovieEntries')
         self.mock_buildMovieEntries = self.buildMovieEntries_patcher.start()
 
+        self.getMediaGenres_patcher = mock.patch('waiter.getMediaGenres')
+        self.mock_getMediaGenres = self.getMediaGenres_patcher.start()
+        self.mock_getMediaGenres.return_value = ('tv_genres', 'movie_genres')
+
         self.token = {'ismovie': False,
                       'filename': 'test_filename.mp4',
                       'path': 'test/path',
@@ -553,6 +568,7 @@ class TestGetFile(unittest.TestCase):
         self.humansize_patcher.stop()
         self.isAlfredEncoding_patcher.stop()
         self.buildMovieEntries_patcher.stop()
+        self.getMediaGenres_patcher.stop()
 
     def test_invalid_token(self):
         self.mock_checkForValidToken.return_value = 'got an error'
@@ -582,6 +598,7 @@ class TestGetFile(unittest.TestCase):
         expected = self.mock_render_template.return_value
         actual = get_file('guid')
         self.assertEqual(expected, actual)
+        self.mock_getMediaGenres.assert_called_once_with('guid')
         self.mock_render_template.assert_called_once_with('display.html',
                                                           title='test_displayname',
                                                           files=self.mock_buildMovieEntries.return_value,
@@ -593,6 +610,8 @@ class TestGetFile(unittest.TestCase):
                                                           mediaviewer_base_url='BASE_URL',
                                                           guid='guid',
                                                           offsetUrl='OFFSET_URL',
+                                                          tv_genres='tv_genres',
+                                                          movie_genres='movie_genres',
                                                           )
 
 class TestGetStatus(unittest.TestCase):
