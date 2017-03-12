@@ -134,6 +134,8 @@ def get_dirPath(guid):
                            pathname=token['pathname'],
                            guid=guid,
                            offsetUrl=WAITER_OFFSET_URL,
+                           next_link=None,
+                           previous_link=None,
                            )
 
 def buildMovieEntries(token):
@@ -249,6 +251,8 @@ def get_file(guid):
                            pathname=token['pathname'],
                            guid=guid,
                            offsetUrl=WAITER_OFFSET_URL,
+                           next_link=token['next_id'] and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['next_id'],
+                           previous_link=token['previous_id'] and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['previous_id'],
                            )
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
@@ -387,6 +391,8 @@ def video(guid, hashPath):
                            ismovie=token['ismovie'],
                            pathid=token['pathid'],
                            pathname=token['pathname'],
+                           next_link=token['next_id'] and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['next_id'],
+                           previous_link=token['previous_id'] and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['previous_id'],
                            )
 
 @app.route(APP_NAME + '/viewed/<guid>', methods=['POST'])

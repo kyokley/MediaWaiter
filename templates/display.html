@@ -86,7 +86,7 @@
                                                 <a class='btn btn-info play-controls'
                                                     name='startover-btn'
                                                     id='startover-btn'
-                                                    onclick='cancelClick(this); clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'><span class="glyphicon glyphicon-step-backward"></span> Start Over</a>
+                                                    onclick='cancelClick(this); clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'><span class="glyphicon glyphicon-repeat"></span> Start Over</a>
                                             </td>
                                         {% else %}
                                             <td>
@@ -106,6 +106,14 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    <div class="row episode-row">
+                        {% if previous_link %}
+                            <a class='btn btn-info episode-controls' name='previous-btn' id='previous-btn' href="{{ previous_link }}"><span class="glyphicon glyphicon-step-backward"></span> Previous Episode</a>
+                        {% endif %}
+                        {% if next_link %}
+                            <a class='btn btn-info episode-controls' name='next-btn' id='next-btn' href="{{ next_link }}"><span class="glyphicon glyphicon-step-forward"></span> Next Episode</a>
+                        {% endif %}
+                    </div>
                 {% endblock %}
             </div>
         {% endblock %}
