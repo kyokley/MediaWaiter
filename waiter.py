@@ -32,6 +32,7 @@ from utils import (humansize,
                    setVideoOffset,
                    deleteVideoOffset,
                    hashed_filename,
+                   getMediaGenres,
                    )
 from log import log
 import requests
@@ -124,6 +125,8 @@ def get_dirPath(guid):
                     'filename': token['filename']}
         files.append(fileDict)
     files.sort()
+
+    tv_genres, movie_genres = getMediaGenres(guid)
     return render_template("display.html",
                            title=token['displayname'],
                            files=files,
@@ -136,6 +139,8 @@ def get_dirPath(guid):
                            offsetUrl=WAITER_OFFSET_URL,
                            next_link=None,
                            previous_link=None,
+                           tv_genres=tv_genres,
+                           movie_genres=movie_genres,
                            )
 
 def buildMovieEntries(token):
@@ -240,6 +245,7 @@ def get_file(guid):
                                )
 
     files = buildMovieEntries(token)
+    tv_genres, movie_genres = getMediaGenres(guid)
     return render_template("display.html",
                            title=token['displayname'],
                            files=files,
@@ -253,6 +259,8 @@ def get_file(guid):
                            offsetUrl=WAITER_OFFSET_URL,
                            next_link=token['next_id'] and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['next_id'],
                            previous_link=token['previous_id'] and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['previous_id'],
+                           tv_genres=tv_genres,
+                           movie_genres=movie_genres,
                            )
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
@@ -375,6 +383,7 @@ def video(guid, hashPath):
 
     file_entry = _getFileEntryFromHash(token, hashPath)
     files = buildMovieEntries(token)
+    tv_genres, movie_genres = getMediaGenres(guid)
 
     return render_template('video.html',
                            title=token['displayname'],
@@ -393,6 +402,8 @@ def video(guid, hashPath):
                            pathname=token['pathname'],
                            next_link=token['next_id'] and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['next_id'],
                            previous_link=token['previous_id'] and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['previous_id'],
+                           tv_genres=tv_genres,
+                           movie_genres=movie_genres,
                            )
 
 @app.route(APP_NAME + '/viewed/<guid>', methods=['POST'])

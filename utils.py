@@ -5,6 +5,7 @@ import requests
 from werkzeug import url_fix
 from log import log
 from settings import (APP_NAME,
+                      MEDIAVIEWER_BASE_URL,
                       MEDIAVIEWER_GUID_OFFSET_URL,
                       WAITER_USERNAME,
                       WAITER_PASSWORD,
@@ -119,6 +120,23 @@ def deleteVideoOffset(filename, guid):
     except Exception, e:
         log.error(e)
         raise
+
+def getMediaGenres(guid):
+    genre_url = MEDIAVIEWER_BASE_URL + '/ajaxgenres/{}/'.format(guid)
+
+    try:
+        resp = requests.get(genre_url)
+        resp.raise_for_status()
+    except Exception as e:
+        log.error(e)
+        raise
+
+    data = resp.json()
+    tv_genres = [(mg[1], MEDIAVIEWER_BASE_URL + '/tvshows/genre/{}/'.format(mg[0]))
+                    for mg in data['tv_genres']]
+    movie_genres = [(mg[1], MEDIAVIEWER_BASE_URL + '/movies/genre/{}/'.format(mg[0]))
+                        for mg in data['movie_genres']]
+    return tv_genres, movie_genres
 
 def hashed_filename(filename):
     if isinstance(filename, unicode):
