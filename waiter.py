@@ -121,9 +121,7 @@ def get_dirPath(guid):
     if token['ismovie']:
         files.extend(buildMovieEntries(token))
     else:
-        fileDict = {'path': buildWaiterPath('file', guid, token['path']),
-                    'filename': token['filename']}
-        files.append(fileDict)
+        raise ValueError('Only movies are allowed to display contents of directories. GUID = {}'.format(guid))
     files.sort()
 
     tv_genres, movie_genres = getMediaGenres(guid)
@@ -257,8 +255,8 @@ def get_file(guid):
                            pathname=token['pathname'],
                            guid=guid,
                            offsetUrl=WAITER_OFFSET_URL,
-                           next_link=token['next_id'] and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['next_id'],
-                           previous_link=token['previous_id'] and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['previous_id'],
+                           next_link=token.get('next_id') and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['next_id'],
+                           previous_link=token.get('previous_id') and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['previous_id'],
                            tv_genres=tv_genres,
                            movie_genres=movie_genres,
                            )

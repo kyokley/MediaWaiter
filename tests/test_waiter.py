@@ -187,6 +187,8 @@ class TestGetDirPath(unittest.TestCase):
                                                           pathname='test_pathname',
                                                           guid='test_guid',
                                                           offsetUrl='OFFSET_URL',
+                                                          next_link=None,
+                                                          previous_link=None,
                                                           tv_genres='tv_genres',
                                                           movie_genres='movie_genres',
                                                           )
@@ -206,27 +208,18 @@ class TestGetDirPath(unittest.TestCase):
         actual = get_dirPath(self.test_guid)
 
         self.assertEqual(expected, actual)
+
         self.mock_checkForValidToken.assert_called_once_with(self.mock_getTokenByGUID.return_value,
                                                              self.test_guid)
-        self.mock_getMediaGenres.assert_called_once_with(self.test_guid)
-        self.mock_render_template.assert_called_once_with('display.html',
-                                                          title='test_display_name',
-                                                          files=[{'path': self.mock_buildWaiterPath.return_value,
-                                                                  'filename': 'test_filename'}],
+        self.assertFalse(self.mock_getMediaGenres.called)
+        self.assertFalse(self.mock_buildWaiterPath.called)
+
+        self.mock_render_template.assert_called_once_with('error.html',
+                                                          title='Error',
+                                                          errorText='An error has occurred',
                                                           username='some.user',
                                                           mediaviewer_base_url='BASE_URL',
-                                                          ismovie=False,
-                                                          pathid=123,
-                                                          pathname='test_pathname',
-                                                          guid='test_guid',
-                                                          offsetUrl='OFFSET_URL',
-                                                          tv_genres='tv_genres',
-                                                          movie_genres='movie_genres',
                                                           )
-
-        self.mock_buildWaiterPath.assert_called_once_with('file',
-                                                          self.test_guid,
-                                                          'test_path')
 
 class TestBuildMovieEntries(unittest.TestCase):
     def setUp(self):
@@ -610,6 +603,33 @@ class TestGetFile(unittest.TestCase):
                                                           mediaviewer_base_url='BASE_URL',
                                                           guid='guid',
                                                           offsetUrl='OFFSET_URL',
+                                                          next_link=None,
+                                                          previous_link=None,
+                                                          tv_genres='tv_genres',
+                                                          movie_genres='movie_genres',
+                                                          )
+
+    def test_valid_with_next_and_previous(self):
+        self.token['next_id'] = 123
+        self.token['previous_id'] = 234
+
+        expected = self.mock_render_template.return_value
+        actual = get_file('guid')
+        self.assertEqual(expected, actual)
+        self.mock_getMediaGenres.assert_called_once_with('guid')
+        self.mock_render_template.assert_called_once_with('display.html',
+                                                          title='test_displayname',
+                                                          files=self.mock_buildMovieEntries.return_value,
+                                                          auto_download='test_auto_download',
+                                                          ismovie=False,
+                                                          pathid=123,
+                                                          pathname='test_pathname',
+                                                          username='some.user',
+                                                          mediaviewer_base_url='BASE_URL',
+                                                          guid='guid',
+                                                          offsetUrl='OFFSET_URL',
+                                                          next_link='BASE_URL/downloadlink/123/',
+                                                          previous_link='BASE_URL/downloadlink/234/',
                                                           tv_genres='tv_genres',
                                                           movie_genres='movie_genres',
                                                           )
