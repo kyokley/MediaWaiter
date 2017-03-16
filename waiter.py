@@ -261,6 +261,39 @@ def get_file(guid):
                            movie_genres=movie_genres,
                            )
 
+@app.route(APP_NAME + '/file/<guid>/autoplay')
+@logErrorsAndContinue
+def autoplay(guid):
+    '''Autoplay a single file'''
+    token = getTokenByGUID(guid)
+
+    errorStr = checkForValidToken(token, guid)
+    if errorStr or token['ismovie']:
+        return render_template("error.html",
+                               title="Error",
+                               errorText='Invalid URL for movie type' if token['ismovie'] else errorStr,
+                               mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+                               )
+
+    files = buildMovieEntries(token)
+    tv_genres, movie_genres = getMediaGenres(guid)
+    return render_template("video.html",
+                           title=token['displayname'],
+                           files=files,
+                           username=token['username'],
+                           mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+                           auto_download=token['auto_download'],
+                           ismovie=token['ismovie'],
+                           pathid=token['pathid'],
+                           pathname=token['pathname'],
+                           guid=guid,
+                           offsetUrl=WAITER_OFFSET_URL,
+                           next_link=token.get('next_id') and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['next_id'],
+                           previous_link=token.get('previous_id') and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['previous_id'],
+                           tv_genres=tv_genres,
+                           movie_genres=movie_genres,
+                           )
+
 @app.route(APP_NAME + '/status/', methods=['GET'])
 @app.route(APP_NAME + '/status', methods=['GET'])
 def get_status():
