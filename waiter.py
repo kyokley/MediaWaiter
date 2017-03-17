@@ -276,20 +276,25 @@ def autoplay(guid):
                                )
 
     files = buildMovieEntries(token)
+    file_entry = files[0]
     tv_genres, movie_genres = getMediaGenres(guid)
     return render_template("video.html",
                            title=token['displayname'],
-                           files=files,
+                           filename=token['filename'],
+                           hashPath=file_entry['hashedWaiterPath'],
+                           video_file=file_entry['path'],
+                           subtitle_file=file_entry['subtitleWaiterPath'],
+                           viewedUrl=WAITER_VIEWED_URL,
+                           offsetUrl=WAITER_OFFSET_URL,
+                           guid=guid,
                            username=token['username'],
+                           files=files,
                            mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
-                           auto_download=token['auto_download'],
                            ismovie=token['ismovie'],
                            pathid=token['pathid'],
                            pathname=token['pathname'],
-                           guid=guid,
-                           offsetUrl=WAITER_OFFSET_URL,
-                           next_link=token.get('next_id') and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['next_id'],
-                           previous_link=token.get('previous_id') and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['previous_id'],
+                           next_link=token['next_id'] and MEDIAVIEWER_BASE_URL + '/autoplaydownloadlink/%s/' % token['next_id'],
+                           previous_link=token['previous_id'] and MEDIAVIEWER_BASE_URL + '/autoplaydownloadlink/%s/' % token['previous_id'],
                            tv_genres=tv_genres,
                            movie_genres=movie_genres,
                            )
@@ -431,8 +436,8 @@ def video(guid, hashPath):
                            ismovie=token['ismovie'],
                            pathid=token['pathid'],
                            pathname=token['pathname'],
-                           next_link=token['next_id'] and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['next_id'],
-                           previous_link=token['previous_id'] and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['previous_id'],
+                           next_link=token['next_id'] and MEDIAVIEWER_BASE_URL + '/autoplaydownloadlink/%s/' % token['next_id'],
+                           previous_link=token['previous_id'] and MEDIAVIEWER_BASE_URL + '/autoplaydownloadlink/%s/' % token['previous_id'],
                            tv_genres=tv_genres,
                            movie_genres=movie_genres,
                            )
