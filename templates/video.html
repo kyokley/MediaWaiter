@@ -53,15 +53,15 @@
             guid = '{{ guid }}';
             offsetUrl = '{{ offsetUrl }}';
             dirPath = '{{ hashPath }}';
-            binge_mode = '{{ binge_mode }}';
+            var options = {};
 
-            _V_("video1").ready(function(){
-                var myPlayer = this;    // Store the video object
+            var player = videojs("video1", options, function onPlayerReady(){
+                var myPlayer = this;
                 var aspectRatio = 9/16; // Make up an aspect ratio
 
                 function resizeVideoJS(){
                     // Get the parent element's actual width
-                    var width = document.getElementById(myPlayer.id).parentElement.offsetWidth;
+                    var width = document.getElementById(myPlayer.id()).parentElement.offsetWidth;
                     // Set width to fill parent element, Set height
                     myPlayer.width(width).height( width * aspectRatio );
                 }
@@ -71,7 +71,18 @@
 
                 setupVideoPlayerPage('{{hashPath}}');
                 getVideoPosition('{{hashPath}}', guid, this);
+
+            {% if binge_mode and next_link %}
+                this.on('ended', function (){
+                        console.log("Redirecting");
+                        var next_link = '{{ next_link }}';
+                        window.location.href = next_link;
+                });
+            {% endif %}
+
+
             });
+
             scrollSetup();
         });
     </script>
