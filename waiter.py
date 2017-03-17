@@ -139,6 +139,7 @@ def get_dirPath(guid):
                            previous_link=None,
                            tv_genres=tv_genres,
                            movie_genres=movie_genres,
+                           binge_mode=False,
                            )
 
 def buildMovieEntries(token):
@@ -259,6 +260,7 @@ def get_file(guid):
                            previous_link=token.get('previous_id') and MEDIAVIEWER_BASE_URL + '/downloadlink/%s/' % token['previous_id'],
                            tv_genres=tv_genres,
                            movie_genres=movie_genres,
+                           binge_mode=token['binge_mode'],
                            )
 
 @app.route(APP_NAME + '/file/<guid>/autoplay')
@@ -297,6 +299,7 @@ def autoplay(guid):
                            previous_link=token['previous_id'] and MEDIAVIEWER_BASE_URL + '/autoplaydownloadlink/%s/' % token['previous_id'],
                            tv_genres=tv_genres,
                            movie_genres=movie_genres,
+                           binge_mode=token['binge_mode'],
                            )
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
@@ -440,6 +443,7 @@ def video(guid, hashPath):
                            previous_link=token['previous_id'] and MEDIAVIEWER_BASE_URL + '/autoplaydownloadlink/%s/' % token['previous_id'],
                            tv_genres=tv_genres,
                            movie_genres=movie_genres,
+                           binge_mode=token['binge_mode'],
                            )
 
 @app.route(APP_NAME + '/viewed/<guid>', methods=['POST'])
