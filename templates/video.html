@@ -53,6 +53,17 @@
             guid = '{{ guid }}';
             offsetUrl = '{{ offsetUrl }}';
             dirPath = '{{ hashPath }}';
+            {% if binge_mode %}
+                binge_mode = true;
+            {% else %}
+                binge_mode = false;
+            {% endif %}
+
+            {% if next_link %}
+                has_next_link = true;
+            {% else %}
+                has_next_link = false;
+            {% endif %}
             var options = {};
 
             var player = videojs("video1", options, function onPlayerReady(){

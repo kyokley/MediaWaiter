@@ -15,6 +15,8 @@ var didScroll;
 var lastScrollTop = 0;
 var delta = 10;
 var navbarHeight = $('.navbar-fixed-top').outerHeight() + 20;
+var binge_mode;
+var has_next_link;
 
 function cancelClick(srcElement){
     clearInterval(countdownTimer);
@@ -141,7 +143,11 @@ function markViewed(guid){
                 success: function(json){
                     console.log(json);
                     var text = document.getElementById('viewedText');
-                    text.innerText = "Marking file viewed!";
+                    if(binge_mode && has_next_link){
+                        text.innerText = "Marking file viewed... Binge mode active! Preparing next video";
+                    }else{
+                        text.innerText = "Marking file viewed!";
+                    }
                 }
             });
     }
