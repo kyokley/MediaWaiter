@@ -64,7 +64,7 @@
             {% else %}
                 has_next_link = false;
             {% endif %}
-            var options = {};
+            var options = {chromecast: {appId: 'MediaViewer'}};
 
             var player = videojs("video1", options, function onPlayerReady(){
                 var myPlayer = this;
@@ -106,7 +106,7 @@
                     <p class="vjs-no-js">Sorry, your browser doesn't support HTML5 video.</p>
                     </video>`);
 
-                    videojs('video1', {'techOrder': ['flash']}).ready(function() {
+                    player = videojs('video1', {'techOrder': ['flash']}).ready(function() {
                         var myPlayer = this;
                         var aspectRatio = 9/16; // Make up an aspect ratio
 
@@ -139,6 +139,9 @@
             });
 
             scrollSetup();
+            if(player){
+                player.chromecast();
+            }
         });
     </script>
 {% endblock %}

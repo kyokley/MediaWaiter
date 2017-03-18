@@ -6,6 +6,7 @@
             <link href="/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
             <link href="/bower_components/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
             <link href="/bower_components/video.js/dist/video-js.min.css" rel="stylesheet">
+            <link href="/bower_components/videojs-chromecast/dist/videojs-chromecast.css" rel="stylesheet">
             <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
 
             <title>MediaViewer - {{title}}</title>
@@ -155,12 +156,15 @@
 </html>
 
 {% block javascript_includes %}
+    <head data-cast-api-enabled="true"> <!-- allow chromecast extention -->
+    <script src="http://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
     <script src="/bower_components/jquery/dist/jquery.min.js"></script>
     <script src="/bower_components/datatables.net/js/jquery.dataTables.min.js" %}"></script>
     <script src="/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js" %}"></script>
     <script src="/bower_components/datatables.net-responsive/js/dataTables.responsive.min.js" %}"></script>
     <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js" %}"></script>
-    <script src="/bower_components/video.js/dist/video.min.js"></script>
+    <script src="/bower_components/video.js/dist/video.js"></script>
+    <script src="/bower_components/videojs-chromecast/dist/videojs-chromecast.js"></script>
     <script src="/assets/waiter_v2.js"></script>
 {% endblock %}
 
