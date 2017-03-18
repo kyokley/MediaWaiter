@@ -17,7 +17,7 @@
 
         {% block body %}
             <div class="container">
-                <div class="row">
+                <div id="video-container" class="row">
                     <video id="video1" class="video-js vjs-default-skin vjs-big-play-centered"
                     controls
                     preload="auto">
@@ -83,13 +83,57 @@
                 setupVideoPlayerPage('{{hashPath}}');
                 getVideoPosition('{{hashPath}}', guid, this);
 
-            {% if binge_mode and next_link %}
-                this.on('ended', function (){
+                {% if binge_mode and next_link %}
+                    this.on('ended', function (){
                         console.log("Redirecting");
                         var next_link = '{{ next_link }}';
                         window.location.href = next_link;
+                    });
+                {% endif %}
+
+                // Oh man, get ready for the mother of all hacks...
+                myPlayer.on('error', function(){
+                    myPlayer.dispose();
+                    $('#video-container').append(`
+                    <video id="video1" class="video-js vjs-default-skin vjs-big-play-centered vjs-flash-fallback"
+                    controls
+                    preload="auto">
+
+                    <source src="{{ video_file }}" type="video/mp4" />
+                    {% if subtitle_file %}
+                        <track id="text1" label="English" kind="subtitles" srclang="en" src="{{ subtitle_file }}">
+                    {% endif %}
+                    <p class="vjs-no-js">Sorry, your browser doesn't support HTML5 video.</p>
+                    </video>`);
+
+                    videojs('video1', {'techOrder': ['flash']}).ready(function() {
+                        var myPlayer = this;
+                        var aspectRatio = 9/16; // Make up an aspect ratio
+
+                        function resizeVideoJS(){
+                            // Get the parent element's actual width
+                            var width = document.getElementById(myPlayer.id()).parentElement.offsetWidth;
+                            // Set width to fill parent element, Set height
+                            myPlayer.width(width).height( width * aspectRatio );
+                        }
+
+                        resizeVideoJS(); // Initialize the function
+                        window.onresize = resizeVideoJS; // Call the function on resize
+
+                        setupVideoPlayerPage('{{hashPath}}');
+                        getVideoPosition('{{hashPath}}', guid, this);
+
+                        {% if binge_mode and next_link %}
+                            this.on('ended', function (){
+                                console.log("Redirecting");
+                                var next_link = '{{ next_link }}';
+                                window.location.href = next_link;
+                            });
+                        {% endif %}
+                    });
                 });
-            {% endif %}
+                // Thus endth the hack...
+
 
 
             });
