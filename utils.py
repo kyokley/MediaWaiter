@@ -11,6 +11,9 @@ from settings import (APP_NAME,
                       WAITER_PASSWORD,
                       VERIFY_REQUESTS,
                       SECRET_KEY,
+                      MEDIAWAITER_PROTOCOL,
+                      HOST,
+                      PORT,
                       )
 import hashlib
 
@@ -69,11 +72,15 @@ def parseRangeHeaders(size, range_header):
     return (length, byte1, byte2)
 
 def buildWaiterPath(place, guid, filePath, includeLastSlash=True):
-    path = '%s/%s/%s%s%s' % (APP_NAME,
-                             place,
-                             guid,
-                             includeLastSlash and '/' or '',
-                             url_fix(filePath))
+    path = '{protocol}{host}:{port}{app_name}/{place}/{guid}{maybe_slash}{file_path}'.format(
+                             protocol=MEDIAWAITER_PROTOCOL,
+                             host=HOST,
+                             port=PORT,
+                             app_name=APP_NAME,
+                             place=place,
+                             guid=guid,
+                             maybe_slash=includeLastSlash and '/' or '',
+                             file_path=url_fix(filePath))
     return path
 
 def getVideoOffset(filename, guid):

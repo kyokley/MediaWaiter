@@ -26,7 +26,7 @@
                         </button>
                         <a class="navbar-brand" href="{{ mediaviewer_base_url }}/">MediaViewer <span class="glyphicon glyphicon-film"></span></a>
                     </div>
-                    <div class="navbar-collapse collapse">
+                   <div class="navbar-collapse collapse">
                         <ul class="nav navbar-nav">
                             <li><a href="{{ mediaviewer_base_url }}/">Home</a></li>
                             {% if ismovie %}
@@ -156,13 +156,13 @@
 </html>
 
 {% block javascript_includes %}
-    <head data-cast-api-enabled="true"> <!-- allow chromecast extention -->
-    <script src="http://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
     <script src="/bower_components/jquery/dist/jquery.min.js"></script>
     <script src="/bower_components/datatables.net/js/jquery.dataTables.min.js" %}"></script>
     <script src="/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js" %}"></script>
     <script src="/bower_components/datatables.net-responsive/js/dataTables.responsive.min.js" %}"></script>
     <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js" %}"></script>
+    <head data-cast-api-enabled="true"> <!-- allow chromecast extention -->
+    <script src="http://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
     <script src="/bower_components/video.js/dist/video.js"></script>
     <script src="/bower_components/videojs-chromecast/dist/videojs-chromecast.js"></script>
     <script src="/assets/waiter_v2.js"></script>

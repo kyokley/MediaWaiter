@@ -22,6 +22,7 @@ from settings import (BASE_PATH,
                       VERIFY_REQUESTS,
                       MINIMUM_FILE_SIZE,
                       MEDIAVIEWER_BASE_URL,
+                      GOOGLE_CAST_APP_ID,
                       )
 from utils import (humansize,
                    delayedRetry,
@@ -300,6 +301,7 @@ def autoplay(guid):
                            tv_genres=tv_genres,
                            movie_genres=movie_genres,
                            binge_mode=token['binge_mode'],
+                           CAST_ID=GOOGLE_CAST_APP_ID,
                            )
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
@@ -444,6 +446,7 @@ def video(guid, hashPath):
                            tv_genres=tv_genres,
                            movie_genres=movie_genres,
                            binge_mode=token['binge_mode'],
+                           CAST_ID=GOOGLE_CAST_APP_ID,
                            )
 
 @app.route(APP_NAME + '/viewed/<guid>', methods=['POST'])

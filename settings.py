@@ -48,6 +48,9 @@ WAITER_USERNAME = 'username'
 WAITER_PASSWORD = 'password'
 VERIFY_REQUESTS = True
 
+GOOGLE_CAST_APP_ID = 'insert cast SDK ID here'
+MEDIAWAITER_PROTOCOL = 'https://'
+
 try:
     from local_settings import *
 except: # nosec

@@ -64,7 +64,7 @@
             {% else %}
                 has_next_link = false;
             {% endif %}
-            var options = {chromecast: {appId: 'MediaViewer'}};
+            var options = {chromecast: {appId: '{{ CAST_ID }}'}};
 
             var player = videojs("video1", options, function onPlayerReady(){
                 var myPlayer = this;
@@ -137,9 +137,6 @@
             });
 
             scrollSetup();
-            if(player){
-                player.chromecast();
-            }
         });
     </script>
 {% endblock %}

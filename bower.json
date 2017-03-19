@@ -24,6 +24,6 @@
     "datatables.net-responsive-bs": "^2.1.0",
     "video.js": "^5.12.5",
     "bootstrap": "^3.3.7",
-    "videojs-chromecast": "https://github.com/ricksancho/videojs-chromecast.git"
+    "videojs-chromecast": "https://github.com/benjipott/video.js-chromecast.git#^2.0.8"
   }
 }
