@@ -85,9 +85,11 @@
 
                 {% if binge_mode and next_link %}
                     this.on('ended', function (){
-                        console.log("Redirecting");
-                        var next_link = '{{ next_link }}';
-                        window.location.href = next_link;
+                        if(should_redirect){
+                            console.log("Redirecting");
+                            var next_link = '{{ next_link }}';
+                            window.location.href = next_link;
+                        }
                     });
                 {% endif %}
 
@@ -125,9 +127,11 @@
 
                         {% if binge_mode and next_link %}
                             this.on('ended', function (){
-                                console.log("Redirecting");
-                                var next_link = '{{ next_link }}';
-                                window.location.href = next_link;
+                                if(should_redirect){
+                                    console.log("Redirecting");
+                                    var next_link = '{{ next_link }}';
+                                    window.location.href = next_link;
+                                }
                             });
                         {% endif %}
                     });

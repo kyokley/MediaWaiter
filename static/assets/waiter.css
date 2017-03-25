@@ -103,3 +103,7 @@ td {
     top: 11px;
     left: -6px;
 }
+
+#cancel-btn {
+    margin-left: 10px;
+}

@@ -17,46 +17,7 @@ var delta = 10;
 var navbarHeight = $('.navbar-fixed-top').outerHeight() + 20;
 var binge_mode;
 var has_next_link;
-
-function cancelClick(srcElement){
-    clearInterval(countdownTimer);
-    var countdown = document.getElementById('countdown');
-    if(countdown){
-        countdown.innerHTML = "Download canceled";
-        if(srcElement !== null){
-            srcElement.setAttribute("disabled", "disabled");
-        }
-    }
-}
-
-function secondPassed() {
-    var remainingSeconds = seconds;
-    var text;
-    if (remainingSeconds === 1){
-        text = pretext + remainingSeconds + " </b>sec.";
-    } else {
-        text = pretext + remainingSeconds + " </b>secs.";
-    }
-    document.getElementById('countdown').innerHTML = text;
-
-    if (seconds === 0) {
-        document.getElementById('countdown').innerHTML = "Download started";
-        document.getElementById("download").src=filePath;
-        clearInterval(countdownTimer);
-        countdownTimer = 0;
-        if (cancelBtn){
-            cancelBtn.removeEventListener("click", cancelClickEvent);
-            cancelBtn.setAttribute("disabled", "disabled");
-        }
-    } else {
-        seconds--;
-    }
-}
-
-function setupAutoDownloadCountdown(){
-    document.getElementById('countdown').innerHTML = pretext + seconds + " </b>secs.";
-    countdownTimer = setInterval(secondPassed, 1000);
-}
+var should_redirect = true;
 
 function prepareDataTable($){
     var tableElement = $('#myTable');
@@ -117,7 +78,6 @@ function getVideoPosition(filename, guid, video){
     }
 }
 
-
 function clearVideoPosition(filename){
     console.log("Attempting to clear video position");
     jQuery.ajax({url: offsetUrl + guid + '/' + filename + '/',
@@ -142,15 +102,21 @@ function markViewed(guid){
                        guid: guid},
                 success: function(json){
                     console.log(json);
-                    var text = document.getElementById('viewedText');
+                    var finishedElement = document.getElementById('viewedText');
                     if(binge_mode && has_next_link){
-                        text.innerText = "Marking file viewed... Binge mode active! Preparing next video";
+                        finishedElement.innerHTML = "Marking file viewed... Binge mode active! Preparing next video <a class='btn btn-info play-controls' name='cancel-btn' id='cancel-btn' onclick='cancelBingeWatch();'><span class='glyphicon glyphicon-remove'></span> Cancel</a>";
                     }else{
-                        text.innerText = "Marking file viewed!";
+                        finishedElement.innerText = "Marking file viewed!";
                     }
                 }
             });
     }
+}
+
+function cancelBingeWatch(){
+    var finishedElement = document.getElementById('viewedText');
+    should_redirect = false;
+    finishedElement.innerText = "Binge watching canceled";
 }
 
 function setupVideoPlayerPage(dirPath){
@@ -225,9 +191,9 @@ function scrollSetup(){
     });
 
     setInterval(function(){
-        if(didScroll){
-            hasScrolled();
-            didScroll = false;
+            if(didScroll){
+                hasScrolled();
+                didScroll = false;
             }
-            }, 250);
+        }, 250);
 }
