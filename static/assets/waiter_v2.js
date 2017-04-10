@@ -6,7 +6,7 @@ var pretext = "This file will be downloaded automatically in <b>";
 var cancelBtn;
 var filePath;
 var video;
-var VIDEO_RESET_PERCENT = 0.98;
+var VIDEO_RESET_PERCENT = 0.97;
 var viewedUrl;
 var offsetUrl;
 var guid;
