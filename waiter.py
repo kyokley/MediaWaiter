@@ -11,7 +11,6 @@ from werkzeug.contrib.fixers import ProxyFix
 from settings import (BASE_PATH,
                       APP_NAME,
                       MEDIAVIEWER_GUID_URL,
-                      MEDIAVIEWER_DOWNLOADCLICK_URL,
                       MEDIAVIEWER_VIEWED_URL,
                       USE_NGINX,
                       WAITER_USERNAME,
@@ -79,26 +78,6 @@ def getTokenByGUID(guid):
     except Exception, e:
         log.error(e)
         raise
-
-@delayedRetry()
-def updateDownloadClick(userid,
-                        tokenid,
-                        filename,
-                        size):
-    values = {'userid': userid,
-              'tokenid': tokenid,
-              'filename': filename,
-              'size': size}
-    log.debug(values)
-
-    try:
-        req = requests.post(MEDIAVIEWER_DOWNLOADCLICK_URL,
-                            data=values,
-                            auth=(WAITER_USERNAME, WAITER_PASSWORD),
-                            verify=VERIFY_REQUESTS)
-        req.raise_for_status()
-    except Exception, e:
-        log.error(e)
 
 def modifyCookie(resp):
     resp.set_cookie('fileDownload', 'true')
@@ -366,11 +345,6 @@ def send_file_partial(path,
     range_header = request.headers.get('Range', None)
     size = os.path.getsize(path)
 
-    if not test:
-        updateDownloadClick(token['userid'],
-                            token['tokenid'],
-                            filename,
-                            size)
     if USE_NGINX:
         log.debug("Using NGINX to send %s" % filename)
         return xsendfile(path, filename, size, range_header=range_header)
