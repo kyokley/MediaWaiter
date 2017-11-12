@@ -103,8 +103,13 @@ function markViewed(guid){
                 success: function(json){
                     console.log(json);
                     var finishedElement = document.getElementById('viewedText');
-                    if(binge_mode && has_next_link){
+                    var toggleElement = document.getElementById('bingewatch-btn');
+                    if(binge_mode && has_next_link && should_redirect){
                         finishedElement.innerHTML = "Marking file viewed... Binge mode active! Preparing next video <a class='btn btn-info play-controls' name='cancel-btn' id='cancel-btn' onclick='cancelBingeWatch();'><span class='glyphicon glyphicon-remove'></span> Cancel</a>";
+                        if(toggleElement){
+                            toggleElement.onclick = function(){};
+                            toggleElement.setAttribute('disabled', 'disabled');
+                        }
                     }else{
                         finishedElement.innerText = "Marking file viewed!";
                     }
@@ -115,8 +120,31 @@ function markViewed(guid){
 
 function cancelBingeWatch(){
     var finishedElement = document.getElementById('viewedText');
+    var toggleElement = document.getElementById('bingewatch-btn');
     should_redirect = false;
     finishedElement.innerText = "Binge watching canceled";
+    toggleElement.classList.remove('btn-success');
+    toggleElement.classList.remove('btn-danger');
+    toggleElement.innerText = "Disabled";
+    toggleElement.classList.add('btn-danger');
+    toggleElement.onclick = function(){};
+    toggleElement.setAttribute('disabled', 'disabled');
+}
+
+function toggleBingeWatch(){
+    var toggleElement = document.getElementById('bingewatch-btn');
+    toggleElement.classList.remove('btn-success');
+    toggleElement.classList.remove('btn-danger');
+
+    if(should_redirect){
+        should_redirect = false;
+        toggleElement.innerText = "Disabled";
+        toggleElement.classList.add('btn-danger');
+    } else {
+        should_redirect = true;
+        toggleElement.innerText = "Enabled";
+        toggleElement.classList.add('btn-success');
+    }
 }
 
 function setupVideoPlayerPage(dirPath){

@@ -55,6 +55,10 @@ td {
     width: 108px;
 }
 
+.bingeWatchRow {
+    margin-bottom: 10px;
+}
+
 .episode-controls {
     width: 150px;
     margin-left: 5px;
