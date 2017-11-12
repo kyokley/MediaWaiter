@@ -10,13 +10,7 @@ from waiter import (isAlfredEncoding,
                     xsendfile,
                     send_file_partial,
                     )
-from settings import (WAITER_USERNAME,
-                      WAITER_PASSWORD,
-                      VERIFY_REQUESTS,
-                      )
-
 import mock
-from mock import call
 
 class TestIsAlfredEncoding(unittest.TestCase):
     def setUp(self):
@@ -512,7 +506,6 @@ class TestGetFile(unittest.TestCase):
                       'filename': 'test_filename.mp4',
                       'path': 'test/path',
                       'displayname': 'test_displayname',
-                      'auto_download': 'test_auto_download',
                       'pathid': 123,
                       'pathname': 'test_pathname',
                       'username': 'some.user',
@@ -570,7 +563,6 @@ class TestGetFile(unittest.TestCase):
         self.mock_render_template.assert_called_once_with('display.html',
                                                           title='test_displayname',
                                                           files=self.mock_buildMovieEntries.return_value,
-                                                          auto_download='test_auto_download',
                                                           ismovie=False,
                                                           pathid=123,
                                                           pathname='test_pathname',
@@ -596,7 +588,6 @@ class TestGetFile(unittest.TestCase):
         self.mock_render_template.assert_called_once_with('display.html',
                                                           title='test_displayname',
                                                           files=self.mock_buildMovieEntries.return_value,
-                                                          auto_download='test_auto_download',
                                                           ismovie=False,
                                                           pathid=123,
                                                           pathname='test_pathname',
@@ -621,7 +612,6 @@ class TestGetFile(unittest.TestCase):
         self.mock_render_template.assert_called_once_with('display.html',
                                                           title='test_displayname',
                                                           files=self.mock_buildMovieEntries.return_value,
-                                                          auto_download='test_auto_download',
                                                           ismovie=False,
                                                           pathid=123,
                                                           pathname='test_pathname',

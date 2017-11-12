@@ -230,7 +230,6 @@ def get_file(guid):
                            files=files,
                            username=token['username'],
                            mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
-                           auto_download=token['auto_download'],
                            ismovie=token['ismovie'],
                            pathid=token['pathid'],
                            pathname=token['pathname'],
