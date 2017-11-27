@@ -195,6 +195,21 @@ function setupVideoPlayerPage(dirPath){
 
     video.addEventListener('play', start);
     video.addEventListener('ended', stopAndClearStorage);
+
+    function toggleplay() {
+        if(video.paused){
+            video.play();
+        } else {
+            video.pause()
+        }
+    }
+
+    document.onkeydown = function(e) {
+        if(e.keyCode == 32){
+            toggleplay();
+            return false;
+        }
+    };
 }
 
 function hasScrolled(){
