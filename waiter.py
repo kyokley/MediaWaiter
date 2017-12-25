@@ -167,7 +167,7 @@ def _buildFileDictHelper(root, filename, token):
                 'hashedWaiterPath': hashedWaiterPath,
                 'unhashedPath': path,
                 'streamable': True,
-                'filename': filename,
+                'filename': filename.split('.' + MEDIAVIEWER_SUFFIX)[0],
                 'size': humansize(size),
                 'isAlfredEncoding': True,
                 'unhashedSubtitleFile': subtitle_file,
