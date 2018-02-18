@@ -149,6 +149,7 @@ function toggleBingeWatch(){
 
 function setupVideoPlayerPage(dirPath){
     video = document.getElementsByTagName('video')[0];
+    player = video.parentElement.player;
 
     var timer = null;
     function tick() {
@@ -204,9 +205,28 @@ function setupVideoPlayerPage(dirPath){
         }
     }
 
+    function seekback() {
+        var back = $('.skip-back')[0];
+        back.click();
+        player.userActive(true); // Display controls
+    }
+
+    function seekforward() {
+        var forward = $('.skip-forward')[0];
+        forward.click();
+        player.userActive(true);
+    }
+
     document.onkeydown = function(e) {
+        // console.log(e.keyCode);
         if(e.keyCode == 32){
             toggleplay();
+            return false;
+        } else if(e.keyCode == 39){ // Right arrow
+            seekforward();
+            return false;
+        } else if(e.keyCode == 37){ // Left arrow
+            seekback();
             return false;
         }
     };
