@@ -71,7 +71,14 @@
             {% else %}
                 has_next_link = false;
             {% endif %}
-            var options = {chromecast: {appId: '{{ CAST_ID }}'}};
+            var options = {chromecast: {appId: '{{ CAST_ID }}'},
+                           plugins: {
+                                seekButtons: {
+                                    forward: 10,
+                                    back: 10
+                                }
+                            }
+                        };
 
             var player = videojs("video1", options, function onPlayerReady(){
                 var myPlayer = this;
@@ -146,7 +153,6 @@
                 // Thus endth the hack...
 
             });
-
             scrollSetup();
         });
     </script>
