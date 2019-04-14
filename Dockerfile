@@ -55,10 +55,12 @@ RUN curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poet
 COPY package.json /node/package.json
 COPY poetry.lock /code/poetry.lock
 COPY pyproject.toml /code/pyproject.toml
+COPY configs/docker_settings.py /code/local_settings.py
 
 RUN /bin/bash -c "source /venv/bin/activate && \
                   pip install --upgrade pip && \
-                  /root/.poetry/bin/poetry install -vvv ${REQS}"
+                  /root/.poetry/bin/poetry install -vvv ${REQS} && \
+                  mkdir /root/logs /root/media"
 
 RUN cd /node && yarn install && rsync -ruv /node/node_modules/* /code/static/
 
