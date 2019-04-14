@@ -1,4 +1,0 @@
-flask
-uwsgi
-requests
-fabric

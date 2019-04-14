@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "mediawaiter"
+version = "0.1.0"
+description = ""
+authors = ["Kevin Yokley <kyokley2@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+flask = "^1.0"
+uwsgi = "^2.0"
+requests = "^2.21"
+fabric = "^2.4"
+
+[tool.poetry.dev-dependencies]
+bpython = "^0.18.0"
+pdbpp = "^0.9.15"
+mock = "^2.0"
+nose = "^1.3"
+bandit = "^1.5"
+coverage = "^4.5"
+diff-cover = "^2.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
