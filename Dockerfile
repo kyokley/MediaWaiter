@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y yarn nodejs
 ENV VIRTUAL_ENV=/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+ENV PYTHONPATH=/code
 
 RUN echo 'alias venv="source /venv/bin/activate"' >> /root/.bashrc
 RUN echo 'export PATH=$PATH:/root/.poetry/bin' >> /root/.bashrc
