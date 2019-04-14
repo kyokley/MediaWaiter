@@ -33,6 +33,23 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN echo 'alias venv="source /venv/bin/activate"' >> /root/.bashrc
 RUN echo 'export PATH=$PATH:/root/.poetry/bin' >> /root/.bashrc
 
+# Add virtualenv to bash prompt
+RUN echo 'if [ -z "${VIRTUAL_ENV_DISABLE_PROMPT:-}" ] ; then \n\
+              _OLD_VIRTUAL_PS1="${PS1:-}" \n\
+              if [ "x(venv) " != x ] ; then \n\
+          	PS1="(venv) ${PS1:-}" \n\
+              else \n\
+              if [ "`basename \"$VIRTUAL_ENV\"`" = "__" ] ; then \n\
+                  # special case for Aspen magic directories \n\
+                  # see http://www.zetadev.com/software/aspen/ \n\
+                  PS1="[`basename \`dirname \"$VIRTUAL_ENV\"\``] $PS1" \n\
+              else \n\
+                  PS1="(`basename \"$VIRTUAL_ENV\"`)$PS1" \n\
+              fi \n\
+              fi \n\
+              export PS1 \n\
+          fi' >> ~/.bashrc
+
 RUN curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
 
 COPY package.json /node/package.json
