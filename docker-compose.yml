@@ -3,9 +3,12 @@ version: '2'
 services:
     mediawaiter:
         image: kyokley/mediawaiter
+        environment:
+          - FLASK_APP=waiter
+          - FLASK_DEBUG=1
         build: .
         command:
-            sh -c "python waiter.py"
+            sh -c "cp configs/docker_settings.py local_settings.py && python waiter.py"
         hostname: mediawaiter
         ports:
           - "5000:5000"
