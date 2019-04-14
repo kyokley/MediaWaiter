@@ -1,0 +1,44 @@
+version: '2'
+
+services:
+    postgres:
+        hostname: postgres
+        image: postgres
+        environment:
+            - POSTGRES_PASSWORD=password
+        ports:
+            - "5432:5432"
+        volumes:
+          - mediawaiter-data:/var/lib/postgresql/data
+        networks:
+          - mediawaiter-backend
+
+    mediawaiter:
+        image: kyokley/mediawaiter
+        build: .
+        command:
+            sh -c "python waiter.py"
+        hostname: mediawaiter
+        depends_on:
+            - "postgres"
+        ports:
+            - "8000:8000"
+        tty: true
+        stdin_open: true
+        networks:
+          - mediawaiter-backend
+        volumes:
+          - ./:/code
+
+    smtp:
+      hostname: smtp
+      image: namshi/smtp
+      networks:
+        - mediawaiter-backend
+
+# Persistent Volumes
+volumes:
+  mediawaiter-data:
+
+networks:
+    mediawaiter-backend:
