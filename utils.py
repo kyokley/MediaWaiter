@@ -35,13 +35,13 @@ class delayedRetry(object):
     def __call__(self, func):
         def wrap(*args, **kwargs):
             log.debug('Attempting %s' % func.__name__)
-            for i in xrange(self.attempts):
+            for i in range(self.attempts):
                 try:
                     log.debug('Attempt %s' % i)
                     res = func(*args, **kwargs)
                     log.debug('Success')
                     return res
-                except Exception, e:
+                except Exception as e:
                     log.error(e)
                 time.sleep(self.interval)
             else:
@@ -97,7 +97,7 @@ def getVideoOffset(filename, guid):
         data['offset'] = resp['offset']
         if 'date_edited' in resp:
             data['date_edited'] = resp['date_edited']
-    except Exception, e:
+    except Exception as e:
         log.error(e)
         raise
     return data
@@ -112,7 +112,7 @@ def setVideoOffset(filename, guid, offset):
                              data=data,
                              )
         resp.raise_for_status()
-    except Exception, e:
+    except Exception as e:
         log.error(e)
         raise
 
@@ -124,7 +124,7 @@ def deleteVideoOffset(filename, guid):
                                verify=VERIFY_REQUESTS,
                                )
         resp.raise_for_status()
-    except Exception, e:
+    except Exception as e:
         log.error(e)
         raise
 
@@ -146,8 +146,5 @@ def getMediaGenres(guid):
     return tv_genres, movie_genres
 
 def hashed_filename(filename):
-    if isinstance(filename, unicode):
-        peppered_string = filename.encode('utf-8') + SECRET_KEY
-    else:
-        peppered_string = filename + SECRET_KEY
+    peppered_string = filename + SECRET_KEY
     return hashlib.sha256(peppered_string).hexdigest()

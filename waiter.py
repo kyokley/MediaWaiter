@@ -49,7 +49,7 @@ def logErrorsAndContinue(func):
         try:
             res = func(*args, **kwargs)
             return res
-        except Exception, e:
+        except Exception as e:
             log.error(e, exc_info=True)
             errorText = "An error has occurred"
             try:
@@ -75,7 +75,7 @@ def getTokenByGUID(guid):
                             auth=(WAITER_USERNAME, WAITER_PASSWORD),
                             verify=VERIFY_REQUESTS)
         return data.json()
-    except Exception, e:
+    except Exception as e:
         log.error(e)
         raise
 
@@ -303,9 +303,9 @@ def get_status():
         log.debug('Result is %s' % linked)
 
         res['status'] = linked
-    except Exception, e:
+    except Exception as e:
         log.error(e, exc_info=True)
-        print e
+        print(e)
         res['status'] = False
 
     log.debug('status: %s' % (res['status'],))
@@ -436,7 +436,7 @@ def ajaxviewed(guid):
                             )
 
         req.raise_for_status()
-    except Exception, e:
+    except Exception as e:
         log.error(e)
         raise
 
@@ -445,16 +445,16 @@ def ajaxviewed(guid):
 @app.route(APP_NAME + '/offset/<guid>/<path:hashedFilename>/', methods=['GET', 'POST', 'DELETE'])
 def videoOffset(guid, hashedFilename):
     if request.method == 'GET':
-        print 'GET-ing video offset'
+        print('GET-ing video offset')
         data = getVideoOffset(hashedFilename, guid)
         return jsonify(data)
     elif request.method == 'POST':
-        print 'POST-ing video offset:'
-        print 'offset: %s' % request.form['offset']
+        print('POST-ing video offset:')
+        print('offset: %s' % request.form['offset'])
         setVideoOffset(hashedFilename, guid, request.form['offset'])
         return jsonify({'msg': 'success'})
     elif request.method == 'DELETE':
-        print 'DELETE-ing video offset:'
+        print('DELETE-ing video offset:')
         deleteVideoOffset(hashedFilename, guid)
         return jsonify({'msg': 'deleted'})
     else:
