@@ -585,22 +585,23 @@ class TestGetFile(unittest.TestCase):
         actual = get_file('guid')
         self.assertEqual(expected, actual)
         self.mock_getMediaGenres.assert_called_once_with('guid')
-        self.mock_render_template.assert_called_once_with('display.html',
-                                                          title='test_displayname',
-                                                          files=self.mock_buildMovieEntries.return_value,
-                                                          ismovie=False,
-                                                          pathid=123,
-                                                          pathname='test_pathname',
-                                                          username='some.user',
-                                                          mediaviewer_base_url='BASE_URL',
-                                                          guid='guid',
-                                                          offsetUrl='OFFSET_URL',
-                                                          next_link='BASE_URL/downloadlink/123/',
-                                                          previous_link='BASE_URL/downloadlink/234/',
-                                                          tv_genres='tv_genres',
-                                                          movie_genres='movie_genres',
-                                                          binge_mode=True,
-                                                          )
+        self.mock_render_template.assert_called_once_with(
+            'display.html',
+            title='test_displayname',
+            files=self.mock_buildMovieEntries.return_value,
+            ismovie=False,
+            pathid=123,
+            pathname='test_pathname',
+            username='some.user',
+            mediaviewer_base_url='BASE_URL',
+            guid='guid',
+            offsetUrl='OFFSET_URL',
+            next_link='BASE_URL/downloadlink/123/',
+            previous_link='BASE_URL/downloadlink/234/',
+            tv_genres='tv_genres',
+            movie_genres='movie_genres',
+            binge_mode=True,
+        )
 
     def test_valid_no_binge_mode(self):
         self.token['binge_mode'] = False

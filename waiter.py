@@ -7,7 +7,7 @@ from flask import (Flask,
                    send_file,
                    render_template,
                    jsonify)
-from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.middleware.proxy_fix import ProxyFix
 from settings import (BASE_PATH,
                       APP_NAME,
                       MEDIAVIEWER_GUID_URL,
@@ -261,10 +261,10 @@ def get_file(guid):
         guid=guid,
         offsetUrl=WAITER_OFFSET_URL,
         next_link=(
-            f"{MEDIAVIEWER_BASE_URL}/downloadlink/{token.get('next_id')}"
+            f"{MEDIAVIEWER_BASE_URL}/downloadlink/{token.get('next_id')}/"
             if token.get('next_id') else None),
         previous_link=(
-            f"{MEDIAVIEWER_BASE_URL}/downloadlink/{token.get('previous_id')}"
+            f"{MEDIAVIEWER_BASE_URL}/downloadlink/{token.get('previous_id')}/"
             if token.get('previous_id') else None),
         tv_genres=tv_genres,
         movie_genres=movie_genres,

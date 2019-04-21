@@ -60,7 +60,7 @@ def parseRangeHeaders(size, range_header):
     byte1, byte2 = 0, None
 
     if range_header:
-        m = re.search('(\d+)-(\d*)', range_header)
+        m = re.search(r'(\d+)-(\d*)', range_header)
         g = m.groups()
 
         byte1 = int(g[0]) if g[0] else 0
