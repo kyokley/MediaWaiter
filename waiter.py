@@ -159,7 +159,7 @@ def _buildFileDictHelper(root, filename, token):
             not isAlfredEncoding(filename)):
         return None
 
-    waiterPath = os.path.join(token['filename'], filename)
+    waiterPath = os.path.join(token['filename'], filename).encode('utf-8')
     hashedWaiterPath = hashed_filename(waiterPath)
 
     streamingPath = buildWaiterPath('stream',

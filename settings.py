@@ -12,16 +12,16 @@ REPO_DIR = os.path.dirname(os.path.abspath(__file__))
 # Borrowed from https://gist.github.com/ndarville/3452907
 SECRET_FILE = os.path.join(REPO_DIR, 'secret.txt')
 try:
-    with open(SECRET_FILE, 'r') as secret_file:
+    with open(SECRET_FILE, 'rb') as secret_file:
         SECRET_KEY = secret_file.read().strip()
 except IOError:
     try:
         import random
-        SECRET_KEY = ''.join([random.SystemRandom().choice('abcdefghijklmnopqrstuvwxyz'
-                                                           'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-                                                           '0123456789!@#$%^&*(-_=+)')
+        SECRET_KEY = b''.join([random.SystemRandom().choice(b'abcdefghijklmnopqrstuvwxyz'
+                                                            b'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                                                            b'0123456789!@#$%^&*(-_=+)')
                                 for i in range(50)])
-        with open(SECRET_FILE, 'w') as secret_file:
+        with open(SECRET_FILE, 'wb') as secret_file:
             secret_file.write(SECRET_KEY)
     except IOError:
         Exception('Please create a %s file with random characters to generate your secret key!' % SECRET_FILE)
