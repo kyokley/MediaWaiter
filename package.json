@@ -20,6 +20,6 @@
   },
   "homepage": "https://github.com/kyokley/MediaWaiter#readme",
   "dependencies": {
-    "bower": "^1.7.9"
+    "bower": "^1.8.8"
   }
 }
