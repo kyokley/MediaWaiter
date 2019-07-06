@@ -20,7 +20,7 @@ from settings import (BASE_PATH,
                       WAITER_OFFSET_URL,
                       VERIFY_REQUESTS,
                       MINIMUM_FILE_SIZE,
-                      MEDIAVIEWER_BASE_URL,
+                      EXTERNAL_MEDIAVIEWER_BASE_URL,
                       GOOGLE_CAST_APP_ID,
                       )
 from utils import (humansize,
@@ -62,7 +62,7 @@ def logErrorsAndContinue(func):
             return render_template("error.html",
                                    title="Error",
                                    errorText=errorText,
-                                   mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+                                   mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                                    username=username,
                                    )
     return func_wrapper
@@ -100,7 +100,7 @@ def get_dirPath(guid):
         return render_template("error.html",
                                title="Error",
                                errorText=errorStr,
-                               mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+                               mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                                )
 
     files = []
@@ -117,7 +117,7 @@ def get_dirPath(guid):
                            title=token['displayname'],
                            files=files,
                            username=token['username'],
-                           mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+                           mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                            ismovie=token['ismovie'],
                            pathid=token['pathid'],
                            pathname=token['pathname'],
@@ -221,7 +221,7 @@ def send_file_for_download(guid, hashPath):
         return render_template("error.html",
                                title="Error",
                                errorText=errorStr,
-                               mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+                               mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                                )
 
     fullPath = _getFileEntryFromHash(token, hashPath)['unhashedPath']
@@ -244,7 +244,7 @@ def get_file(guid):
                                title="Error",
                                errorText=('Invalid URL for movie type'
                                           if token['ismovie'] else errorStr),
-                               mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+                               mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                                )
 
     files = buildMovieEntries(token)
@@ -254,17 +254,17 @@ def get_file(guid):
         title=token['displayname'],
         files=files,
         username=token['username'],
-        mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+        mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
         ismovie=token['ismovie'],
         pathid=token['pathid'],
         pathname=token['pathname'],
         guid=guid,
         offsetUrl=WAITER_OFFSET_URL,
         next_link=(
-            f"{MEDIAVIEWER_BASE_URL}/downloadlink/{token.get('next_id')}/"
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/downloadlink/{token.get('next_id')}/"
             if token.get('next_id') else None),
         previous_link=(
-            f"{MEDIAVIEWER_BASE_URL}/downloadlink/{token.get('previous_id')}/"
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/downloadlink/{token.get('previous_id')}/"
             if token.get('previous_id') else None),
         tv_genres=tv_genres,
         movie_genres=movie_genres,
@@ -285,7 +285,7 @@ def autoplay(guid):
                                errorText=(
                                    'Invalid URL for movie type'
                                    if token['ismovie'] else errorStr),
-                               mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+                               mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                                )
 
     files = buildMovieEntries(token)
@@ -303,16 +303,16 @@ def autoplay(guid):
         guid=guid,
         username=token['username'],
         files=files,
-        mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+        mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
         ismovie=token['ismovie'],
         pathid=token['pathid'],
         pathname=token['pathname'],
         next_link=(
-            f"{MEDIAVIEWER_BASE_URL}"
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
             f"/autoplaydownloadlink/{token.get('next_id')}/"
             if token.get('next_id') else None),
         previous_link=(
-            f"{MEDIAVIEWER_BASE_URL}"
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
             f"/autoplaydownloadlink/{token.get('previous_id')}"
             if token.get('previous_id') else None),
         tv_genres=tv_genres,
@@ -443,7 +443,7 @@ def video(guid, hashPath):
         return render_template("error.html",
                                title="Error",
                                errorText=errorStr,
-                               mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+                               mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                                )
 
     file_entry = _getFileEntryFromHash(token, hashPath)
@@ -462,16 +462,16 @@ def video(guid, hashPath):
         guid=guid,
         username=token['username'],
         files=files,
-        mediaviewer_base_url=MEDIAVIEWER_BASE_URL,
+        mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
         ismovie=token['ismovie'],
         pathid=token['pathid'],
         pathname=token['pathname'],
         next_link=(
-            f"{MEDIAVIEWER_BASE_URL}"
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
             f"/autoplaydownloadlink/{token.get('next_id')}/"
             if token.get('next_id') else None),
         previous_link=(
-            f"{MEDIAVIEWER_BASE_URL}"
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
             f"/autoplaydownloadlink/{token.get('previous_id')}/"
             if token.get('previous_id') else None),
         tv_genres=tv_genres,

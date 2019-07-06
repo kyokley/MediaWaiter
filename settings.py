@@ -34,7 +34,7 @@ APP_NAME = '/waiter'
 LOG_PATH = '/path/to/log/folder'
 LOG_FILE_NAME = 'waiterLog'
 
-MEDIAVIEWER_BASE_URL = 'http://127.0.0.1/mediaviewer'
+EXTERNAL_MEDIAVIEWER_BASE_URL = MEDIAVIEWER_BASE_URL = 'http://127.0.0.1/mediaviewer'
 MEDIAVIEWER_GUID_URL = MEDIAVIEWER_BASE_URL + '/api/downloadtoken/%(guid)s/'
 MEDIAVIEWER_GUID_OFFSET_URL = MEDIAVIEWER_BASE_URL + '/ajaxvideoprogress/%(guid)s/%(filename)s/'
 MEDIAVIEWER_VIEWED_URL = MEDIAVIEWER_BASE_URL + '/ajaxsuperviewed/'
