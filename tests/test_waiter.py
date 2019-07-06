@@ -66,8 +66,8 @@ class TestGetTokenByGUID(unittest.TestCase):
 
 class TestGetDirPath(unittest.TestCase):
     def setUp(self):
-        self.MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.MEDIAVIEWER_BASE_URL', 'BASE_URL')
-        self.MEDIAVIEWER_BASE_URL_patcher.start()
+        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.EXTERNAL_MEDIAVIEWER_BASE_URL', 'BASE_URL')
+        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher.start()
         self.WAITER_OFFSET_URL = mock.patch('waiter.WAITER_OFFSET_URL', 'OFFSET_URL')
         self.WAITER_OFFSET_URL.start()
         self.getTokenByGUID_patcher = mock.patch('waiter.getTokenByGUID')
@@ -90,7 +90,7 @@ class TestGetDirPath(unittest.TestCase):
         self.test_guid = 'test_guid'
 
     def tearDown(self):
-        self.MEDIAVIEWER_BASE_URL_patcher.stop()
+        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher.stop()
         self.WAITER_OFFSET_URL.stop()
         self.getTokenByGUID_patcher.stop()
         self.render_template_patcher.stop()
@@ -367,8 +367,8 @@ class TestBuildFileDictHelper(unittest.TestCase):
 
 class TestSendFileForDownload(unittest.TestCase):
     def setUp(self):
-        self.MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.MEDIAVIEWER_BASE_URL', 'BASE_URL')
-        self.MEDIAVIEWER_BASE_URL_patcher.start()
+        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.EXTERNAL_MEDIAVIEWER_BASE_URL', 'BASE_URL')
+        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher.start()
         self.BASE_PATH_patcher = mock.patch('waiter.BASE_PATH', 'BASE_PATH')
         self.BASE_PATH_patcher.start()
         self.getTokenByGUID_patcher = mock.patch('waiter.getTokenByGUID')
@@ -396,7 +396,7 @@ class TestSendFileForDownload(unittest.TestCase):
         self.mock_hashed_filename.return_value = 'hashPath'
 
     def tearDown(self):
-        self.MEDIAVIEWER_BASE_URL_patcher.stop()
+        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher.stop()
         self.BASE_PATH_patcher.stop()
         self.getTokenByGUID_patcher.stop()
         self.render_template_patcher.stop()
@@ -471,8 +471,8 @@ class TestSendFileForDownload(unittest.TestCase):
 
 class TestGetFile(unittest.TestCase):
     def setUp(self):
-        self.MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.MEDIAVIEWER_BASE_URL', 'BASE_URL')
-        self.MEDIAVIEWER_BASE_URL_patcher.start()
+        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.EXTERNAL_MEDIAVIEWER_BASE_URL', 'BASE_URL')
+        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher.start()
         self.WAITER_OFFSET_URL = mock.patch('waiter.WAITER_OFFSET_URL', 'OFFSET_URL')
         self.WAITER_OFFSET_URL.start()
         self.log_patcher = mock.patch('waiter.log')
@@ -516,7 +516,7 @@ class TestGetFile(unittest.TestCase):
         self.mock_hashed_filename.return_value = 'test_hash'
 
     def tearDown(self):
-        self.MEDIAVIEWER_BASE_URL_patcher.stop()
+        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher.stop()
         self.WAITER_OFFSET_URL.stop()
         self.log_patcher.stop()
         self.STREAMABLE_FILE_TYPES_patcher.stop()
