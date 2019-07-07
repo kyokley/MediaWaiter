@@ -67,4 +67,4 @@ RUN cd /node && yarn install && rsync -ruv /node/node_modules/* /code/static/
 
 COPY . /code
 
-CMD uwsgi --ini /home/docker/code/uwsgi/uwsi.conf
+CMD uwsgi --ini /home/docker/code/server/uwsgi.ini

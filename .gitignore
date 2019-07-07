@@ -1,7 +1,6 @@
 py27
 *.pyc
 local_settings*
-*.ini
 *.log
 node_modules
 bower_components
