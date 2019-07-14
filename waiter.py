@@ -171,7 +171,7 @@ def _buildFileDictHelper(root, filename, token):
     if os.path.exists(subtitle_file):
         subtitle_basename = os.path.basename(subtitle_file)
         hashedSubtitleFile = hashed_filename(os.path.join(token['filename'],
-                                                          subtitle_basename))
+                                                          subtitle_basename).encode('utf-8'))
     else:
         subtitle_file = None
         hashedSubtitleFile = None

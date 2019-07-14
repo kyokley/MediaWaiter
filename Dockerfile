@@ -24,7 +24,7 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
 
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 
-RUN apt-get update && apt-get install -y yarn nodejs
+RUN apt-get update && apt-get install -y yarn nodejs rsync
 
 ENV VIRTUAL_ENV=/venv
 RUN python3 -m venv $VIRTUAL_ENV
@@ -67,4 +67,4 @@ RUN cd /node && yarn install && rsync -ruv /node/node_modules/* /code/static/
 
 COPY . /code
 
-CMD uwsgi --ini /home/docker/code/server/uwsgi.ini
+CMD uwsgi --ini /code/server/uwsgi.ini
