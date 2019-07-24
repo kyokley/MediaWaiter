@@ -35,6 +35,7 @@ class delayedRetry(object):
     def __call__(self, func):
         def wrap(*args, **kwargs):
             log.debug('Attempting %s' % func.__name__)
+            last_exc = None
             for i in range(self.attempts):
                 try:
                     log.debug('Attempt %s' % i)
@@ -43,9 +44,11 @@ class delayedRetry(object):
                     return res
                 except Exception as e:
                     log.error(e)
+                    last_exc = e
                 time.sleep(self.interval)
             else:
-                raise Exception('Failure after %s attempts' % self.attempts)
+                log.error('Failure after %s attempts' % self.attempts)
+                raise last_exc
         return wrap
 
 def checkForValidToken(token, guid):
