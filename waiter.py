@@ -110,7 +110,7 @@ def get_dirPath(guid):
         raise ValueError(
             f'Only movies are allowed to display contents of directories. '
             f'GUID = {guid}')
-    files.sort()
+    files.sort(key=lambda x: x['filename'])
 
     tv_genres, movie_genres = getMediaGenres(guid)
     return render_template("display.html",
