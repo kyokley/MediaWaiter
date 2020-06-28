@@ -1,5 +1,6 @@
 import os
 import mimetypes
+from pathlib import Path
 from functools import wraps
 from flask import (Flask,
                    Response,
@@ -133,25 +134,28 @@ def get_dirPath(guid):
 
 def buildMovieEntries(token):
     files = []
-    movieFilename = os.path.join(token['path'], token['filename'])
-    fullMoviePath = os.path.join(BASE_PATH, movieFilename)
-    if os.path.isdir(fullMoviePath):
+    if token['ismovie']:
+        remote_base_path = Path(token['path']).stem
+        fullMoviePath = Path(BASE_PATH) / remote_base_path / token['filename']
+    else:
+        fullMoviePath = Path(BASE_PATH).joinpath(*Path(token['path']).parts[-2:])
+    if fullMoviePath.exists():
         for root, subFolders, filenames in os.walk(fullMoviePath):
             for filename in filenames:
-                filesDict = _buildFileDictHelper(root, filename, token)
+                filesDict = _buildFileDictHelper(Path(root), filename, token)
                 if filesDict:
                     files.append(filesDict)
     else:
-        files.append(_buildFileDictHelper(os.path.dirname(fullMoviePath),
-                                          os.path.basename(fullMoviePath),
+        files.append(_buildFileDictHelper(fullMoviePath.parent,
+                                          fullMoviePath.parts[-1],
                                           token))
     return files
 
 
 def _buildFileDictHelper(root, filename, token):
-    path = os.path.join(root, filename)
-    size = os.path.getsize(path)
-    ext = os.path.splitext(filename)[-1].lower()
+    path = root / filename
+    size = path.stat().st_size
+    ext = path.suffix.lower()
 
     # Files smaller than 10MB probably aren't video files
     if (size < MINIMUM_FILE_SIZE or
@@ -167,11 +171,13 @@ def _buildFileDictHelper(root, filename, token):
                                     hashedWaiterPath,
                                     includeLastSlash=True)
 
-    subtitle_file = path[:-4] + '.vtt'
-    if os.path.exists(subtitle_file):
-        subtitle_basename = os.path.basename(subtitle_file)
-        hashedSubtitleFile = hashed_filename(os.path.join(token['filename'],
-                                                          subtitle_basename).encode('utf-8'))
+    subtitle_file = Path(
+        str(path.parent / path.stem) + '.vtt')
+    if subtitle_file.exists():
+        subtitle_basename = subtitle_file.name
+        hashedSubtitleFile = hashed_filename(
+            os.path.join(token['filename'],
+                         subtitle_basename).encode('utf-8'))
     else:
         subtitle_file = None
         hashedSubtitleFile = None
@@ -359,6 +365,8 @@ def after_request(response):
 
 
 def xsendfile(path, filename, size, range_header=None):
+    path = str(path)
+
     log.debug('path: %s' % path)
     log.debug('filename: %s' % filename)
     mime = mimetypes.guess_type(path)[0]
@@ -401,6 +409,7 @@ def app_sendfile(path,
                  filename,
                  size,
                  range_header=None):
+    path = str(path)
     if not range_header:
         resp = send_file(path,
                          as_attachment=True,
