@@ -78,8 +78,17 @@ class TestGetDirPath(unittest.TestCase):
         self.mock_render_template = self.render_template_patcher.start()
         self.buildEntries_patcher = mock.patch('waiter.buildEntries')
         self.mock_buildEntries = self.buildEntries_patcher.start()
-        self.mock_buildEntries.return_value = ['qwe', 'asd', 'zxc']
-
+        self.mock_buildEntries.return_value = [
+            {
+                'filename': 'qwe',
+            },
+            {
+                'filename': 'asd',
+            },
+            {
+                'filename': 'zxc',
+            },
+        ]
         self.getMediaGenres_patcher = mock.patch('waiter.getMediaGenres')
         self.mock_getMediaGenres = self.getMediaGenres_patcher.start()
         self.mock_getMediaGenres.return_value = ('tv_genres', 'movie_genres')
@@ -148,7 +157,7 @@ class TestGetDirPath(unittest.TestCase):
         self.mock_getMediaGenres.assert_called_once_with(self.test_guid)
         self.mock_render_template.assert_called_once_with('display.html',
                                                           title='test_display_name',
-                                                          files=['asd', 'qwe', 'zxc'],
+                                                          files=[{'filename': 'asd'}, {'filename': 'qwe'}, {'filename': 'zxc'}],
                                                           username='some.user',
                                                           mediaviewer_base_url='BASE_URL',
                                                           ismovie=True,
