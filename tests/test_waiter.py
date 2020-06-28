@@ -208,7 +208,9 @@ class TestBuildMovieEntries(unittest.TestCase):
                                                               'file3'])]
 
         self.token = {'path': 'a/movie/path',
-                      'filename': 'test_movie_name'}
+                      'filename': 'test_movie_name',
+                      'ismovie': True
+                      }
 
 
     def tearDown(self):
@@ -223,9 +225,9 @@ class TestBuildMovieEntries(unittest.TestCase):
         actual = buildEntries(self.token)
         self.assertEqual(expected, actual)
 
-        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file1', self.token)
-        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file2', self.token)
-        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file3', self.token)
+        self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file1', self.token)
+        self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file2', self.token)
+        self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file3', self.token)
 
     def test_no_valid_files(self):
         self.mock_buildFileDictHelper.return_value = None
@@ -234,9 +236,9 @@ class TestBuildMovieEntries(unittest.TestCase):
         actual = buildEntries(self.token)
         self.assertEqual(expected, actual)
 
-        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file1', self.token)
-        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file2', self.token)
-        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file3', self.token)
+        self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file1', self.token)
+        self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file2', self.token)
+        self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file3', self.token)
 
 class TestBuildFileDictHelper(unittest.TestCase):
     def setUp(self):
@@ -277,7 +279,6 @@ class TestBuildFileDictHelper(unittest.TestCase):
         expected = None
         actual = _buildFileDictHelper('/root', 'filename.mp4', self.token)
         self.assertEqual(expected, actual)
-        self.mock_getsize.assert_called_once_with('root/filename.mp4')
         self.assertFalse(self.mock_buildWaiterPath.called)
         self.assertFalse(self.mock_hashed_filename.called)
         self.assertFalse(self.mock_isAlfredEncoding.called)
@@ -288,7 +289,6 @@ class TestBuildFileDictHelper(unittest.TestCase):
         expected = None
         actual = _buildFileDictHelper('/root', 'filename.mkv', self.token)
         self.assertEqual(expected, actual)
-        self.mock_getsize.assert_called_once_with('root/filename.mkv')
         self.assertFalse(self.mock_buildWaiterPath.called)
         self.assertFalse(self.mock_hashed_filename.called)
         self.assertFalse(self.mock_isAlfredEncoding.called)

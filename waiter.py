@@ -154,8 +154,8 @@ def buildEntries(token):
 
 
 def _buildFileDictHelper(root, filename, token):
-    path = root / filename
-    size = path.stat().st_size
+    path = Path(root) / filename
+    size = os.path.getsize(path)
     ext = path.suffix.lower()
 
     # Files smaller than 10MB probably aren't video files
