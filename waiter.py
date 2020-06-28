@@ -1,5 +1,6 @@
 import os
 import mimetypes
+from pathlib import Path
 from functools import wraps
 from flask import (Flask,
                    Response,
@@ -105,7 +106,7 @@ def get_dirPath(guid):
 
     files = []
     if token['ismovie']:
-        files.extend(buildMovieEntries(token))
+        files.extend(buildEntries(token))
     else:
         raise ValueError(
             f'Only movies are allowed to display contents of directories. '
@@ -131,27 +132,31 @@ def get_dirPath(guid):
                            )
 
 
-def buildMovieEntries(token):
+def buildEntries(token):
     files = []
-    movieFilename = os.path.join(token['path'], token['filename'])
-    fullMoviePath = os.path.join(BASE_PATH, movieFilename)
-    if os.path.isdir(fullMoviePath):
+    if token['ismovie']:
+        remote_base_path = Path(token['path']).stem
+        fullMoviePath = Path(BASE_PATH) / remote_base_path / token['filename']
+
         for root, subFolders, filenames in os.walk(fullMoviePath):
             for filename in filenames:
-                filesDict = _buildFileDictHelper(root, filename, token)
+                filesDict = _buildFileDictHelper(Path(root), filename, token)
                 if filesDict:
                     files.append(filesDict)
     else:
-        files.append(_buildFileDictHelper(os.path.dirname(fullMoviePath),
-                                          os.path.basename(fullMoviePath),
+        fullMoviePath = Path(BASE_PATH).joinpath(
+            *Path(token['path']).parts[-2:]) / token['filename']
+        files.append(_buildFileDictHelper(fullMoviePath.parent,
+                                          fullMoviePath.parts[-1],
                                           token))
+
     return files
 
 
 def _buildFileDictHelper(root, filename, token):
-    path = os.path.join(root, filename)
+    path = Path(root) / filename
     size = os.path.getsize(path)
-    ext = os.path.splitext(filename)[-1].lower()
+    ext = path.suffix.lower()
 
     # Files smaller than 10MB probably aren't video files
     if (size < MINIMUM_FILE_SIZE or
@@ -167,11 +172,13 @@ def _buildFileDictHelper(root, filename, token):
                                     hashedWaiterPath,
                                     includeLastSlash=True)
 
-    subtitle_file = path[:-4] + '.vtt'
-    if os.path.exists(subtitle_file):
-        subtitle_basename = os.path.basename(subtitle_file)
-        hashedSubtitleFile = hashed_filename(os.path.join(token['filename'],
-                                                          subtitle_basename).encode('utf-8'))
+    subtitle_file = Path(
+        str(path.parent / path.stem) + '.vtt')
+    if subtitle_file.exists():
+        subtitle_basename = subtitle_file.name
+        hashedSubtitleFile = hashed_filename(
+            os.path.join(token['filename'],
+                         subtitle_basename).encode('utf-8'))
     else:
         subtitle_file = None
         hashedSubtitleFile = None
@@ -200,7 +207,7 @@ def _buildFileDictHelper(root, filename, token):
 
 
 def _getFileEntryFromHash(token, hashPath):
-    movieEntries = buildMovieEntries(token)
+    movieEntries = buildEntries(token)
     for entry in movieEntries:
         if entry['hashedWaiterPath'] == hashPath:
             return entry
@@ -247,7 +254,7 @@ def get_file(guid):
                                mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                                )
 
-    files = buildMovieEntries(token)
+    files = buildEntries(token)
     tv_genres, movie_genres = getMediaGenres(guid)
     return render_template(
         "display.html",
@@ -288,7 +295,7 @@ def autoplay(guid):
                                mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                                )
 
-    files = buildMovieEntries(token)
+    files = buildEntries(token)
     file_entry = files[0]
     tv_genres, movie_genres = getMediaGenres(guid)
     return render_template(
@@ -359,6 +366,8 @@ def after_request(response):
 
 
 def xsendfile(path, filename, size, range_header=None):
+    path = str(path)
+
     log.debug('path: %s' % path)
     log.debug('filename: %s' % filename)
     mime = mimetypes.guess_type(path)[0]
@@ -401,6 +410,7 @@ def app_sendfile(path,
                  filename,
                  size,
                  range_header=None):
+    path = str(path)
     if not range_header:
         resp = send_file(path,
                          as_attachment=True,
@@ -447,7 +457,7 @@ def video(guid, hashPath):
                                )
 
     file_entry = _getFileEntryFromHash(token, hashPath)
-    files = buildMovieEntries(token)
+    files = buildEntries(token)
     tv_genres, movie_genres = getMediaGenres(guid)
 
     return render_template(

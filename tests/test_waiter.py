@@ -1,8 +1,9 @@
 import unittest
+from pathlib import Path
 from waiter import (isAlfredEncoding,
                     getTokenByGUID,
                     get_dirPath,
-                    buildMovieEntries,
+                    buildEntries,
                     _buildFileDictHelper,
                     send_file_for_download,
                     get_file,
@@ -11,6 +12,7 @@ from waiter import (isAlfredEncoding,
                     send_file_partial,
                     )
 import mock
+
 
 class TestIsAlfredEncoding(unittest.TestCase):
     def setUp(self):
@@ -74,10 +76,19 @@ class TestGetDirPath(unittest.TestCase):
         self.mock_getTokenByGUID = self.getTokenByGUID_patcher.start()
         self.render_template_patcher = mock.patch('waiter.render_template')
         self.mock_render_template = self.render_template_patcher.start()
-        self.buildMovieEntries_patcher = mock.patch('waiter.buildMovieEntries')
-        self.mock_buildMovieEntries = self.buildMovieEntries_patcher.start()
-        self.mock_buildMovieEntries.return_value = ['qwe', 'asd', 'zxc']
-
+        self.buildEntries_patcher = mock.patch('waiter.buildEntries')
+        self.mock_buildEntries = self.buildEntries_patcher.start()
+        self.mock_buildEntries.return_value = [
+            {
+                'filename': 'qwe',
+            },
+            {
+                'filename': 'asd',
+            },
+            {
+                'filename': 'zxc',
+            },
+        ]
         self.getMediaGenres_patcher = mock.patch('waiter.getMediaGenres')
         self.mock_getMediaGenres = self.getMediaGenres_patcher.start()
         self.mock_getMediaGenres.return_value = ('tv_genres', 'movie_genres')
@@ -95,7 +106,7 @@ class TestGetDirPath(unittest.TestCase):
         self.getTokenByGUID_patcher.stop()
         self.render_template_patcher.stop()
         self.checkForValidToken_patcher.stop()
-        self.buildMovieEntries_patcher.stop()
+        self.buildEntries_patcher.stop()
         self.buildWaiterPath_patcher.stop()
         self.getMediaGenres_patcher.stop()
 
@@ -146,7 +157,7 @@ class TestGetDirPath(unittest.TestCase):
         self.mock_getMediaGenres.assert_called_once_with(self.test_guid)
         self.mock_render_template.assert_called_once_with('display.html',
                                                           title='test_display_name',
-                                                          files=['asd', 'qwe', 'zxc'],
+                                                          files=[{'filename': 'asd'}, {'filename': 'qwe'}, {'filename': 'zxc'}],
                                                           username='some.user',
                                                           mediaviewer_base_url='BASE_URL',
                                                           ismovie=True,
@@ -189,6 +200,7 @@ class TestGetDirPath(unittest.TestCase):
                                                           mediaviewer_base_url='BASE_URL',
                                                           )
 
+
 class TestBuildMovieEntries(unittest.TestCase):
     def setUp(self):
         self.os_patcher = mock.patch('waiter.os')
@@ -205,7 +217,9 @@ class TestBuildMovieEntries(unittest.TestCase):
                                                               'file3'])]
 
         self.token = {'path': 'a/movie/path',
-                      'filename': 'test_movie_name'}
+                      'filename': 'test_movie_name',
+                      'ismovie': True
+                      }
 
 
     def tearDown(self):
@@ -217,23 +231,23 @@ class TestBuildMovieEntries(unittest.TestCase):
         expected = [self.mock_buildFileDictHelper.return_value,
                     self.mock_buildFileDictHelper.return_value,
                     self.mock_buildFileDictHelper.return_value]
-        actual = buildMovieEntries(self.token)
+        actual = buildEntries(self.token)
         self.assertEqual(expected, actual)
 
-        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file1', self.token)
-        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file2', self.token)
-        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file3', self.token)
+        self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file1', self.token)
+        self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file2', self.token)
+        self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file3', self.token)
 
     def test_no_valid_files(self):
         self.mock_buildFileDictHelper.return_value = None
 
         expected = []
-        actual = buildMovieEntries(self.token)
+        actual = buildEntries(self.token)
         self.assertEqual(expected, actual)
 
-        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file1', self.token)
-        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file2', self.token)
-        self.mock_buildFileDictHelper.assert_any_call('/root/path', 'file3', self.token)
+        self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file1', self.token)
+        self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file2', self.token)
+        self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file3', self.token)
 
 class TestBuildFileDictHelper(unittest.TestCase):
     def setUp(self):
@@ -272,9 +286,8 @@ class TestBuildFileDictHelper(unittest.TestCase):
         self.mock_getsize.return_value = 1000000
 
         expected = None
-        actual = _buildFileDictHelper('root', 'filename.mp4', self.token)
+        actual = _buildFileDictHelper('/root', 'filename.mp4', self.token)
         self.assertEqual(expected, actual)
-        self.mock_getsize.assert_called_once_with('root/filename.mp4')
         self.assertFalse(self.mock_buildWaiterPath.called)
         self.assertFalse(self.mock_hashed_filename.called)
         self.assertFalse(self.mock_isAlfredEncoding.called)
@@ -283,87 +296,12 @@ class TestBuildFileDictHelper(unittest.TestCase):
         self.mock_getsize.return_value = 100000000
 
         expected = None
-        actual = _buildFileDictHelper('root', 'filename.mkv', self.token)
+        actual = _buildFileDictHelper('/root', 'filename.mkv', self.token)
         self.assertEqual(expected, actual)
-        self.mock_getsize.assert_called_once_with('root/filename.mkv')
         self.assertFalse(self.mock_buildWaiterPath.called)
         self.assertFalse(self.mock_hashed_filename.called)
         self.assertFalse(self.mock_isAlfredEncoding.called)
 
-    def test_is_not_encoded(self):
-        self.mock_getsize.return_value = 100000000
-        self.mock_isAlfredEncoding.return_value = False
-
-        expected = None
-        actual = _buildFileDictHelper('root', 'filename.mp4', self.token)
-        self.assertEqual(expected, actual)
-        self.mock_getsize.assert_called_once_with('root/filename.mp4')
-        self.assertFalse(self.mock_buildWaiterPath.called)
-        self.assertFalse(self.mock_hashed_filename.called)
-        self.mock_isAlfredEncoding.assert_called_once_with('filename.mp4')
-
-    def test_valid_file_noProgress(self):
-        self.mock_getsize.return_value = 100000000
-
-        expected = {'path': self.mock_buildWaiterPath.return_value,
-                    'streamingPath': self.mock_buildWaiterPath.return_value,
-                    'hashedWaiterPath': self.mock_hashed_filename.return_value,
-                    'unhashedPath': 'root/filename.mp4',
-                    'streamable': True,
-                    'filename': 'filename.mp4',
-                    'size': self.mock_humansize.return_value,
-                    'isAlfredEncoding': True,
-                    'ismovie': True,
-                    'unhashedSubtitleFile': None,
-                    'hashedSubtitleFile': None,
-                    'subtitleWaiterPath': None,
-                    'ismovie': True,
-                    'displayName': 'Some Dir',
-                    'hasProgress': False}
-        actual = _buildFileDictHelper('root', 'filename.mp4', self.token)
-        self.assertEqual(expected, actual)
-        self.mock_getsize.assert_called_once_with('root/filename.mp4')
-        self.mock_buildWaiterPath.assert_any_call('stream',
-                                                  'asdf1234',
-                                                  self.mock_hashed_filename.return_value,
-                                                  includeLastSlash=True)
-        self.mock_buildWaiterPath.assert_any_call('file',
-                                                  'asdf1234',
-                                                  self.mock_hashed_filename.return_value,
-                                                  includeLastSlash=True)
-        self.mock_isAlfredEncoding.assert_called_once_with('filename.mp4')
-
-    def test_valid_file_with_progress(self):
-        self.mock_getsize.return_value = 100000000
-        self.token['videoprogresses'] = [self.mock_hashed_filename.return_value]
-
-        expected = {'path': self.mock_buildWaiterPath.return_value,
-                    'streamingPath': self.mock_buildWaiterPath.return_value,
-                    'hashedWaiterPath': self.mock_hashed_filename.return_value,
-                    'unhashedPath': 'root/filename.mp4',
-                    'streamable': True,
-                    'filename': 'filename.mp4',
-                    'size': self.mock_humansize.return_value,
-                    'isAlfredEncoding': True,
-                    'ismovie': True,
-                    'unhashedSubtitleFile': None,
-                    'hashedSubtitleFile': None,
-                    'subtitleWaiterPath': None,
-                    'ismovie': True,
-                    'displayName': 'Some Dir',
-                    'hasProgress': True}
-        actual = _buildFileDictHelper('root', 'filename.mp4', self.token)
-        self.assertEqual(expected, actual)
-        self.mock_getsize.assert_called_once_with('root/filename.mp4')
-        self.mock_buildWaiterPath.assert_any_call('stream',
-                                                  'asdf1234',
-                                                  self.mock_hashed_filename.return_value,
-                                                  includeLastSlash=True)
-        self.mock_buildWaiterPath.assert_any_call('file',
-                                                  'asdf1234',
-                                                  self.mock_hashed_filename.return_value,
-                                                  includeLastSlash=True)
-        self.mock_isAlfredEncoding.assert_called_once_with('filename.mp4')
 
 class TestSendFileForDownload(unittest.TestCase):
     def setUp(self):
@@ -377,8 +315,8 @@ class TestSendFileForDownload(unittest.TestCase):
         self.mock_render_template = self.render_template_patcher.start()
         self.checkForValidToken_patcher = mock.patch('waiter.checkForValidToken')
         self.mock_checkForValidToken = self.checkForValidToken_patcher.start()
-        self.buildMovieEntries_patcher = mock.patch('waiter.buildMovieEntries')
-        self.mock_buildMovieEntries = self.buildMovieEntries_patcher.start()
+        self.buildEntries_patcher = mock.patch('waiter.buildEntries')
+        self.mock_buildEntries = self.buildEntries_patcher.start()
         self.hashed_filename_patcher = mock.patch('waiter.hashed_filename')
         self.mock_hashed_filename = self.hashed_filename_patcher.start()
         self.send_file_partial_patcher = mock.patch('waiter.send_file_partial')
@@ -390,7 +328,7 @@ class TestSendFileForDownload(unittest.TestCase):
                       }
         self.mock_getTokenByGUID.return_value = self.token
         self.mock_checkForValidToken.return_value = None
-        self.mock_buildMovieEntries.return_value = [{'hashedWaiterPath': 'hashPath',
+        self.mock_buildEntries.return_value = [{'hashedWaiterPath': 'hashPath',
                                                      'unhashedPath': 'unhashed/path/to/file',
                                                      }]
         self.mock_hashed_filename.return_value = 'hashPath'
@@ -401,7 +339,7 @@ class TestSendFileForDownload(unittest.TestCase):
         self.getTokenByGUID_patcher.stop()
         self.render_template_patcher.stop()
         self.checkForValidToken_patcher.stop()
-        self.buildMovieEntries_patcher.stop()
+        self.buildEntries_patcher.stop()
         self.hashed_filename_patcher.stop()
         self.send_file_partial_patcher.stop()
 
@@ -437,7 +375,7 @@ class TestSendFileForDownload(unittest.TestCase):
         expected = self.mock_send_file_partial.return_value
         actual = send_file_for_download('guid', 'hashPath')
         self.assertEqual(expected, actual)
-        self.mock_buildMovieEntries.assert_called_once_with(self.token)
+        self.mock_buildEntries.assert_called_once_with(self.token)
         self.assertFalse(self.mock_hashed_filename.called)
         self.mock_send_file_partial.assert_called_once_with('unhashed/path/to/file',
                                                             'file',
@@ -449,7 +387,7 @@ class TestSendFileForDownload(unittest.TestCase):
         expected = self.mock_render_template.return_value
         actual = send_file_for_download('guid', 'badHashPath')
         self.assertEqual(expected, actual)
-        self.mock_buildMovieEntries.assert_called_once_with(self.token)
+        self.mock_buildEntries.assert_called_once_with(self.token)
         self.assertFalse(self.mock_hashed_filename.called)
         self.assertFalse(self.mock_send_file_partial.called)
         self.mock_render_template.assert_called_once_with('error.html',
@@ -463,7 +401,7 @@ class TestSendFileForDownload(unittest.TestCase):
         expected = self.mock_send_file_partial.return_value
         actual = send_file_for_download('guid', 'hashPath')
         self.assertEqual(expected, actual)
-        self.assertTrue(self.mock_buildMovieEntries.called)
+        self.assertTrue(self.mock_buildEntries.called)
         self.assertFalse(self.mock_hashed_filename.called)
         self.mock_send_file_partial.assert_called_once_with('unhashed/path/to/file',
                                                             'file',
@@ -495,8 +433,8 @@ class TestGetFile(unittest.TestCase):
         self.mock_humansize = self.humansize_patcher.start()
         self.isAlfredEncoding_patcher = mock.patch('waiter.isAlfredEncoding')
         self.mock_isAlfredEncoding = self.isAlfredEncoding_patcher.start()
-        self.buildMovieEntries_patcher = mock.patch('waiter.buildMovieEntries')
-        self.mock_buildMovieEntries = self.buildMovieEntries_patcher.start()
+        self.buildEntries_patcher = mock.patch('waiter.buildEntries')
+        self.mock_buildEntries = self.buildEntries_patcher.start()
 
         self.getMediaGenres_patcher = mock.patch('waiter.getMediaGenres')
         self.mock_getMediaGenres = self.getMediaGenres_patcher.start()
@@ -528,7 +466,7 @@ class TestGetFile(unittest.TestCase):
         self.getsize_patcher.stop()
         self.humansize_patcher.stop()
         self.isAlfredEncoding_patcher.stop()
-        self.buildMovieEntries_patcher.stop()
+        self.buildEntries_patcher.stop()
         self.getMediaGenres_patcher.stop()
 
     def test_invalid_token(self):
@@ -562,7 +500,7 @@ class TestGetFile(unittest.TestCase):
         self.mock_getMediaGenres.assert_called_once_with('guid')
         self.mock_render_template.assert_called_once_with('display.html',
                                                           title='test_displayname',
-                                                          files=self.mock_buildMovieEntries.return_value,
+                                                          files=self.mock_buildEntries.return_value,
                                                           ismovie=False,
                                                           pathid=123,
                                                           pathname='test_pathname',
@@ -588,7 +526,7 @@ class TestGetFile(unittest.TestCase):
         self.mock_render_template.assert_called_once_with(
             'display.html',
             title='test_displayname',
-            files=self.mock_buildMovieEntries.return_value,
+            files=self.mock_buildEntries.return_value,
             ismovie=False,
             pathid=123,
             pathname='test_pathname',
@@ -612,7 +550,7 @@ class TestGetFile(unittest.TestCase):
         self.mock_getMediaGenres.assert_called_once_with('guid')
         self.mock_render_template.assert_called_once_with('display.html',
                                                           title='test_displayname',
-                                                          files=self.mock_buildMovieEntries.return_value,
+                                                          files=self.mock_buildEntries.return_value,
                                                           ismovie=False,
                                                           pathid=123,
                                                           pathname='test_pathname',

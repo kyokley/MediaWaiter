@@ -1,4 +1,4 @@
-.PHONY: build build-dev up up-no-daemon tests attach shell help list static
+.PHONY: build build-dev up up-no-daemon tests attach shell help list static publish push
 
 help: ## This help
 	@grep -F "##" $(MAKEFILE_LIST) | grep -vF '@grep -F "##" $$(MAKEFILE_LIST)' | sed -r 's/(:).*##/\1/' | sort
@@ -35,3 +35,5 @@ static: ## Install static files
 
 push: build ## Push image to docker hub
 	docker push kyokley/mediawaiter
+
+publish: push ## Alias for push
