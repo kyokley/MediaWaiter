@@ -106,7 +106,7 @@ def get_dirPath(guid):
 
     files = []
     if token['ismovie']:
-        files.extend(buildMovieEntries(token))
+        files.extend(buildEntries(token))
     else:
         raise ValueError(
             f'Only movies are allowed to display contents of directories. '
@@ -132,23 +132,24 @@ def get_dirPath(guid):
                            )
 
 
-def buildMovieEntries(token):
+def buildEntries(token):
     files = []
     if token['ismovie']:
         remote_base_path = Path(token['path']).stem
         fullMoviePath = Path(BASE_PATH) / remote_base_path / token['filename']
-    else:
-        fullMoviePath = Path(BASE_PATH).joinpath(*Path(token['path']).parts[-2:])
-    if fullMoviePath.exists():
+
         for root, subFolders, filenames in os.walk(fullMoviePath):
             for filename in filenames:
                 filesDict = _buildFileDictHelper(Path(root), filename, token)
                 if filesDict:
                     files.append(filesDict)
     else:
+        fullMoviePath = Path(BASE_PATH).joinpath(
+            *Path(token['path']).parts[-2:]) / token['filename']
         files.append(_buildFileDictHelper(fullMoviePath.parent,
                                           fullMoviePath.parts[-1],
                                           token))
+
     return files
 
 
@@ -206,7 +207,7 @@ def _buildFileDictHelper(root, filename, token):
 
 
 def _getFileEntryFromHash(token, hashPath):
-    movieEntries = buildMovieEntries(token)
+    movieEntries = buildEntries(token)
     for entry in movieEntries:
         if entry['hashedWaiterPath'] == hashPath:
             return entry
@@ -253,7 +254,7 @@ def get_file(guid):
                                mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                                )
 
-    files = buildMovieEntries(token)
+    files = buildEntries(token)
     tv_genres, movie_genres = getMediaGenres(guid)
     return render_template(
         "display.html",
@@ -294,7 +295,7 @@ def autoplay(guid):
                                mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                                )
 
-    files = buildMovieEntries(token)
+    files = buildEntries(token)
     file_entry = files[0]
     tv_genres, movie_genres = getMediaGenres(guid)
     return render_template(
@@ -456,7 +457,7 @@ def video(guid, hashPath):
                                )
 
     file_entry = _getFileEntryFromHash(token, hashPath)
-    files = buildMovieEntries(token)
+    files = buildEntries(token)
     tv_genres, movie_genres = getMediaGenres(guid)
 
     return render_template(
