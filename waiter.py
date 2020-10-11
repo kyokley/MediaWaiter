@@ -129,6 +129,8 @@ def get_dirPath(guid):
                            tv_genres=tv_genres,
                            movie_genres=movie_genres,
                            binge_mode=False,
+                           donation_site_name=token.get('donation_site_name'),
+                           donation_site_url=token.get('donation_site_url'),
                            )
 
 
@@ -276,6 +278,8 @@ def get_file(guid):
         tv_genres=tv_genres,
         movie_genres=movie_genres,
         binge_mode=token['binge_mode'],
+        donation_site_name=token.get('donation_site_name'),
+        donation_site_url=token.get('donation_site_url'),
     )
 
 
@@ -326,6 +330,8 @@ def autoplay(guid):
         movie_genres=movie_genres,
         binge_mode=token['binge_mode'],
         CAST_ID=GOOGLE_CAST_APP_ID,
+        donation_site_name=token.get('donation_site_name'),
+        donation_site_url=token.get('donation_site_url'),
     )
 
 
@@ -488,6 +494,8 @@ def video(guid, hashPath):
         movie_genres=movie_genres,
         binge_mode=token['binge_mode'],
         CAST_ID=GOOGLE_CAST_APP_ID,
+        donation_site_name=token.get('donation_site_name'),
+        donation_site_url=token.get('donation_site_url'),
     )
 
 

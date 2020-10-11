@@ -154,7 +154,9 @@
                         <p class="navbar-text">Alfred status is <span id="waiter-status" class="label label-success">Connected</span></p>
                     </div>
                     <div class="col-md-6">
-                        <p class="text-right donation-text">Given everything going on recently, if you can, please consider donating to <a href="https://www.gofundme.com/f/frontlinerespondersfund?utm_source=customer&utm_medium=copy_link&utm_campaign=m_pd+share-sheet">Frontline&nbsp;Responders&nbsp;Fund</a></p>
+                        {% if donation_site_name and donation_site_url %}
+                            <p class="text-right donation-text">If you can, please consider donating to <a href="{{ donation_site_url }}">{{ donation_site_name }}</a></p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
