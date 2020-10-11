@@ -7,10 +7,10 @@ list: ## List all targets
 	@make -qp | awk -F':' '/^[a-zA-Z0-9][^$$#\/\t=]*:([^=]|$$)/ {split($$1,A,/ /);for(i in A)print A[i]}'
 
 build: ## Build prod-like container
-	docker-compose build --target=prod mediawaiter
+	docker build --tag=kyokley/mediawaiter --target=prod .
 
 build-dev: ## Build dev container
-	docker-compose build --target=dev mediawaiter
+	docker build --tag=kyokley/mediawaiter --target=dev .
 
 up: ## Bring up containers and daemonize
 	docker-compose up -d
