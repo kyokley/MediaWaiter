@@ -1,11 +1,24 @@
-FROM python:3.6-slim
+ARG BASE_IMAGE=python:3.8-slim
+
+FROM ${BASE_IMAGE} AS static-builder
+WORKDIR /code
+
+RUN apt-get update && apt-get install -y \
+        npm \
+        make
+
+RUN npm install -g yarn
+RUN mkdir /code/static
+COPY package.json /code/package.json
+COPY Makefile /code/Makefile
+RUN make static
+
+FROM ${BASE_IMAGE} AS prod
 
 MAINTAINER Kevin Yokley
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-
-ARG REQS=--no-dev
 
 WORKDIR /code
 
@@ -15,16 +28,9 @@ RUN apt-get update && apt-get install -y \
         gnupg \
         g++ \
         git \
-        apt-transport-https \
         ncurses-dev \
+        libffi-dev \
         make
-
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
-
-RUN apt-get update && apt-get install -y yarn nodejs rsync
 
 ENV VIRTUAL_ENV=/venv
 RUN python3 -m venv $VIRTUAL_ENV
@@ -53,18 +59,18 @@ RUN echo 'if [ -z "${VIRTUAL_ENV_DISABLE_PROMPT:-}" ] ; then \n\
 
 RUN curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
 
-COPY package.json /node/package.json
 COPY poetry.lock /code/poetry.lock
 COPY pyproject.toml /code/pyproject.toml
 COPY configs/docker_settings.py /code/local_settings.py
 
-RUN /bin/bash -c "source /venv/bin/activate && \
-                  pip install --upgrade pip && \
-                  /root/.poetry/bin/poetry install -vvv ${REQS} && \
+RUN /bin/bash -c "pip install --upgrade pip && \
+                  /root/.poetry/bin/poetry install --no-dev && \
                   mkdir /root/logs /root/media"
 
-RUN cd /node && yarn install && rsync -ruv /node/node_modules/* /code/static/
-
 COPY . /code
+COPY --from=static-builder /code/static/bower_components /code/static/bower_components
 
 CMD uwsgi --ini /code/server/uwsgi.ini
+
+FROM prod AS dev
+RUN /root/.poetry/bin/poetry install
