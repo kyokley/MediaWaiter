@@ -44,6 +44,17 @@ SUBTITLE_FILE_TYPES = ('.vtt',)
 app = Flask(__name__, static_url_path='')
 
 
+def _extract_donation_info(token):
+    donation_site = token.get('donation_site')
+    if donation_site:
+        token['donation_site_name'] = donation_site['site_name']
+        token['donation_site_url'] = donation_site['url']
+    else:
+        token['donation_site_name'] = ''
+        token['donation_site_url'] = ''
+    return token
+
+
 def logErrorsAndContinue(func):
     @wraps(func)
     def func_wrapper(*args, **kwargs):
@@ -70,7 +81,7 @@ def logErrorsAndContinue(func):
 
 
 def isAlfredEncoding(filename):
-    return MEDIAVIEWER_SUFFIX in filename
+    return MEDIAVIEWER_SUFFIX.lower() in filename.lower()
 
 
 @delayedRetry(attempts=5, interval=1)
@@ -114,6 +125,7 @@ def get_dirPath(guid):
     files.sort(key=lambda x: x['filename'])
 
     tv_genres, movie_genres = getMediaGenres(guid)
+    token = _extract_donation_info(token)
     return render_template("display.html",
                            title=token['displayname'],
                            files=files,
@@ -258,6 +270,7 @@ def get_file(guid):
 
     files = buildEntries(token)
     tv_genres, movie_genres = getMediaGenres(guid)
+    token = _extract_donation_info(token)
     return render_template(
         "display.html",
         title=token['displayname'],
@@ -302,6 +315,7 @@ def autoplay(guid):
     files = buildEntries(token)
     file_entry = files[0]
     tv_genres, movie_genres = getMediaGenres(guid)
+    token = _extract_donation_info(token)
     return render_template(
         "video.html",
         title=token['displayname'],
@@ -466,6 +480,7 @@ def video(guid, hashPath):
     files = buildEntries(token)
     tv_genres, movie_genres = getMediaGenres(guid)
 
+    token = _extract_donation_info(token)
     return render_template(
         'video.html',
         title=token['displayname'],
