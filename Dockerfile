@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=python:3.8-slim
+ARG BASE_IMAGE=python:3.7-slim
 
 FROM ${BASE_IMAGE} AS static-builder
 WORKDIR /code
