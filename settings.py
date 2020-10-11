@@ -1,6 +1,7 @@
 import os
+from distutils.util import strtobool
 
-DEBUG = False
+DEBUG = strtobool(os.getenv('FLASK_DEBUG', 'false').lower())
 HOST = '127.0.0.1'
 PORT = 5000
 USE_NGINX = True
@@ -14,14 +15,16 @@ SECRET_FILE = os.path.join(REPO_DIR, 'secret.txt')
 try:
     with open(SECRET_FILE, 'rb') as secret_file:
         SECRET_KEY = secret_file.read().strip()
-except IOError:
+except (IOError, FileNotFoundError):
     try:
         import random
-        SECRET_KEY = b''.join([random.SystemRandom().choice(b'abcdefghijklmnopqrstuvwxyz'
-                                                            b'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-                                                            b'0123456789!@#$%^&*(-_=+)')
-                                for i in range(50)])
-        with open(SECRET_FILE, 'wb') as secret_file:
+        import string
+        allowable_chars = (string.ascii_letters +
+                           string.digits +
+                           '!@#$%^&*()-_=+')
+        SECRET_KEY = ''.join([random.SystemRandom().choice(allowable_chars)
+                              for _ in range(50)])
+        with open(SECRET_FILE, 'w') as secret_file:
             secret_file.write(SECRET_KEY)
     except IOError:
         Exception('Please create a %s file with random characters to generate your secret key!' % SECRET_FILE)
