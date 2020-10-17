@@ -3,15 +3,12 @@ ARG BASE_IMAGE=python:3.7-slim
 FROM ${BASE_IMAGE} AS static-builder
 WORKDIR /code
 
-RUN apt-get update && apt-get install -y \
-        npm \
-        make
+RUN apt-get update && apt-get install -y npm
 
 RUN npm install -g yarn
 RUN mkdir /code/static
 COPY package.json /code/package.json
-COPY Makefile /code/Makefile
-RUN make static
+RUN yarn install
 
 FROM ${BASE_IMAGE} AS prod
 
@@ -67,8 +64,8 @@ RUN /bin/bash -c "pip install --upgrade pip && \
                   /root/.poetry/bin/poetry install --no-dev && \
                   mkdir /root/logs /root/media"
 
+COPY --from=static-builder /code/node_modules /code/static/bower_components
 COPY . /code
-COPY --from=static-builder /code/static/bower_components /code/static/bower_components
 
 CMD uwsgi --ini /code/server/uwsgi.ini
 

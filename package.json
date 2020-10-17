@@ -6,10 +6,6 @@
   "directories": {
     "test": "tests"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules'), 'static/bower_components', 'junction') } catch (e) { }\""
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kyokley/MediaWaiter.git"

@@ -6,7 +6,9 @@ services:
         environment:
           - FLASK_APP=waiter
           - FLASK_DEBUG=1
-        build: .
+        build:
+            context: .
+            target: dev
         command:
             sh -c "cp configs/docker_settings.py local_settings.py && python waiter.py"
         hostname: mediawaiter

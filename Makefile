@@ -31,6 +31,7 @@ down: ## Bring all containers down
 	docker-compose down
 
 static: ## Install static files
+	rm -rf node_modules
 	yarn install
 	rm -rf static/bower_components
 	mv node_modules static/bower_components
