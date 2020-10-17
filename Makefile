@@ -33,8 +33,7 @@ down: ## Bring all containers down
 static: ## Install static files
 	yarn install
 	rm -rf static/bower_components
-	mv node_modules/@bower_components static/bower_components
-	rm -rf node_modules
+	mv node_modules static/bower_components
 
 push: build ## Push image to docker hub
 	docker push kyokley/mediawaiter
