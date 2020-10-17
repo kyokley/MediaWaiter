@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'static/bower_components', 'junction') } catch (e) { }\""
+    "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules'), 'static/bower_components', 'junction') } catch (e) { }\""
   },
   "repository": {
     "type": "git",
@@ -21,16 +21,17 @@
   },
   "homepage": "https://github.com/kyokley/MediaWaiter#readme",
   "dependencies": {
-    "yarn": "^1.22.10",
-    "@bower_components/bootstrap": "twbs/bootstrap#^3.3.7",
-    "@bower_components/bootswatch-dist": "dbtek/bootswatch-dist#slate",
-    "@bower_components/datatables.net": "DataTables/Dist-DataTables#^1.10.12",
-    "@bower_components/datatables.net-bs": "DataTables/Dist-DataTables-Bootstrap#^1.10.12",
-    "@bower_components/datatables.net-responsive": "DataTables/Dist-DataTables-Responsive#^2.1.0",
-    "@bower_components/datatables.net-responsive-bs": "DataTables/Dist-DataTables-Responsive-Bootstrap#^2.1.0",
-    "@bower_components/jquery": "jquery/jquery-dist#^3.1.1",
-    "@bower_components/video.js": "videojs/video.js#^5.12.5",
-    "@bower_components/videojs-chromecast": "kim-company/videojs-chromecast#^1.1.1"
+    "bootstrap": "twbs/bootstrap#^3.3.7",
+    "bootswatch-dist": "dbtek/bootswatch-dist#slate",
+    "datatables.net": "DataTables/Dist-DataTables#^1.10.12",
+    "datatables.net-bs": "DataTables/Dist-DataTables-Bootstrap#^1.10.12",
+    "datatables.net-responsive": "DataTables/Dist-DataTables-Responsive#^2.1.0",
+    "datatables.net-responsive-bs": "DataTables/Dist-DataTables-Responsive-Bootstrap#^2.1.0",
+    "jquery": "jquery/jquery-dist#^3.1.1",
+    "video.js": "videojs/video.js#^5.12.5",
+    "videojs-chromecast": "^2.0.8",
+    "videojs-seek-buttons": "^1.6.0",
+    "yarn": "^1.22.10"
   },
   "engines": {
     "yarn": ">= 1.0.0"
