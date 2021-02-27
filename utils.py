@@ -2,7 +2,7 @@ import time
 import re
 import requests
 
-from werkzeug import url_fix
+from werkzeug.urls import url_fix
 from log import log
 from settings import (APP_NAME,
                       MEDIAVIEWER_BASE_URL,
