@@ -10,7 +10,7 @@ services:
             context: .
             target: dev
         command:
-            sh -c "cp configs/docker_settings.py local_settings.py && python waiter.py"
+            sh -c "python waiter.py"
         hostname: mediawaiter
         ports:
           - "5000:5000"
@@ -20,6 +20,7 @@ services:
           - mediawaiter-backend
         volumes:
           - ./:/code
+          - ./configs/docker_settings.py:/code/local_settings.py
 
 # Persistent Volumes
 volumes:
