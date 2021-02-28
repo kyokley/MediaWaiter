@@ -48,7 +48,7 @@ WAITER_OFFSET_URL = '/waiter/offset/'
 MEDIAVIEWER_SUFFIX = 'mv-encoded'
 
 WAITER_USERNAME = 'username'
-WAITER_PASSWORD = 'password'
+WAITER_PASSWORD = 'password'  # nosec
 VERIFY_REQUESTS = True
 
 GOOGLE_CAST_APP_ID = 'insert cast SDK ID here'

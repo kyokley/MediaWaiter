@@ -25,7 +25,10 @@ shell: build-dev up ## Open a shell in a mediawaiter container
 	docker-compose exec mediawaiter /bin/bash
 
 tests: build-dev ## Run tests
-	./run-tests.sh
+	docker run --rm -t \
+	    -v $$(pwd):/code \
+	    -v $$(pwd)/configs/docker_settings.py:/code/local_settings.py \
+	    kyokley/mediawaiter sh -c "/venv/bin/pytest && /venv/bin/bandit -x tests -r ."
 
 down: ## Bring all containers down
 	docker-compose down
