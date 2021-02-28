@@ -155,22 +155,27 @@ class TestGetDirPath(unittest.TestCase):
         self.mock_checkForValidToken.assert_called_once_with(self.mock_getTokenByGUID.return_value,
                                                              self.test_guid)
         self.mock_getMediaGenres.assert_called_once_with(self.test_guid)
-        self.mock_render_template.assert_called_once_with('display.html',
-                                                          title='test_display_name',
-                                                          files=[{'filename': 'asd'}, {'filename': 'qwe'}, {'filename': 'zxc'}],
-                                                          username='some.user',
-                                                          mediaviewer_base_url='BASE_URL',
-                                                          ismovie=True,
-                                                          pathid=123,
-                                                          pathname='test_pathname',
-                                                          guid='test_guid',
-                                                          offsetUrl='OFFSET_URL',
-                                                          next_link=None,
-                                                          previous_link=None,
-                                                          tv_genres='tv_genres',
-                                                          movie_genres='movie_genres',
-                                                          binge_mode=False,
-                                                          )
+        self.mock_render_template.assert_called_once_with(
+            'display.html',
+            title='test_display_name',
+            files=[{'filename': 'asd'},
+                   {'filename': 'qwe'},
+                   {'filename': 'zxc'}],
+            username='some.user',
+            mediaviewer_base_url='BASE_URL',
+            ismovie=True,
+            pathid=123,
+            pathname='test_pathname',
+            guid='test_guid',
+            offsetUrl='OFFSET_URL',
+            next_link=None,
+            previous_link=None,
+            tv_genres='tv_genres',
+            movie_genres='movie_genres',
+            binge_mode=False,
+            donation_site_name='',
+            donation_site_url='',
+        )
 
     def test_not_a_movie(self):
         self.mock_checkForValidToken.return_value = ''
@@ -498,22 +503,25 @@ class TestGetFile(unittest.TestCase):
         actual = get_file('guid')
         self.assertEqual(expected, actual)
         self.mock_getMediaGenres.assert_called_once_with('guid')
-        self.mock_render_template.assert_called_once_with('display.html',
-                                                          title='test_displayname',
-                                                          files=self.mock_buildEntries.return_value,
-                                                          ismovie=False,
-                                                          pathid=123,
-                                                          pathname='test_pathname',
-                                                          username='some.user',
-                                                          mediaviewer_base_url='BASE_URL',
-                                                          guid='guid',
-                                                          offsetUrl='OFFSET_URL',
-                                                          next_link=None,
-                                                          previous_link=None,
-                                                          tv_genres='tv_genres',
-                                                          movie_genres='movie_genres',
-                                                          binge_mode=True,
-                                                          )
+        self.mock_render_template.assert_called_once_with(
+            'display.html',
+            title='test_displayname',
+            files=self.mock_buildEntries.return_value,
+            ismovie=False,
+            pathid=123,
+            pathname='test_pathname',
+            username='some.user',
+            mediaviewer_base_url='BASE_URL',
+            guid='guid',
+            offsetUrl='OFFSET_URL',
+            next_link=None,
+            previous_link=None,
+            tv_genres='tv_genres',
+            movie_genres='movie_genres',
+            binge_mode=True,
+            donation_site_name='',
+            donation_site_url='',
+        )
 
     def test_valid_with_next_and_previous(self):
         self.token['next_id'] = 123
@@ -539,6 +547,8 @@ class TestGetFile(unittest.TestCase):
             tv_genres='tv_genres',
             movie_genres='movie_genres',
             binge_mode=True,
+            donation_site_name='',
+            donation_site_url='',
         )
 
     def test_valid_no_binge_mode(self):
@@ -548,22 +558,25 @@ class TestGetFile(unittest.TestCase):
         actual = get_file('guid')
         self.assertEqual(expected, actual)
         self.mock_getMediaGenres.assert_called_once_with('guid')
-        self.mock_render_template.assert_called_once_with('display.html',
-                                                          title='test_displayname',
-                                                          files=self.mock_buildEntries.return_value,
-                                                          ismovie=False,
-                                                          pathid=123,
-                                                          pathname='test_pathname',
-                                                          username='some.user',
-                                                          mediaviewer_base_url='BASE_URL',
-                                                          guid='guid',
-                                                          offsetUrl='OFFSET_URL',
-                                                          next_link=None,
-                                                          previous_link=None,
-                                                          tv_genres='tv_genres',
-                                                          movie_genres='movie_genres',
-                                                          binge_mode=False,
-                                                          )
+        self.mock_render_template.assert_called_once_with(
+            'display.html',
+            title='test_displayname',
+            files=self.mock_buildEntries.return_value,
+            ismovie=False,
+            pathid=123,
+            pathname='test_pathname',
+            username='some.user',
+            mediaviewer_base_url='BASE_URL',
+            guid='guid',
+            offsetUrl='OFFSET_URL',
+            next_link=None,
+            previous_link=None,
+            tv_genres='tv_genres',
+            movie_genres='movie_genres',
+            binge_mode=False,
+            donation_site_name='',
+            donation_site_url='',
+        )
 
 class TestGetStatus(unittest.TestCase):
     def setUp(self):
