@@ -50,7 +50,7 @@ RUN echo 'if [ -z "${VIRTUAL_ENV_DISABLE_PROMPT:-}" ] ; then \n\
 
 
 RUN pip install -U pip poetry
-COPY poetry.lock pyproject.toml configs/docker_settings.py /code
+COPY poetry.lock pyproject.toml configs/docker_settings.py /code/
 
 RUN poetry install --no-dev && mkdir /root/logs /root/media
 
