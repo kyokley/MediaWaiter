@@ -350,6 +350,24 @@ def autoplay(guid):
     )
 
 
+@app.route(APP_NAME + '/file/<guid>/cli/')
+@logErrorsAndContinue
+def cli_links(guid):
+    token = getTokenByGUID(guid)
+
+    errorStr = checkForValidToken(token, guid)
+    if errorStr:
+        return jsonify({'error': errorStr})
+
+    files = buildEntries(token)
+    file_entry = files[0]
+
+    return jsonify(
+        {'video_link': file_entry['path'],
+         'subtitle_link': file_entry['subtitleWaiterPath'],
+         })
+
+
 @app.route(APP_NAME + '/status/', methods=['GET'])
 @app.route(APP_NAME + '/status', methods=['GET'])
 def get_status():
