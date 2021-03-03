@@ -77,7 +77,7 @@ def logErrorsAndContinue(func):
                                    errorText=errorText,
                                    mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                                    username=username,
-                                   )
+                                   ), 400
     return func_wrapper
 
 
@@ -350,9 +350,7 @@ def autoplay(guid):
     )
 
 
-@app.route(APP_NAME + '/file/<guid>/cli/')
-@logErrorsAndContinue
-def cli_links(guid):
+def _cli_links(guid):
     token = getTokenByGUID(guid)
 
     errorStr = checkForValidToken(token, guid)
@@ -366,6 +364,18 @@ def cli_links(guid):
         {'video_link': file_entry['path'],
          'subtitle_link': file_entry['subtitleWaiterPath'],
          })
+
+
+@app.route(APP_NAME + '/file/<guid>/cli/')
+@logErrorsAndContinue
+def tv_cli_links(guid):
+    return _cli_links(guid)
+
+
+@app.route(APP_NAME + '/dir/<guid>/cli/')
+@logErrorsAndContinue
+def movie_cli_links(guid):
+    return _cli_links(guid)
 
 
 @app.route(APP_NAME + '/status/', methods=['GET'])
