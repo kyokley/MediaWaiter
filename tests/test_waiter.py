@@ -113,7 +113,7 @@ class TestGetDirPath(unittest.TestCase):
     def test_getTokenByGUID_raises_exception(self):
         self.mock_getTokenByGUID.side_effect = Exception('Fake Error')
 
-        expected = self.mock_render_template.return_value
+        expected = (self.mock_render_template.return_value, 400)
         actual = get_dirPath(self.test_guid)
 
         self.assertEqual(expected, actual)
@@ -188,7 +188,7 @@ class TestGetDirPath(unittest.TestCase):
                                                  'pathname': 'test_pathname',
                                                  }
 
-        expected = self.mock_render_template.return_value
+        expected = self.mock_render_template.return_value, 400
         actual = get_dirPath(self.test_guid)
 
         self.assertEqual(expected, actual)
@@ -350,7 +350,7 @@ class TestSendFileForDownload(unittest.TestCase):
 
     def test_handle_exception(self):
         self.mock_checkForValidToken.side_effect = Exception('some error')
-        expected = self.mock_render_template.return_value
+        expected = self.mock_render_template.return_value, 400
         actual = send_file_for_download('guid', 'hashPath')
         self.assertEqual(expected, actual)
         self.mock_render_template.assert_called_once_with('error.html',
@@ -367,7 +367,8 @@ class TestSendFileForDownload(unittest.TestCase):
         actual = send_file_for_download('guid', 'hashPath')
         self.assertEqual(expected, actual)
         self.mock_getTokenByGUID.assert_called_once_with('guid')
-        self.mock_checkForValidToken.assert_called_once_with(self.token, 'guid')
+        self.mock_checkForValidToken.assert_called_once_with(self.token,
+                                                             'guid')
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
                                                           errorText='got some error',
@@ -389,7 +390,7 @@ class TestSendFileForDownload(unittest.TestCase):
     def test_bad_movie_file(self):
         self.token['ismovie'] = True
 
-        expected = self.mock_render_template.return_value
+        expected = self.mock_render_template.return_value, 400
         actual = send_file_for_download('guid', 'badHashPath')
         self.assertEqual(expected, actual)
         self.mock_buildEntries.assert_called_once_with(self.token)
