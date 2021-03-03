@@ -10,7 +10,7 @@ RUN mkdir /code/static
 COPY package.json /code/package.json
 RUN yarn install
 
-FROM ${BASE_IMAGE} AS prod
+FROM ${BASE_IMAGE} AS base
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -55,9 +55,10 @@ COPY poetry.lock pyproject.toml configs/docker_settings.py /code/
 RUN poetry install --no-dev && mkdir /root/logs /root/media
 
 COPY --from=static-builder /code/node_modules /code/static/bower_components
-COPY . /code
 
+FROM base AS prod
+COPY . /code
 CMD uwsgi --ini /code/server/uwsgi.ini
 
-FROM prod AS dev
+FROM base AS dev
 RUN poetry install
