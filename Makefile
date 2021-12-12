@@ -1,4 +1,4 @@
-.PHONY: build build-dev up up-no-daemon tests attach shell help list static publish push
+.PHONY: build build-dev up up-no-daemon tests attach shell help list static publish push static
 
 help: ## This help
 	@grep -F "##" $(MAKEFILE_LIST) | grep -vF '@grep -F "##" $$(MAKEFILE_LIST)' | sed -r 's/(:).*##/\1/' | sort
@@ -22,7 +22,7 @@ attach: ## Attach to a running mediawaiter container
 	docker attach $$(docker ps -qf name=mediawaiter_mediawaiter)
 
 shell: build-dev up ## Open a shell in a mediawaiter container
-	docker-compose exec mediawaiter /bin/bash
+	docker-compose exec mediawaiter /bin/sh
 
 tests: build-dev ## Run tests
 	docker run --rm -t \
@@ -33,11 +33,12 @@ tests: build-dev ## Run tests
 down: ## Bring all containers down
 	docker-compose down
 
-static: ## Install static files (Run from inside container)
-	rm -rf node_modules
-	yarn install
-	rm -rf static/bower_components
-	mv node_modules static/bower_components
+static: build-dev down ## Install static files (Run from inside container)
+	docker-compose run mediawaiter /bin/sh -c " \
+	rm -rf node_modules && \
+	yarn install && \
+	rm -rf static/bower_components && \
+	mv node_modules static/bower_components"
 
 push: build ## Push image to docker hub
 	docker push kyokley/mediawaiter

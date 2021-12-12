@@ -42,7 +42,8 @@ STREAMABLE_FILE_TYPES = ('.mp4',)
 SUBTITLE_FILE_TYPES = ('.vtt',)
 
 app = Flask(__name__,
-            static_url_path='')
+            static_url_path='',
+            static_folder='/var/static')
 
 
 def _extract_donation_info(token):

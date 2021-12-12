@@ -6,7 +6,6 @@ WORKDIR /code
 RUN apk update && apk add npm git
 
 RUN npm install -g yarn
-RUN mkdir /code/static
 COPY package.json /code/package.json
 RUN yarn install
 
@@ -39,11 +38,13 @@ COPY poetry.lock pyproject.toml configs/docker_settings.py /code/
 
 RUN poetry install --no-dev && mkdir /root/logs /root/media
 
-COPY --from=static-builder /code/node_modules /code/static/bower_components
 
 FROM base AS prod
 COPY . /code
+COPY --from=static-builder /code/node_modules /var/static/bower_components
+COPY ./static/assets /var/static/
 CMD uwsgi --ini /code/server/uwsgi.ini
 
 FROM base AS dev
+COPY --from=static-builder /code/node_modules /var/static/bower_components
 RUN poetry install

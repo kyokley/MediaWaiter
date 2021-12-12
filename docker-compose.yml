@@ -20,6 +20,7 @@ services:
           - mediawaiter-backend
         volumes:
           - ./:/code
+          - ./static/assets:/var/static/
           - ./configs/docker_settings.py:/code/local_settings.py
 
 # Persistent Volumes
