@@ -34,7 +34,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV PYTHONPATH=/code
 
 
-RUN pip install -U pip poetry wheel
+RUN pip install -U pip wheel && pip install -U poetry
 COPY poetry.lock pyproject.toml configs/docker_settings.py /code/
 
 RUN poetry install --no-dev && mkdir /root/logs /root/media
