@@ -71,14 +71,16 @@
             {% else %}
                 has_next_link = false;
             {% endif %}
-            var options = {chromecast: {appId: '{{ CAST_ID }}'},
-                           plugins: {
-                                seekButtons: {
-                                    forward: 10,
-                                    back: 10
-                                }
-                            }
-                        };
+                    var options = {
+                                techOrder: ['chromecast', 'html5'],
+                                plugins: {
+                                            chromecast: {},
+                                            seekButtons: {
+                                                        forward: 10,
+                                                        back: 10
+                                                    }
+                                        }
+                            };
 
             var player = videojs("video1", options, function onPlayerReady(){
                 var myPlayer = this;
@@ -88,7 +90,8 @@
                     // Get the parent element's actual width
                     var width = document.getElementById(myPlayer.id()).parentElement.offsetWidth;
                     // Set width to fill parent element, Set height
-                    myPlayer.width(width).height( width * aspectRatio );
+                            myPlayer.width(width);
+                            myPlayer.height(width * aspectRatio);
                 }
 
                 resizeVideoJS(); // Initialize the function
@@ -122,7 +125,7 @@
                     <p class="vjs-no-js">Sorry, your browser doesn't support HTML5 video.</p>
                     </video>`);
 
-                    player = videojs('video1', {'techOrder': ['flash']}).ready(function() {
+                    player = videojs('video1', {'techOrder': ['chromecast', 'html5']}).ready(function() {
                         var myPlayer = this;
                         var aspectRatio = 9/16; // Make up an aspect ratio
 
@@ -130,7 +133,8 @@
                             // Get the parent element's actual width
                             var width = document.getElementById(myPlayer.id()).parentElement.offsetWidth;
                             // Set width to fill parent element, Set height
-                            myPlayer.width(width).height( width * aspectRatio );
+                            myPlayer.width(width);
+                            myPlayer.height(width * aspectRatio);
                         }
 
                         resizeVideoJS(); // Initialize the function

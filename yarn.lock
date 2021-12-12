@@ -2,61 +2,67 @@
 # yarn lockfile v1
 
 
-"@babel/runtime@^7.5.5", "@babel/runtime@^7.9.2":
-  version "7.12.1"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.12.1.tgz#b4116a6b6711d010b2dad3b7b6e43bf1b9954740"
-  integrity sha512-J5AIf3vPj3UwXaAzb5j1xM4WAQDX3EMgemF8rjCP3SoW09LfRKAXQKt6CoVYl230P6iWdRcBbnLDDdnqWxZSCA==
+"@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.5.5":
+  version "7.16.3"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.16.3.tgz#b86f0db02a04187a3c17caa77de69840165d42d5"
+  integrity sha512-WBwekcqacdY2e9AF/Q7WLFUWmdJGJTkbjqTjoMDgXkVZ3ZRUvOPsLb5KdwISoQVsbP+DQzVZW4Zhci0DvpbNTQ==
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@videojs/http-streaming@1.13.4":
-  version "1.13.4"
-  resolved "https://registry.yarnpkg.com/@videojs/http-streaming/-/http-streaming-1.13.4.tgz#c27fd9883ffd76b3a020ae196018db7705d9ee74"
-  integrity sha512-I/hWi0uiA8aRwB4tfK44FRaWEoOU3uyvjUJW4cNST3TsweuovGGoud7K09WUrlbN4U0EjQvDqNwwXNggNs3niw==
+"@silvermine/videojs-chromecast@^1.3.3":
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/@silvermine/videojs-chromecast/-/videojs-chromecast-1.3.3.tgz#44d81a18f6812aace05c0c37bfd3abc07505d495"
+  integrity sha512-vbytdnqgUzOYIxA1CEWYe19PHea9JlFULJSqJ00Z0E8xHwOk8LP3gtpQ4MnqH0IViciBDQmyq9ta/5rbDvDWEw==
   dependencies:
-    aes-decrypter "3.0.2"
-    global "^4.3.0"
-    m3u8-parser "4.4.0"
-    mpd-parser "0.10.0"
-    mux.js "5.6.1"
-    url-toolkit "^2.1.3"
-    video.js "^6.8.0 || ^7.0.0"
+    class.extend "0.9.1"
+    webcomponents.js "git+https://git@github.com/webcomponents/webcomponentsjs.git#v0.7.24"
 
-"@videojs/vhs-utils@^1.0.0", "@videojs/vhs-utils@^1.1.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@videojs/vhs-utils/-/vhs-utils-1.3.0.tgz#04fe402f603af9a5df4b88881fabba0cf13814c2"
-  integrity sha512-oiqXDtHQqDPun7JseWkirUHGrgdYdeF12goUut5z7vwAj4DmUufEPFJ4xK5hYGXGFDyDhk2rSFOR122Ze6qXyQ==
+"@videojs/http-streaming@2.12.0":
+  version "2.12.0"
+  resolved "https://registry.yarnpkg.com/@videojs/http-streaming/-/http-streaming-2.12.0.tgz#850069e063e26cf2fa5ed9bb3addfc92fa899f78"
+  integrity sha512-vdQA0lDYBXGJqV2T02AGqg1w4dcgyRoN+bYG+G8uF4DpCEMhEtUI0BA4tRu4/Njar8w/9D5k0a1KX40pcvM3fA==
   dependencies:
-    "@babel/runtime" "^7.5.5"
-    global "^4.3.2"
-    url-toolkit "^2.1.6"
+    "@babel/runtime" "^7.12.5"
+    "@videojs/vhs-utils" "3.0.4"
+    aes-decrypter "3.1.2"
+    global "^4.4.0"
+    m3u8-parser "4.7.0"
+    mpd-parser "0.19.2"
+    mux.js "5.14.1"
+    video.js "^6 || ^7"
 
-"@videojs/xhr@2.5.1":
-  version "2.5.1"
-  resolved "https://registry.yarnpkg.com/@videojs/xhr/-/xhr-2.5.1.tgz#26bc5a79dbb3b03bfb13742c6ce559f89e90719e"
-  integrity sha512-wV9nGESHseSK+S9ePEru2+OJZ1jq/ZbbzniGQ4weAmTIepuBMSYPx5zrxxQA0E786T5ykpO8ts+LayV+3/oI2w==
+"@videojs/vhs-utils@3.0.4", "@videojs/vhs-utils@^3.0.0", "@videojs/vhs-utils@^3.0.2", "@videojs/vhs-utils@^3.0.3":
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/@videojs/vhs-utils/-/vhs-utils-3.0.4.tgz#e253eecd8e9318f767e752010d213587f94bb03a"
+  integrity sha512-hui4zOj2I1kLzDgf8QDVxD3IzrwjS/43KiS8IHQO0OeeSsb4pB/lgNt1NG7Dv0wMQfCccUpMVLGcK618s890Yg==
+  dependencies:
+    "@babel/runtime" "^7.12.5"
+    global "^4.4.0"
+    url-toolkit "^2.2.1"
+
+"@videojs/xhr@2.6.0":
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/@videojs/xhr/-/xhr-2.6.0.tgz#cd897e0ad54faf497961bcce3fa16dc15a26bb80"
+  integrity sha512-7J361GiN1tXpm+gd0xz2QWr3xNWBE+rytvo8J3KuggFaLg+U37gZQ2BuPLcnkfGffy2e+ozY70RHC8jt7zjA6Q==
   dependencies:
     "@babel/runtime" "^7.5.5"
     global "~4.4.0"
     is-function "^1.0.1"
 
-aes-decrypter@3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/aes-decrypter/-/aes-decrypter-3.0.2.tgz#dcd731406b0863d18207892200c2a9aaf618f498"
-  integrity sha512-SBAfPQpGTbHbAR6qSybPjMio+MYuZwdD/a/ltOq6hj53vK94dphAm88rR3FNaZyEa/x3SobYmdT5f46qUwroLQ==
-  dependencies:
-    "@babel/runtime" "^7.5.5"
-    "@videojs/vhs-utils" "^1.0.0"
-    global "^4.3.2"
-    pkcs7 "^1.0.4"
+"@xmldom/xmldom@^0.7.2":
+  version "0.7.5"
+  resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.7.5.tgz#09fa51e356d07d0be200642b0e4f91d8e6dd408d"
+  integrity sha512-V3BIhmY36fXZ1OtVcI9W+FxQqxVLsPKcNjWigIaa81dLC9IolJl5Mt4Cvhmr0flUnjSpTdrbMTSbXqYqV5dT6A==
 
-babel-runtime@^6.9.2:
-  version "6.26.0"
-  resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.26.0.tgz#965c7058668e82b55d7bfe04ff2337bc8b5647fe"
-  integrity sha1-llxwWGaOgrVde/4E/yM3vItWR/4=
+aes-decrypter@3.1.2:
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/aes-decrypter/-/aes-decrypter-3.1.2.tgz#3545546f8e9f6b878640339a242efe221ba7a7cb"
+  integrity sha512-42nRwfQuPRj9R1zqZBdoxnaAmnIFyDi0MNyTVhjdFOd8fifXKKRfwIHIZ6AMn1or4x5WONzjwRTbTWcsIQ0O4A==
   dependencies:
-    core-js "^2.4.0"
-    regenerator-runtime "^0.11.0"
+    "@babel/runtime" "^7.12.5"
+    "@videojs/vhs-utils" "^3.0.0"
+    global "^4.4.0"
+    pkcs7 "^1.0.4"
 
 bootstrap@twbs/bootstrap#^3.3.7:
   version "3.4.1"
@@ -66,122 +72,45 @@ bootswatch-dist@dbtek/bootswatch-dist#slate:
   version "3.3.7-slate"
   resolved "https://codeload.github.com/dbtek/bootswatch-dist/tar.gz/f55986534babf801f99fde84e7144ca7a584263b"
 
-core-js@^2.4.0:
-  version "2.6.11"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.6.11.tgz#38831469f9922bded8ee21c9dc46985e0399308c"
-  integrity sha512-5wjnpaT/3dV+XB4borEsnAYQchn00XSgTAWKDkEqv+K8KevjbzmofK6hfJ9TZIlpj2N0xQpazy7PiRQiWHqzWg==
+class.extend@0.9.1:
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/class.extend/-/class.extend-0.9.1.tgz#b4ee417c693740a44a92a6d64f1c9540641b097a"
+  integrity sha1-tO5BfGk3QKRKkqbWTxyVQGQbCXo=
 
 datatables.net-bs@DataTables/Dist-DataTables-Bootstrap#^1.10.12, datatables.net-bs@^1.10.15:
-  version "1.10.22"
-  resolved "https://codeload.github.com/DataTables/Dist-DataTables-Bootstrap/tar.gz/70e1af42e188bf0499c29f6b8e07af6179c0a507"
+  version "1.11.3"
+  resolved "https://codeload.github.com/DataTables/Dist-DataTables-Bootstrap/tar.gz/c22931912067cbcf9373a3f3d0818f688e15aa86"
   dependencies:
-    datatables.net "1.10.22"
+    datatables.net ">=1.10.25"
     jquery ">=1.7"
 
 datatables.net-responsive-bs@DataTables/Dist-DataTables-Responsive-Bootstrap#^2.1.0:
-  version "2.2.6"
-  resolved "https://codeload.github.com/DataTables/Dist-DataTables-Responsive-Bootstrap/tar.gz/468a1600bdaf49e6627bffd6f758d799dce58e8b"
+  version "2.2.9"
+  resolved "https://codeload.github.com/DataTables/Dist-DataTables-Responsive-Bootstrap/tar.gz/9f8bc28ba3c2614c59e1574f427579c4f3f3c8c6"
   dependencies:
     datatables.net-bs "^1.10.15"
-    datatables.net-responsive "2.2.6"
+    datatables.net-responsive "2.2.9"
     jquery ">=1.7"
 
-datatables.net-responsive@2.2.6, datatables.net-responsive@DataTables/Dist-DataTables-Responsive#^2.1.0:
-  version "2.2.6"
-  resolved "https://codeload.github.com/DataTables/Dist-DataTables-Responsive/tar.gz/d14470b1c2f43fb7f9528fecc9bc33a51a93560a"
+datatables.net-responsive@2.2.9, datatables.net-responsive@DataTables/Dist-DataTables-Responsive#^2.1.0:
+  version "2.2.9"
+  resolved "https://codeload.github.com/DataTables/Dist-DataTables-Responsive/tar.gz/d8f7495cddc1c384203e25af530eadc1c5642678"
   dependencies:
     datatables.net "^1.10.15"
     jquery ">=1.7"
 
-datatables.net@1.10.22, datatables.net@DataTables/Dist-DataTables#^1.10.12, datatables.net@^1.10.15:
-  version "1.10.22"
-  resolved "https://codeload.github.com/DataTables/Dist-DataTables/tar.gz/0ccd86be2efc22059cb002825930841b816e79b3"
+datatables.net@>=1.10.25, datatables.net@DataTables/Dist-DataTables#^1.10.12, datatables.net@^1.10.15:
+  version "1.11.3"
+  resolved "https://codeload.github.com/DataTables/Dist-DataTables/tar.gz/d67ca5d8aa73283f659ee882a979f87f941e3834"
   dependencies:
     jquery ">=1.7"
-
-define-properties@^1.1.3:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/define-properties/-/define-properties-1.1.3.tgz#cf88da6cbee26fe6db7094f61d870cbd84cee9f1"
-  integrity sha512-3MqfYKj2lLzdMSf8ZIZE/V+Zuy+BgD6f164e8K2w7dgnpKArBDerGYpM46IYYcjnkdPNMjPk9A6VFB8+3SKlXQ==
-  dependencies:
-    object-keys "^1.0.12"
 
 dom-walk@^0.1.0:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/dom-walk/-/dom-walk-0.1.2.tgz#0c548bef048f4d1f2a97249002236060daa3fd84"
   integrity sha512-6QvTW9mrGeIegrFXdtQi9pk7O/nSK6lSdXW2eqUspN5LWD7UTji2Fqw5V2YLjBpHEoU9Xl/eUWNpDeZvoyOv2w==
 
-es-abstract@^1.17.5:
-  version "1.17.7"
-  resolved "https://registry.yarnpkg.com/es-abstract/-/es-abstract-1.17.7.tgz#a4de61b2f66989fc7421676c1cb9787573ace54c"
-  integrity sha512-VBl/gnfcJ7OercKA9MVaegWsBHFjV492syMudcnQZvt/Dw8ezpcOHYZXa/J96O8vx+g4x65YKhxOwDUh63aS5g==
-  dependencies:
-    es-to-primitive "^1.2.1"
-    function-bind "^1.1.1"
-    has "^1.0.3"
-    has-symbols "^1.0.1"
-    is-callable "^1.2.2"
-    is-regex "^1.1.1"
-    object-inspect "^1.8.0"
-    object-keys "^1.1.1"
-    object.assign "^4.1.1"
-    string.prototype.trimend "^1.0.1"
-    string.prototype.trimstart "^1.0.1"
-
-es-abstract@^1.18.0-next.0:
-  version "1.18.0-next.1"
-  resolved "https://registry.yarnpkg.com/es-abstract/-/es-abstract-1.18.0-next.1.tgz#6e3a0a4bda717e5023ab3b8e90bec36108d22c68"
-  integrity sha512-I4UGspA0wpZXWENrdA0uHbnhte683t3qT/1VFH9aX2dA5PPSf6QW5HHXf5HImaqPmjXaVeVk4RGWnaylmV7uAA==
-  dependencies:
-    es-to-primitive "^1.2.1"
-    function-bind "^1.1.1"
-    has "^1.0.3"
-    has-symbols "^1.0.1"
-    is-callable "^1.2.2"
-    is-negative-zero "^2.0.0"
-    is-regex "^1.1.1"
-    object-inspect "^1.8.0"
-    object-keys "^1.1.1"
-    object.assign "^4.1.1"
-    string.prototype.trimend "^1.0.1"
-    string.prototype.trimstart "^1.0.1"
-
-es-to-primitive@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/es-to-primitive/-/es-to-primitive-1.2.1.tgz#e55cd4c9cdc188bcefb03b366c736323fc5c898a"
-  integrity sha512-QCOllgZJtaUo9miYBcLChTUaHNjJF3PYs1VidD7AwiEj1kYxKeQTctLAezAOH5ZKRH0g2IgPn6KwB4IT8iRpvA==
-  dependencies:
-    is-callable "^1.1.4"
-    is-date-object "^1.0.1"
-    is-symbol "^1.0.2"
-
-es5-shim@^4.5.1:
-  version "4.5.14"
-  resolved "https://registry.yarnpkg.com/es5-shim/-/es5-shim-4.5.14.tgz#90009e1019d0ea327447cb523deaff8fe45697ef"
-  integrity sha512-7SwlpL+2JpymWTt8sNLuC2zdhhc+wrfe5cMPI2j0o6WsPdfAiPwmFy2f0AocPB4RQVBOZ9kNTgi5YF7TdhkvEg==
-
-function-bind@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz#a56899d3ea3c9bab874bb9773b7c5ede92f4895d"
-  integrity sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==
-
-global@4.3.0:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/global/-/global-4.3.0.tgz#ef7ec4beead579b454f5ebd5e7f303db54f42a2b"
-  integrity sha1-737EvurVebRU9evV5/MD21T0Kis=
-  dependencies:
-    min-document "^2.6.1"
-    process "~0.5.1"
-
-global@4.3.2, global@~4.3.0:
-  version "4.3.2"
-  resolved "https://registry.yarnpkg.com/global/-/global-4.3.2.tgz#e76989268a6c74c38908b1305b10fc0e394e9d0f"
-  integrity sha1-52mJJopsdMOJCLEwWxD8DjlOnQ8=
-  dependencies:
-    min-document "^2.19.0"
-    process "~0.5.1"
-
-global@^4.3.0, global@^4.3.1, global@^4.3.2, global@~4.4.0:
+global@^4.3.1, global@^4.4.0, global@~4.4.0:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/global/-/global-4.4.0.tgz#3e7b105179006a323ed71aafca3e9c57a5cc6406"
   integrity sha512-wv/LAoHdRE3BeTGz53FAamhGlPLhlssK45usmGFThIi4XqnBmjKQ16u+RNbP7WvigRZDxUsM0J3gcQ5yicaL0w==
@@ -189,124 +118,62 @@ global@^4.3.0, global@^4.3.1, global@^4.3.2, global@~4.4.0:
     min-document "^2.19.0"
     process "^0.11.10"
 
-has-symbols@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/has-symbols/-/has-symbols-1.0.1.tgz#9f5214758a44196c406d9bd76cebf81ec2dd31e8"
-  integrity sha512-PLcsoqu++dmEIZB+6totNFKq/7Do+Z0u4oT0zKOJNl3lYK6vGwwu2hjHs+68OEZbTjiUE9bgOABXbP/GvrS0Kg==
-
-has@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/has/-/has-1.0.3.tgz#722d7cbfc1f6aa8241f16dd814e011e1f41e8796"
-  integrity sha512-f2dvO0VU6Oej7RkWJGrehjbzMAjFp5/VKPp5tTpWIV4JHHZK1/BxbFRtf/siA2SWTe09caDmVtYYzWEIbBS4zw==
-  dependencies:
-    function-bind "^1.1.1"
-
 individual@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/individual/-/individual-2.0.0.tgz#833b097dad23294e76117a98fb38e0d9ad61bb97"
   integrity sha1-gzsJfa0jKU52EXqY+zjg2a1hu5c=
-
-is-callable@^1.1.4, is-callable@^1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/is-callable/-/is-callable-1.2.2.tgz#c7c6715cd22d4ddb48d3e19970223aceabb080d9"
-  integrity sha512-dnMqspv5nU3LoewK2N/y7KLtxtakvTuaCsU9FU50/QDmdbHNy/4/JuRtMHqRU22o3q+W89YQndQEeCVwK+3qrA==
-
-is-date-object@^1.0.1:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/is-date-object/-/is-date-object-1.0.2.tgz#bda736f2cd8fd06d32844e7743bfa7494c3bfd7e"
-  integrity sha512-USlDT524woQ08aoZFzh3/Z6ch9Y/EWXEHQ/AaRN0SkKq4t2Jw2R2339tSXmwuVoY7LLlBCbOIlx2myP/L5zk0g==
 
 is-function@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/is-function/-/is-function-1.0.2.tgz#4f097f30abf6efadac9833b17ca5dc03f8144e08"
   integrity sha512-lw7DUp0aWXYg+CBCN+JKkcE0Q2RayZnSvnZBlwgxHBQhqt5pZNVy4Ri7H9GmmXkdu7LUthszM+Tor1u/2iBcpQ==
 
-is-negative-zero@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/is-negative-zero/-/is-negative-zero-2.0.0.tgz#9553b121b0fac28869da9ed459e20c7543788461"
-  integrity sha1-lVOxIbD6wohp2p7UWeIMdUN4hGE=
-
-is-regex@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/is-regex/-/is-regex-1.1.1.tgz#c6f98aacc546f6cec5468a07b7b153ab564a57b9"
-  integrity sha512-1+QkEcxiLlB7VEyFtyBg94e08OAsvq7FUBgApTq/w2ymCLyKJgDPsybBENVtA7XCQEgEXxKPonG+mvYRxh/LIg==
-  dependencies:
-    has-symbols "^1.0.1"
-
-is-symbol@^1.0.2:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/is-symbol/-/is-symbol-1.0.3.tgz#38e1014b9e6329be0de9d24a414fd7441ec61937"
-  integrity sha512-OwijhaRSgqvhm/0ZdAcXNZt9lYdKFpcRDT5ULUuYXPoT794UNOdU+gpT6Rzo7b4V2HUl/op6GqY894AZwv9faQ==
-  dependencies:
-    has-symbols "^1.0.1"
-
 jquery@>=1.7:
-  version "3.5.1"
-  resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.5.1.tgz#d7b4d08e1bfdb86ad2f1a3d039ea17304717abb5"
-  integrity sha512-XwIBPqcMn57FxfT+Go5pzySnm4KWkT1Tv7gjrpT1srtf8Weynl6R273VJ5GjkRb51IzMp5nbaPjJXMWeju2MKg==
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.6.0.tgz#c72a09f15c1bdce142f49dbf1170bdf8adac2470"
+  integrity sha512-JVzAR/AjBvVt2BmYhxRCSYysDsPcssdmTFnzyLEts9qNwmjmu4JTAMYubEfwVOSwpQ1I1sKKFcxhZCI2buerfw==
 
 jquery@jquery/jquery-dist#^3.1.1:
-  version "3.5.1"
-  resolved "https://codeload.github.com/jquery/jquery-dist/tar.gz/4c0e4becb8263bb5b3e6dadc448d8e7305ef8215"
+  version "3.6.0"
+  resolved "https://codeload.github.com/jquery/jquery-dist/tar.gz/e786e3d9707ffd9b0dd330ca135b66344dcef85a"
 
 keycode@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/keycode/-/keycode-2.2.0.tgz#3d0af56dc7b8b8e5cba8d0a97f107204eec22b04"
-  integrity sha1-PQr1bce4uOXLqNCpfxByBO7CKwQ=
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/keycode/-/keycode-2.2.1.tgz#09c23b2be0611d26117ea2501c2c391a01f39eff"
+  integrity sha512-Rdgz9Hl9Iv4QKi8b0OlCRQEzp4AgVxyCtz5S/+VIHezDmrDhkp2N2TqBWOLz0/gbeREXOOiI9/4b8BY9uw2vFg==
 
-m3u8-parser@4.4.0:
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/m3u8-parser/-/m3u8-parser-4.4.0.tgz#adf606c0af6d97f6750095a42006c2ae03dde177"
-  integrity sha512-iH2AygTFILtato+XAgnoPYzLHM4R3DjATj7Ozbk7EHdB2XoLF2oyOUguM7Kc4UVHbQHHL/QPaw98r7PbWzG0gg==
+m3u8-parser@4.7.0:
+  version "4.7.0"
+  resolved "https://registry.yarnpkg.com/m3u8-parser/-/m3u8-parser-4.7.0.tgz#e01e8ce136098ade1b14ee691ea20fc4dc60abf6"
+  integrity sha512-48l/OwRyjBm+QhNNigEEcRcgbRvnUjL7rxs597HmW9QSNbyNvt+RcZ9T/d9vxi9A9z7EZrB1POtZYhdRlwYQkQ==
   dependencies:
-    global "^4.3.2"
+    "@babel/runtime" "^7.12.5"
+    "@videojs/vhs-utils" "^3.0.0"
+    global "^4.4.0"
 
-min-document@^2.19.0, min-document@^2.6.1:
+min-document@^2.19.0:
   version "2.19.0"
   resolved "https://registry.yarnpkg.com/min-document/-/min-document-2.19.0.tgz#7bd282e3f5842ed295bb748cdd9f1ffa2c824685"
   integrity sha1-e9KC4/WELtKVu3SM3Z8f+iyCRoU=
   dependencies:
     dom-walk "^0.1.0"
 
-mpd-parser@0.10.0:
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/mpd-parser/-/mpd-parser-0.10.0.tgz#e48a39a4ecd3b5bbd0ed4ac5991b9cc36bcd9599"
-  integrity sha512-eIqkH/2osPr7tIIjhRmDWqm2wdJ7Q8oPfWvdjealzsLV2D2oNe0a0ae2gyYYs1sw5e5hdssDA2V6Sz8MW+Uvvw==
+mpd-parser@0.19.2:
+  version "0.19.2"
+  resolved "https://registry.yarnpkg.com/mpd-parser/-/mpd-parser-0.19.2.tgz#68611e653cdf2cc1e90688825c4a129b7f9007e0"
+  integrity sha512-M5tAIdtBM2TN+OSTz/37T7V+h9ZLvhyNqq4TNIdtjAQ/Hg8UnMRf5nJQDjffcXag3POXi31yUJQEKOXdcAM/nw==
   dependencies:
-    "@babel/runtime" "^7.5.5"
-    "@videojs/vhs-utils" "^1.1.0"
-    global "^4.3.2"
-    xmldom "^0.1.27"
+    "@babel/runtime" "^7.12.5"
+    "@videojs/vhs-utils" "^3.0.2"
+    "@xmldom/xmldom" "^0.7.2"
+    global "^4.4.0"
 
-mux.js@5.6.1:
-  version "5.6.1"
-  resolved "https://registry.yarnpkg.com/mux.js/-/mux.js-5.6.1.tgz#5a721622921a031fadbcd537f508ed5955eb9bcc"
-  integrity sha512-iIE3EJURbrPZ9Y4i9ADKTIvxGUcAEBOFhwWUOZGCiKlpXDZrqDgcJLDrOa0PenLhw6WYkOyl18kHFEvwm9JSpg==
-
-object-inspect@^1.8.0:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.8.0.tgz#df807e5ecf53a609cc6bfe93eac3cc7be5b3a9d0"
-  integrity sha512-jLdtEOB112fORuypAyl/50VRVIBIdVQOSUUGQHzJ4xBSbit81zRarz7GThkEFZy1RceYrWYcPcBFPQwHyAc1gA==
-
-object-keys@^1.0.12, object-keys@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/object-keys/-/object-keys-1.1.1.tgz#1c47f272df277f3b1daf061677d9c82e2322c60e"
-  integrity sha512-NuAESUOUMrlIXOfHKzD6bpPu3tYt3xvjNdRIQ+FeT0lNb4K8WR70CaDxhuNguS2XG+GjkyMwOzsN5ZktImfhLA==
-
-object.assign@^4.0.3, object.assign@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/object.assign/-/object.assign-4.1.1.tgz#303867a666cdd41936ecdedfb1f8f3e32a478cdd"
-  integrity sha512-VT/cxmx5yaoHSOTSyrCygIDFco+RsibY2NM0a4RdEeY/4KgqezwFtK1yr3U67xYhqJSlASm2pKhLVzPj2lr4bA==
+mux.js@5.14.1:
+  version "5.14.1"
+  resolved "https://registry.yarnpkg.com/mux.js/-/mux.js-5.14.1.tgz#209583f454255d9ba2ff1bb61ad5a6867cf61878"
+  integrity sha512-38kA/xjWRDzMbcpHQfhKbJAME8eTZVsb9U2Puk890oGvGqnyu8B/AkKdICKPHkigfqYX9MY20vje88TP14nhog==
   dependencies:
-    define-properties "^1.1.3"
-    es-abstract "^1.18.0-next.0"
-    has-symbols "^1.0.1"
-    object-keys "^1.1.1"
-
-parse-headers@^2.0.0:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/parse-headers/-/parse-headers-2.0.3.tgz#5e8e7512383d140ba02f0c7aa9f49b4399c92515"
-  integrity sha512-QhhZ+DCCit2Coi2vmAKbq5RGTRcQUOE2+REgv8vdyu7MnYx2eZztegqtTx99TZ86GTIwqiy3+4nQTWZ2tgmdCA==
+    "@babel/runtime" "^7.11.2"
 
 pkcs7@^1.0.4:
   version "1.0.4"
@@ -320,20 +187,10 @@ process@^0.11.10:
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
   integrity sha1-czIwDoQBYb2j5podHZGn1LwW8YI=
 
-process@~0.5.1:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/process/-/process-0.5.2.tgz#1638d8a8e34c2f440a91db95ab9aeb677fc185cf"
-  integrity sha1-FjjYqONML0QKkduVq5rrZ3/Bhc8=
-
-regenerator-runtime@^0.11.0:
-  version "0.11.1"
-  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.11.1.tgz#be05ad7f9bf7d22e056f9726cee5017fbf19e2e9"
-  integrity sha512-MguG95oij0fC3QV3URf4V2SDYGJhJnJGqvIIgdECeODCT98wSWDAJ94SSuVpYQUoTcGUIL6L4yNB7j1DFFHSBg==
-
 regenerator-runtime@^0.13.4:
-  version "0.13.7"
-  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.7.tgz#cac2dacc8a1ea675feaabaeb8ae833898ae46f55"
-  integrity sha512-a54FxoJDIr27pgf7IgeQGxmqUNYrcV338lf/6gH456HZ/PhX+5BcwHXG9ajESmwe6WRO0tAzRUrRmNONWgkrew==
+  version "0.13.9"
+  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.9.tgz#8925742a98ffd90814988d7566ad30ca3b263b52"
+  integrity sha512-p3VT+cOEgxFsRRA9X4lkI1E+k2/CtnKtU4gcxyaCUreilL/vqI6CdZ3wxVUx3UOUg+gnUOQQcRI7BmSI656MYA==
 
 rust-result@^1.0.0:
   version "1.0.0"
@@ -349,134 +206,55 @@ safe-json-parse@4.0.0:
   dependencies:
     rust-result "^1.0.0"
 
-string.prototype.trimend@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/string.prototype.trimend/-/string.prototype.trimend-1.0.1.tgz#85812a6b847ac002270f5808146064c995fb6913"
-  integrity sha512-LRPxFUaTtpqYsTeNKaFOw3R4bxIzWOnbQ837QfBylo8jIxtcbK/A/sMV7Q+OAV/vWo+7s25pOE10KYSjaSO06g==
+url-toolkit@^2.2.1:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/url-toolkit/-/url-toolkit-2.2.3.tgz#78fa901215abbac34182066932220279b804522b"
+  integrity sha512-Da75SQoxsZ+2wXS56CZBrj2nukQ4nlGUZUP/dqUBG5E1su5GKThgT94Q00x81eVII7AyS1Pn+CtTTZ4Z0pLUtQ==
+
+"video.js@^6 || ^7", video.js@^7.17.0:
+  version "7.17.0"
+  resolved "https://registry.yarnpkg.com/video.js/-/video.js-7.17.0.tgz#35918cc03748a5680f5d5f1da410e06eeea7786e"
+  integrity sha512-8RbLu9+Pdpep9OTPncUHIvZXFgn/7hKdPnSTE/lGSnlFSucXtTUBp41R7NDwncscMLQ0WgazUbmFlvr4MNWMbA==
   dependencies:
-    define-properties "^1.1.3"
-    es-abstract "^1.17.5"
-
-string.prototype.trimstart@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/string.prototype.trimstart/-/string.prototype.trimstart-1.0.1.tgz#14af6d9f34b053f7cfc89b72f8f2ee14b9039a54"
-  integrity sha512-XxZn+QpvrBI1FOcg6dIpxUPgWCPuNXvMD72aaRaUQv1eD4e/Qy8i/hFTe0BUmD60p/QA6bh1avmuPTfNjqVWRw==
-  dependencies:
-    define-properties "^1.1.3"
-    es-abstract "^1.17.5"
-
-tsml@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/tsml/-/tsml-1.0.1.tgz#89f8218b9d9e257f47d7f6b56d01c5a4d2c68fc3"
-  integrity sha1-ifghi52eJX9H1/a1bQHFpNLGj8M=
-
-url-toolkit@^2.1.3, url-toolkit@^2.1.6:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/url-toolkit/-/url-toolkit-2.2.0.tgz#9a57b89f315d4b7dc340e150bcfa548ddf5f5ce9"
-  integrity sha512-Rde0c9S4fJK3FaHim3DSgdQ8IFrSXcZCpAJo9T7/FA+BoQGhK0ow3mpwGQLJCPYsNn6TstpW7/7DzMpSpz9F9w==
-
-video.js@^5.0.0, video.js@videojs/video.js#^5.12.5:
-  version "5.20.5"
-  resolved "https://codeload.github.com/videojs/video.js/tar.gz/41606a140cacb60e004db4e9b97cb36615dd5433"
-  dependencies:
-    babel-runtime "^6.9.2"
-    global "4.3.0"
-    safe-json-parse "4.0.0"
-    tsml "1.0.1"
-    videojs-font "2.0.0"
-    videojs-ie8 "1.1.2"
-    videojs-swf "5.4.1"
-    videojs-vtt.js "0.12.6"
-    xhr "2.2.2"
-
-"video.js@^5.19.2 || ^6 || ^7", "video.js@^6.8.0 || ^7.0.0":
-  version "7.9.7"
-  resolved "https://registry.yarnpkg.com/video.js/-/video.js-7.9.7.tgz#d2654b61b2348ffc792784ec2b3e830f31d67801"
-  integrity sha512-vbeWndPCNuTdxcN3AeihuJiP0IvKijwBC62brn3Kt6zsKT0fT485E39lV158EHF5BA/aTmL4gTWo+vQbN4XcRg==
-  dependencies:
-    "@babel/runtime" "^7.9.2"
-    "@videojs/http-streaming" "1.13.4"
-    "@videojs/xhr" "2.5.1"
-    global "4.3.2"
+    "@babel/runtime" "^7.12.5"
+    "@videojs/http-streaming" "2.12.0"
+    "@videojs/vhs-utils" "^3.0.3"
+    "@videojs/xhr" "2.6.0"
+    aes-decrypter "3.1.2"
+    global "^4.4.0"
     keycode "^2.2.0"
+    m3u8-parser "4.7.0"
+    mpd-parser "0.19.2"
+    mux.js "5.14.1"
     safe-json-parse "4.0.0"
     videojs-font "3.2.0"
-    videojs-vtt.js "^0.15.2"
-
-videojs-chromecast@^2.0.8:
-  version "2.0.8"
-  resolved "https://registry.yarnpkg.com/videojs-chromecast/-/videojs-chromecast-2.0.8.tgz#55e2911cf5cc427974c1d8e80d4d22124d152ef9"
-  integrity sha1-VeKRHPXMQnl0wdjoDU0iEk0VLvk=
-  dependencies:
-    global "^4.3.0"
-    object.assign "^4.0.3"
-    video.js "^5.0.0"
-
-videojs-font@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/videojs-font/-/videojs-font-2.0.0.tgz#af7461ef9d4b95e0334bffb78b2f2ff0364a9034"
-  integrity sha1-r3Rh751LleAzS/+3iy8v8DZKkDQ=
+    videojs-vtt.js "^0.15.3"
 
 videojs-font@3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/videojs-font/-/videojs-font-3.2.0.tgz#212c9d3f4e4ec3fa7345167d64316add35e92232"
   integrity sha512-g8vHMKK2/JGorSfqAZQUmYYNnXmfec4MLhwtEFS+mMs2IDY398GLysy6BH6K+aS1KMNu/xWZ8Sue/X/mdQPliA==
 
-videojs-ie8@1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/videojs-ie8/-/videojs-ie8-1.1.2.tgz#a23d3d8608ad7192b69c6077fc4eb848998d35d9"
-  integrity sha1-oj09hgitcZK2nGB3/E64SJmNNdk=
+videojs-seek-buttons@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/videojs-seek-buttons/-/videojs-seek-buttons-2.2.0.tgz#50b8da1178a5718ee5a7649fbb90a64a518103f7"
+  integrity sha512-yjCA6ntq+8fRKgZi/H6QJlghQWgA1x9oSRl6wfLODAcujhynDXetwMgRKGgl4NlV5af2bKY6erNtJ0kOBko/nQ==
   dependencies:
-    es5-shim "^4.5.1"
+    global "^4.4.0"
+    video.js "^6 || ^7"
 
-videojs-seek-buttons@^1.6.0:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/videojs-seek-buttons/-/videojs-seek-buttons-1.6.0.tgz#56f88dfd7a7a9145354d0fd08da446b5c57ce3da"
-  integrity sha512-mSav1OiXv1wiFQI3eBuCOocZmfGdIQcngvMrf3FxlNTexuk8auP7GGWLnPTmMz6cSpuByJ9Y9QIhT0IsEJfBDQ==
-  dependencies:
-    global "^4.3.2"
-    video.js "^5.19.2 || ^6 || ^7"
-
-videojs-swf@5.4.1:
-  version "5.4.1"
-  resolved "https://registry.yarnpkg.com/videojs-swf/-/videojs-swf-5.4.1.tgz#2077ef71c749f2c7823ef49babae4dd2acb08f87"
-  integrity sha1-IHfvccdJ8seCPvSbq65N0qywj4c=
-
-videojs-vtt.js@0.12.6:
-  version "0.12.6"
-  resolved "https://registry.yarnpkg.com/videojs-vtt.js/-/videojs-vtt.js-0.12.6.tgz#e078600bda899eaa6f9c3307134cd0c811947b8e"
-  integrity sha512-XFXeGBQiljnElMhwCcZst0RDbZn2n8LU7ZScXryd3a00OaZsHAjdZu/7/RdSr7Z1jHphd45FnOvOQkGK4YrWCQ==
+videojs-vtt.js@^0.15.3:
+  version "0.15.3"
+  resolved "https://registry.yarnpkg.com/videojs-vtt.js/-/videojs-vtt.js-0.15.3.tgz#84260393b79487fcf195d9372f812d7fab83a993"
+  integrity sha512-5FvVsICuMRx6Hd7H/Y9s9GDeEtYcXQWzGMS+sl4UX3t/zoHp3y+isSfIPRochnTH7h+Bh1ILyC639xy9Z6kPag==
   dependencies:
     global "^4.3.1"
 
-videojs-vtt.js@^0.15.2:
-  version "0.15.2"
-  resolved "https://registry.yarnpkg.com/videojs-vtt.js/-/videojs-vtt.js-0.15.2.tgz#a828c4ea0aac6303fa471fd69bc7586a5ba1a273"
-  integrity sha512-kEo4hNMvu+6KhPvVYPKwESruwhHC3oFis133LwhXHO9U7nRnx0RiJYMiqbgwjgazDEXHR6t8oGJiHM6wq5XlAw==
-  dependencies:
-    global "^4.3.1"
-
-xhr@2.2.2:
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/xhr/-/xhr-2.2.2.tgz#2ee72571869f8686d41559a9ea286c18971435ff"
-  integrity sha1-LuclcYafhobUFVmp6ihsGJcUNf8=
-  dependencies:
-    global "~4.3.0"
-    is-function "^1.0.1"
-    parse-headers "^2.0.0"
-    xtend "^4.0.0"
-
-xmldom@^0.1.27:
-  version "0.1.31"
-  resolved "https://registry.yarnpkg.com/xmldom/-/xmldom-0.1.31.tgz#b76c9a1bd9f0a9737e5a72dc37231cf38375e2ff"
-  integrity sha512-yS2uJflVQs6n+CyjHoaBmVSqIDevTAWrzMmjG1Gc7h1qQ7uVozNhEPJAwZXWyGQ/Gafo3fCwrcaokezLPupVyQ==
-
-xtend@^4.0.0:
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.2.tgz#bb72779f5fa465186b1f438f674fa347fdb5db54"
-  integrity sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==
+"webcomponents.js@git+https://git@github.com/webcomponents/webcomponentsjs.git#v0.7.24":
+  version "0.7.24"
+  resolved "git+https://git@github.com/webcomponents/webcomponentsjs.git#8a2e40557b177e2cca0def2553f84c8269c8f93e"
 
 yarn@^1.22.10:
-  version "1.22.10"
-  resolved "https://registry.yarnpkg.com/yarn/-/yarn-1.22.10.tgz#c99daa06257c80f8fa2c3f1490724e394c26b18c"
-  integrity sha512-IanQGI9RRPAN87VGTF7zs2uxkSyQSrSPsju0COgbsKQOOXr5LtcVPeyXWgwVa0ywG3d8dg6kSYKGBuYK021qeA==
+  version "1.22.17"
+  resolved "https://registry.yarnpkg.com/yarn/-/yarn-1.22.17.tgz#bf910747d22497b573131f7341c0e1d15c74036c"
+  integrity sha512-H0p241BXaH0UN9IeH//RT82tl5PfNraVpSpEoW+ET7lmopNC61eZ+A+IDvU8FM6Go5vx162SncDL8J1ZjRBriQ==

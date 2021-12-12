@@ -33,7 +33,7 @@ tests: build-dev ## Run tests
 down: ## Bring all containers down
 	docker-compose down
 
-static: ## Install static files
+static: ## Install static files (Run from inside container)
 	rm -rf node_modules
 	yarn install
 	rm -rf static/bower_components
