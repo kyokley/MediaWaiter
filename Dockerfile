@@ -42,7 +42,7 @@ RUN poetry install --no-dev && mkdir /root/logs /root/media
 FROM base AS prod
 COPY . /code
 COPY --from=static-builder /code/node_modules /var/static/bower_components
-COPY ./static/assets /var/static/
+COPY ./static/assets /var/static/assets
 CMD uwsgi --ini /code/server/uwsgi.ini
 
 FROM base AS dev
