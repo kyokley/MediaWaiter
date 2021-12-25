@@ -1,4 +1,4 @@
-.PHONY: build build-dev up up-no-daemon tests attach shell help list static publish push static
+.PHONY: build build-dev up up-no-daemon tests attach shell help list static publish push static pytest bandit
 
 help: ## This help
 	@grep -F "##" $(MAKEFILE_LIST) | grep -vF '@grep -F "##" $$(MAKEFILE_LIST)' | sed -r 's/(:).*##/\1/' | sort
@@ -24,11 +24,19 @@ attach: ## Attach to a running mediawaiter container
 shell: build-dev up ## Open a shell in a mediawaiter container
 	docker-compose exec mediawaiter /bin/sh
 
-tests: build-dev ## Run tests
+tests: build-dev pytest bandit ## Run tests
+
+pytest: build-dev ## Run pytests
 	docker run --rm -t \
 	    -v $$(pwd):/code \
 	    -v $$(pwd)/configs/docker_settings.py:/code/local_settings.py \
-	    kyokley/mediawaiter sh -c "/venv/bin/pytest && /venv/bin/bandit -x tests -r ."
+	    kyokley/mediawaiter sh -c "/venv/bin/pytest"
+
+bandit: build-dev ## Run bandit
+	docker run --rm -t \
+	    -v $$(pwd):/code \
+	    -v $$(pwd)/configs/docker_settings.py:/code/local_settings.py \
+	    kyokley/mediawaiter sh -c "/venv/bin/bandit -x tests -r ."
 
 down: ## Bring all containers down
 	docker-compose down
