@@ -1,7 +1,6 @@
 name: Test
 on:
   pull_request:
-  push: { branches: master }
 
 jobs:
   test:
@@ -12,5 +11,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Make tests
-      run: make tests
+    - name: Run pytest
+      run: make pytest
+
+    - name: Run bandit
+      run: make bandit
