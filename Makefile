@@ -24,7 +24,7 @@ attach: ## Attach to a running mediawaiter container
 shell: build-dev up ## Open a shell in a mediawaiter container
 	docker-compose exec mediawaiter /bin/sh
 
-tests: build-dev pytest bandit ## Run tests
+tests: pytest bandit ## Run tests
 
 pytest: build-dev ## Run pytests
 	docker run --rm -t \
