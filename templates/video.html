@@ -71,16 +71,22 @@
             {% else %}
                 has_next_link = false;
             {% endif %}
-                    var options = {
-                                techOrder: ['chromecast', 'html5'],
-                                plugins: {
-                                            chromecast: {},
-                                            seekButtons: {
-                                                        forward: 10,
-                                                        back: 10
-                                                    }
-                                        }
-                            };
+              var options = {
+                          techOrder: ['chromecast', 'html5'],
+                          plugins: {
+                                      chromecast: {
+                    {% if subtitle_file %}
+                                                      requestSubtitleFn: function(source) {
+                                                                  return '{{ subtitle_file }}';
+                                                              }
+                    {% endif %}
+                                              },
+                                      seekButtons: {
+                                                  forward: 10,
+                                                  back: 10
+                                              }
+                                  }
+                      };
 
             var player = videojs("video1", options, function onPlayerReady(){
                 var myPlayer = this;
@@ -157,6 +163,8 @@
                 // Thus endth the hack...
 
             });
+
+                    debugger;
             scrollSetup();
         });
     </script>
