@@ -9,14 +9,6 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@filmgardi/videojs-seek-thumbnails@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@filmgardi/videojs-seek-thumbnails/-/videojs-seek-thumbnails-1.0.0.tgz#5f38bec9f0739069475db8091ed30a73307c737f"
-  integrity sha512-PrNFwB0F0NDEnq9njsuuB2o0oyGV4WkTbmfL2uZiuFeCOkKHx74PpGwOYkerbXOuYLpuzGfyAUl20df6vK2yNw==
-  dependencies:
-    global "^4.4.0"
-    video.js "^6 || ^7"
-
 "@silvermine/videojs-chromecast@^1.3.3":
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/@silvermine/videojs-chromecast/-/videojs-chromecast-1.3.3.tgz#44d81a18f6812aace05c0c37bfd3abc07505d495"
@@ -219,7 +211,7 @@ url-toolkit@^2.2.1:
   resolved "https://registry.yarnpkg.com/url-toolkit/-/url-toolkit-2.2.4.tgz#153729099368ba4a11b393db13da0c50e54e856c"
   integrity sha512-iRttD8+Nz3UnBUnq/uzwggD+WJtaY0iwpvvuydlKV87DDvT4gYfbug7GM6H7zo14srm6NubIy78vRZkl6KcQWA==
 
-"video.js@^6 || ^7", video.js@^7.17.0:
+"video.js@^6 || ^7", video.js@^7, video.js@^7.17.0:
   version "7.17.0"
   resolved "https://registry.yarnpkg.com/video.js/-/video.js-7.17.0.tgz#35918cc03748a5680f5d5f1da410e06eeea7786e"
   integrity sha512-8RbLu9+Pdpep9OTPncUHIvZXFgn/7hKdPnSTE/lGSnlFSucXtTUBp41R7NDwncscMLQ0WgazUbmFlvr4MNWMbA==
@@ -242,6 +234,14 @@ videojs-font@3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/videojs-font/-/videojs-font-3.2.0.tgz#212c9d3f4e4ec3fa7345167d64316add35e92232"
   integrity sha512-g8vHMKK2/JGorSfqAZQUmYYNnXmfec4MLhwtEFS+mMs2IDY398GLysy6BH6K+aS1KMNu/xWZ8Sue/X/mdQPliA==
+
+videojs-mobile-ui@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/videojs-mobile-ui/-/videojs-mobile-ui-0.7.0.tgz#cbac7ded4f51bf4ed45f4e59d01cf577d38a7c6c"
+  integrity sha512-cfctMUsu+EJ8IYPfAHR6ZTr2fbJWL3Af9QpvTS7JFvEkrGSMLLpuH62uatQ3pxUs4MISs8kgb8/PUqROpfh7MQ==
+  dependencies:
+    global "^4.4.0"
+    video.js "^7"
 
 videojs-seek-buttons@^2.2.0:
   version "2.2.0"
