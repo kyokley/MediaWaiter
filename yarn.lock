@@ -3,9 +3,9 @@
 
 
 "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.5.5":
-  version "7.16.3"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.16.3.tgz#b86f0db02a04187a3c17caa77de69840165d42d5"
-  integrity sha512-WBwekcqacdY2e9AF/Q7WLFUWmdJGJTkbjqTjoMDgXkVZ3ZRUvOPsLb5KdwISoQVsbP+DQzVZW4Zhci0DvpbNTQ==
+  version "7.16.7"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.16.7.tgz#03ff99f64106588c9c403c6ecb8c3bafbbdff1fa"
+  integrity sha512-9E9FJowqAsytyOY6LG+1KuueckRL+aQW+mKvXRXnuFGyRAyepJPmEo9vgMfXUA6O9u3IeEdv9MAkppFcaQwogQ==
   dependencies:
     regenerator-runtime "^0.13.4"
 
@@ -78,10 +78,10 @@ class.extend@0.9.1:
   integrity sha1-tO5BfGk3QKRKkqbWTxyVQGQbCXo=
 
 datatables.net-bs@DataTables/Dist-DataTables-Bootstrap#^1.10.12, datatables.net-bs@^1.10.15:
-  version "1.11.3"
-  resolved "https://codeload.github.com/DataTables/Dist-DataTables-Bootstrap/tar.gz/c22931912067cbcf9373a3f3d0818f688e15aa86"
+  version "1.11.4"
+  resolved "https://codeload.github.com/DataTables/Dist-DataTables-Bootstrap/tar.gz/54709f7f908c201084c5b9181dd9b0b9a66c4ddb"
   dependencies:
-    datatables.net ">=1.10.25"
+    datatables.net ">=1.11.3"
     jquery ">=1.7"
 
 datatables.net-responsive-bs@DataTables/Dist-DataTables-Responsive-Bootstrap#^2.1.0:
@@ -99,9 +99,9 @@ datatables.net-responsive@2.2.9, datatables.net-responsive@DataTables/Dist-DataT
     datatables.net "^1.10.15"
     jquery ">=1.7"
 
-datatables.net@>=1.10.25, datatables.net@DataTables/Dist-DataTables#^1.10.12, datatables.net@^1.10.15:
-  version "1.11.3"
-  resolved "https://codeload.github.com/DataTables/Dist-DataTables/tar.gz/d67ca5d8aa73283f659ee882a979f87f941e3834"
+datatables.net@>=1.11.3, datatables.net@DataTables/Dist-DataTables#^1.10.12, datatables.net@^1.10.15:
+  version "1.11.4"
+  resolved "https://codeload.github.com/DataTables/Dist-DataTables/tar.gz/a74493989b0373a85e981a96c00166ea4cc0910f"
   dependencies:
     jquery ">=1.7"
 
@@ -207,11 +207,11 @@ safe-json-parse@4.0.0:
     rust-result "^1.0.0"
 
 url-toolkit@^2.2.1:
-  version "2.2.3"
-  resolved "https://registry.yarnpkg.com/url-toolkit/-/url-toolkit-2.2.3.tgz#78fa901215abbac34182066932220279b804522b"
-  integrity sha512-Da75SQoxsZ+2wXS56CZBrj2nukQ4nlGUZUP/dqUBG5E1su5GKThgT94Q00x81eVII7AyS1Pn+CtTTZ4Z0pLUtQ==
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/url-toolkit/-/url-toolkit-2.2.4.tgz#153729099368ba4a11b393db13da0c50e54e856c"
+  integrity sha512-iRttD8+Nz3UnBUnq/uzwggD+WJtaY0iwpvvuydlKV87DDvT4gYfbug7GM6H7zo14srm6NubIy78vRZkl6KcQWA==
 
-"video.js@^6 || ^7", video.js@^7.17.0:
+"video.js@^6 || ^7", video.js@^7, video.js@^7.17.0:
   version "7.17.0"
   resolved "https://registry.yarnpkg.com/video.js/-/video.js-7.17.0.tgz#35918cc03748a5680f5d5f1da410e06eeea7786e"
   integrity sha512-8RbLu9+Pdpep9OTPncUHIvZXFgn/7hKdPnSTE/lGSnlFSucXtTUBp41R7NDwncscMLQ0WgazUbmFlvr4MNWMbA==
@@ -234,6 +234,14 @@ videojs-font@3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/videojs-font/-/videojs-font-3.2.0.tgz#212c9d3f4e4ec3fa7345167d64316add35e92232"
   integrity sha512-g8vHMKK2/JGorSfqAZQUmYYNnXmfec4MLhwtEFS+mMs2IDY398GLysy6BH6K+aS1KMNu/xWZ8Sue/X/mdQPliA==
+
+videojs-mobile-ui@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/videojs-mobile-ui/-/videojs-mobile-ui-0.7.0.tgz#cbac7ded4f51bf4ed45f4e59d01cf577d38a7c6c"
+  integrity sha512-cfctMUsu+EJ8IYPfAHR6ZTr2fbJWL3Af9QpvTS7JFvEkrGSMLLpuH62uatQ3pxUs4MISs8kgb8/PUqROpfh7MQ==
+  dependencies:
+    global "^4.4.0"
+    video.js "^7"
 
 videojs-seek-buttons@^2.2.0:
   version "2.2.0"
