@@ -150,4 +150,4 @@ def getMediaGenres(guid):
 
 def hashed_filename(filename):
     peppered_string = filename + SECRET_KEY
-    return hashlib.sha256(peppered_string).hexdigest()
+    return hashlib.sha256(peppered_string.encode('utf-8')).hexdigest()
