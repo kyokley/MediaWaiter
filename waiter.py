@@ -180,8 +180,8 @@ def _buildFileDictHelper(root, filename, token):
             not isAlfredEncoding(filename)):
         return None
 
-    waiterPath = os.path.join(token['filename'], filename).encode('utf-8')
-    hashedWaiterPath = hashed_filename(waiterPath)
+    waiterPath = Path(token['filename']) / filename
+    hashedWaiterPath = hashed_filename(str(waiterPath))
 
     streamingPath = buildWaiterPath('stream',
                                     token['guid'],
@@ -193,8 +193,7 @@ def _buildFileDictHelper(root, filename, token):
     if subtitle_file.exists():
         subtitle_basename = subtitle_file.name
         hashedSubtitleFile = hashed_filename(
-            os.path.join(token['filename'],
-                         subtitle_basename).encode('utf-8'))
+            str(Path(token['filename']) / subtitle_basename))
     else:
         subtitle_file = None
         hashedSubtitleFile = None
