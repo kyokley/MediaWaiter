@@ -13,7 +13,7 @@ REPO_DIR = os.path.dirname(os.path.abspath(__file__))
 # Borrowed from https://gist.github.com/ndarville/3452907
 SECRET_FILE = os.path.join(REPO_DIR, 'secret.txt')
 try:
-    with open(SECRET_FILE, 'rb') as secret_file:
+    with open(SECRET_FILE, 'r') as secret_file:
         SECRET_KEY = secret_file.read().strip()
 except (IOError, FileNotFoundError):
     try:
