@@ -1,5 +1,7 @@
 import os
 import mimetypes
+import secure
+
 from pathlib import Path
 from functools import wraps
 from flask import (Flask,
@@ -44,6 +46,15 @@ SUBTITLE_FILE_TYPES = ('.vtt',)
 app = Flask(__name__,
             static_url_path='',
             static_folder='/var/static')
+
+
+secure_headers = secure.Secure()
+
+
+@app.after_request
+def set_secure_headers(response):
+    secure_headers.framework.flask(response)
+    return response
 
 
 def _extract_donation_info(token):
