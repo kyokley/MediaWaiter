@@ -73,14 +73,15 @@
             {% endif %}
               var options = {
                           techOrder: ['chromecast', 'html5'],
+                          chromecast: {
+                                      {% if subtitle_file %}
+                                          requestSubtitleFn: function(source) {
+                                                      return '{{ subtitle_file }}';
+                                                  }
+                                  {% endif %}
+                                },
                           plugins: {
-                                      chromecast: {
-                    {% if subtitle_file %}
-                                                      requestSubtitleFn: function(source) {
-                                                                  return '{{ subtitle_file }}';
-                                                              }
-                    {% endif %}
-                                              },
+                                      chromecast: {},
                                       mobileUi: {},
                                       airPlay: {},
                                       seekButtons: {
