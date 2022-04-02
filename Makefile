@@ -39,7 +39,7 @@ bandit: build-dev ## Run bandit
 	docker run --rm -t \
 	    -v $$(pwd):/code \
 	    -v $$(pwd)/configs/docker_settings.py:/code/local_settings.py \
-	    kyokley/mediawaiter sh -c "/venv/bin/bandit -x tests -r ."
+	    kyokley/mediawaiter sh -c "/venv/bin/bandit -x '**/tests/test_*.py' -r ."
 
 down: ## Bring all containers down
 	docker-compose down
