@@ -412,11 +412,10 @@ def get_status():
         res['status'] = linked
     except Exception as e:
         log.error(e, exc_info=True)
-        print(e)
         res['status'] = False
 
     log.debug('status: %s' % (res['status'],))
-    return jsonify(res)
+    return res, 200 if res['status'] else 500
 
 
 @app.after_request

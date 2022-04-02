@@ -22,7 +22,10 @@ attach: ## Attach to a running mediawaiter container
 	docker attach $$(docker ps -qf name=mediawaiter_mediawaiter)
 
 shell: build-dev up ## Open a shell in a mediawaiter container
-	docker-compose exec mediawaiter /bin/sh
+	docker run --rm -it \
+	    -v $$(pwd):/code \
+	    -v $$(pwd)/configs/docker_settings.py:/code/local_settings.py \
+	    kyokley/mediawaiter sh
 
 tests: pytest bandit ## Run tests
 

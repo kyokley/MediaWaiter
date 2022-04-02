@@ -1,4 +1,5 @@
 import unittest
+import pytest
 from pathlib import Path
 from waiter import (isAlfredEncoding,
                     getTokenByGUID,
@@ -579,66 +580,55 @@ class TestGetFile(unittest.TestCase):
             donation_site_url='',
         )
 
-class TestGetStatus(unittest.TestCase):
-    def setUp(self):
-        self.BASE_PATH_patcher = mock.patch('waiter.BASE_PATH', 'BASE_PATH')
-        self.BASE_PATH_patcher.start()
-        self.exists_patcher = mock.patch('waiter.os.path.exists')
-        self.mock_exists = self.exists_patcher.start()
-        self.log_patcher = mock.patch('waiter.log')
-        self.mock_log = self.log_patcher.start()
-        self.jsonify_patcher = mock.patch('waiter.jsonify')
-        self.mock_jsonify = self.jsonify_patcher.start()
 
-    def tearDown(self):
-        self.BASE_PATH_patcher.stop()
-        self.exists_patcher.stop()
-        self.log_patcher.stop()
-        self.jsonify_patcher.stop()
+class TestGetStatus:
+    @pytest.fixture(autouse=True)
+    def setUp(self, mocker):
+        mocker.patch('waiter.BASE_PATH', 'BASE_PATH')
+        self.mock_exists = mocker.patch('waiter.os.path.exists')
+        self.mock_log = mocker.patch('waiter.log')
+        self.mock_jsonify = mocker.patch('waiter.jsonify')
 
     def test_bad_tv_status(self):
         self.mock_exists.side_effect = [True, False]
 
-        expected = self.mock_jsonify.return_value
+        expected = ({'status': False}, 500)
         actual = get_status()
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_log.debug.assert_any_call('Movies directory is good')
         self.mock_log.debug.assert_any_call('tv shows directory failed')
         self.mock_log.debug.assert_any_call('status: False')
-        self.mock_jsonify.assert_called_once_with({'status': False})
 
     def test_bad_movie_status(self):
         self.mock_exists.side_effect = [False, True]
 
-        expected = self.mock_jsonify.return_value
+        expected = ({'status': False}, 500)
         actual = get_status()
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_log.debug.assert_any_call('tv shows directory is good')
         self.mock_log.debug.assert_any_call('Movies directory failed')
         self.mock_log.debug.assert_any_call('status: False')
-        self.mock_jsonify.assert_called_once_with({'status': False})
 
     def test_bad_bad_status(self):
         self.mock_exists.side_effect = [False, False]
 
-        expected = self.mock_jsonify.return_value
+        expected = ({'status': False}, 500)
         actual = get_status()
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_log.debug.assert_any_call('tv shows directory failed')
         self.mock_log.debug.assert_any_call('Movies directory failed')
         self.mock_log.debug.assert_any_call('status: False')
-        self.mock_jsonify.assert_called_once_with({'status': False})
 
     def test_good_status(self):
         self.mock_exists.side_effect = [True, True]
 
-        expected = self.mock_jsonify.return_value
+        expected = ({'status': True}, 200)
         actual = get_status()
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_log.debug.assert_any_call('tv shows directory is good')
         self.mock_log.debug.assert_any_call('Movies directory is good')
         self.mock_log.debug.assert_any_call('status: True')
-        self.mock_jsonify.assert_called_once_with({'status': True})
+
 
 class TestXSendfile(unittest.TestCase):
     def setUp(self):
