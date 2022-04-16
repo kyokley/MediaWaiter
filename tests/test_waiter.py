@@ -15,48 +15,36 @@ from waiter import (isAlfredEncoding,
 import mock
 
 
-class TestIsAlfredEncoding(unittest.TestCase):
-    def setUp(self):
-        self.MEDIAVIEWER_SUFFIX_patcher = mock.patch('waiter.MEDIAVIEWER_SUFFIX', 'TEST_SUFFIX')
-        self.MEDIAVIEWER_SUFFIX_patcher.start()
-
-    def tearDown(self):
-        self.MEDIAVIEWER_SUFFIX_patcher.stop()
+class TestIsAlfredEncoding:
+    @pytest.fixture(autouse=True)
+    def setUp(self, mocker):
+        mocker.patch('waiter.MEDIAVIEWER_SUFFIX', 'TEST_SUFFIX')
 
     def test_not_alfred_encoded(self):
         test_str = 'test_str'
         actual = isAlfredEncoding(test_str)
-        self.assertFalse(actual)
+        assert not actual
 
     def test_is_alfred_encoded(self):
         test_str = 'test_str_TEST_SUFFIX'
         actual = isAlfredEncoding(test_str)
-        self.assertTrue(actual)
+        assert actual
 
-class TestGetTokenByGUID(unittest.TestCase):
-    def setUp(self):
-        self.MEDIAVIEWER_GUID_URL_patcher = mock.patch('waiter.MEDIAVIEWER_GUID_URL', 'TEST_GUID_URL%(guid)s')
-        self.WAITER_USERNAME_patcher = mock.patch('waiter.WAITER_USERNAME', 'TEST_WAITER_USERNAME')
-        self.WAITER_PASSWORD_patcher = mock.patch('waiter.WAITER_PASSWORD', 'TEST_WAITER_PASSWORD')
-        self.VERIFY_REQUESTS_patcher = mock.patch('waiter.VERIFY_REQUESTS', 'TEST_VERIFY_REQUESTS')
-        self.MEDIAVIEWER_GUID_URL_patcher.start()
-        self.WAITER_USERNAME_patcher.start()
-        self.WAITER_PASSWORD_patcher.start()
-        self.VERIFY_REQUESTS_patcher.start()
+
+class TestGetTokenByGUID:
+    @pytest.fixture(autouse=True)
+    def setUp(self, mocker):
+        mocker.patch('waiter.MEDIAVIEWER_GUID_URL', 'TEST_GUID_URL%(guid)s')
+        mocker.patch('waiter.WAITER_USERNAME', 'TEST_WAITER_USERNAME')
+        mocker.patch('waiter.WAITER_PASSWORD', 'TEST_WAITER_PASSWORD')
+        mocker.patch('waiter.VERIFY_REQUESTS', 'TEST_VERIFY_REQUESTS')
 
         self.requests_patcher = mock.patch('waiter.requests')
         self.mock_requests = self.requests_patcher.start()
         self.mock_get_result = mock.MagicMock()
         self.mock_requests.get.return_value = self.mock_get_result
 
-    def tearDown(self):
-        self.MEDIAVIEWER_GUID_URL_patcher.stop()
-        self.WAITER_USERNAME_patcher.stop()
-        self.WAITER_PASSWORD_patcher.stop()
-        self.VERIFY_REQUESTS_patcher.stop()
-        self.requests_patcher.stop()
-
-    def test_(self):
+    def test_getTokenByGUID(self):
         test_guid = '_url'
         expected = self.mock_get_result.json.return_value
         actual = getTokenByGUID(test_guid)
@@ -65,20 +53,17 @@ class TestGetTokenByGUID(unittest.TestCase):
                                                      auth=('TEST_WAITER_USERNAME', 'TEST_WAITER_PASSWORD'),
                                                      verify='TEST_VERIFY_REQUESTS')
         self.mock_get_result.json.assert_called_once_with()
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
-class TestGetDirPath(unittest.TestCase):
-    def setUp(self):
-        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.EXTERNAL_MEDIAVIEWER_BASE_URL', 'BASE_URL')
-        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher.start()
-        self.WAITER_OFFSET_URL = mock.patch('waiter.WAITER_OFFSET_URL', 'OFFSET_URL')
-        self.WAITER_OFFSET_URL.start()
-        self.getTokenByGUID_patcher = mock.patch('waiter.getTokenByGUID')
-        self.mock_getTokenByGUID = self.getTokenByGUID_patcher.start()
-        self.render_template_patcher = mock.patch('waiter.render_template')
-        self.mock_render_template = self.render_template_patcher.start()
-        self.buildEntries_patcher = mock.patch('waiter.buildEntries')
-        self.mock_buildEntries = self.buildEntries_patcher.start()
+
+class TestGetDirPath:
+    @pytest.fixture(autouse=True)
+    def setUp(self, mocker):
+        mocker.patch('waiter.EXTERNAL_MEDIAVIEWER_BASE_URL', 'BASE_URL')
+        mocker.patch('waiter.WAITER_OFFSET_URL', 'OFFSET_URL')
+        self.mock_getTokenByGUID = mocker.patch('waiter.getTokenByGUID')
+        self.mock_render_template = mocker.patch('waiter.render_template')
+        self.mock_buildEntries = mocker.patch('waiter.buildEntries')
         self.mock_buildEntries.return_value = [
             {
                 'filename': 'qwe',
@@ -90,26 +75,13 @@ class TestGetDirPath(unittest.TestCase):
                 'filename': 'zxc',
             },
         ]
-        self.getMediaGenres_patcher = mock.patch('waiter.getMediaGenres')
-        self.mock_getMediaGenres = self.getMediaGenres_patcher.start()
+        self.mock_getMediaGenres = mocker.patch('waiter.getMediaGenres')
         self.mock_getMediaGenres.return_value = ('tv_genres', 'movie_genres')
 
-        self.buildWaiterPath_patcher = mock.patch('waiter.buildWaiterPath')
-        self.mock_buildWaiterPath = self.buildWaiterPath_patcher.start()
+        self.mock_buildWaiterPath = mocker.patch('waiter.buildWaiterPath')
 
-        self.checkForValidToken_patcher = mock.patch('waiter.checkForValidToken')
-        self.mock_checkForValidToken = self.checkForValidToken_patcher.start()
+        self.mock_checkForValidToken = mocker.patch('waiter.checkForValidToken')
         self.test_guid = 'test_guid'
-
-    def tearDown(self):
-        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher.stop()
-        self.WAITER_OFFSET_URL.stop()
-        self.getTokenByGUID_patcher.stop()
-        self.render_template_patcher.stop()
-        self.checkForValidToken_patcher.stop()
-        self.buildEntries_patcher.stop()
-        self.buildWaiterPath_patcher.stop()
-        self.getMediaGenres_patcher.stop()
 
     def test_getTokenByGUID_raises_exception(self):
         self.mock_getTokenByGUID.side_effect = Exception('Fake Error')
@@ -117,7 +89,7 @@ class TestGetDirPath(unittest.TestCase):
         expected = (self.mock_render_template.return_value, 400)
         actual = get_dirPath(self.test_guid)
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
                                                           errorText='An error has occurred',
@@ -131,7 +103,7 @@ class TestGetDirPath(unittest.TestCase):
         expected = self.mock_render_template.return_value
         actual = get_dirPath(self.test_guid)
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_checkForValidToken.assert_called_once_with(self.mock_getTokenByGUID.return_value,
                                                              self.test_guid)
         self.mock_render_template.assert_called_once_with('error.html',
@@ -152,7 +124,7 @@ class TestGetDirPath(unittest.TestCase):
         expected = self.mock_render_template.return_value
         actual = get_dirPath(self.test_guid)
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_checkForValidToken.assert_called_once_with(self.mock_getTokenByGUID.return_value,
                                                              self.test_guid)
         self.mock_getMediaGenres.assert_called_once_with(self.test_guid)
@@ -192,12 +164,12 @@ class TestGetDirPath(unittest.TestCase):
         expected = self.mock_render_template.return_value, 400
         actual = get_dirPath(self.test_guid)
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
         self.mock_checkForValidToken.assert_called_once_with(self.mock_getTokenByGUID.return_value,
                                                              self.test_guid)
-        self.assertFalse(self.mock_getMediaGenres.called)
-        self.assertFalse(self.mock_buildWaiterPath.called)
+        assert not self.mock_getMediaGenres.called
+        assert not self.mock_buildWaiterPath.called
 
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
@@ -207,14 +179,12 @@ class TestGetDirPath(unittest.TestCase):
                                                           )
 
 
-class TestBuildMovieEntries(unittest.TestCase):
-    def setUp(self):
-        self.os_patcher = mock.patch('waiter.os')
-        self.mock_os = self.os_patcher.start()
-        self._buildFileDictHelper_patcher = mock.patch('waiter._buildFileDictHelper')
-        self.mock_buildFileDictHelper = self._buildFileDictHelper_patcher.start()
-        self.BASE_PATH_patcher = mock.patch('waiter.BASE_PATH', '/base/path')
-        self.BASE_PATH_patcher.start()
+class TestBuildMovieEntries:
+    @pytest.fixture(autouse=True)
+    def setUp(self, mocker):
+        self.mock_os = mocker.patch('waiter.os')
+        self.mock_buildFileDictHelper = mocker.patch('waiter._buildFileDictHelper')
+        mocker.patch('waiter.BASE_PATH', '/base/path')
 
         self.mock_os.path.join.side_effect = ['path/to/movie',
                                               '/base/path/to/movie']
@@ -227,18 +197,12 @@ class TestBuildMovieEntries(unittest.TestCase):
                       'ismovie': True
                       }
 
-
-    def tearDown(self):
-        self.os_patcher.stop()
-        self._buildFileDictHelper_patcher.stop()
-        self.BASE_PATH_patcher.stop()
-
     def test_all_valid_files(self):
         expected = [self.mock_buildFileDictHelper.return_value,
                     self.mock_buildFileDictHelper.return_value,
                     self.mock_buildFileDictHelper.return_value]
         actual = buildEntries(self.token)
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
         self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file1', self.token)
         self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file2', self.token)
@@ -249,29 +213,24 @@ class TestBuildMovieEntries(unittest.TestCase):
 
         expected = []
         actual = buildEntries(self.token)
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
         self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file1', self.token)
         self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file2', self.token)
         self.mock_buildFileDictHelper.assert_any_call(Path('/root/path'), 'file3', self.token)
 
-class TestBuildFileDictHelper(unittest.TestCase):
-    def setUp(self):
-        self.getsize_patcher = mock.patch('waiter.os.path.getsize')
-        self.mock_getsize = self.getsize_patcher.start()
 
-        self.MINIMUM_FILE_SIZE_patcher = mock.patch('waiter.MINIMUM_FILE_SIZE', 10000000)
-        self.MINIMUM_FILE_SIZE_patcher.start()
-        self.STREAMABLE_FILE_TYPES_patcher = mock.patch('waiter.STREAMABLE_FILE_TYPES', '.mp4')
-        self.STREAMABLE_FILE_TYPES_patcher.start()
-        self.isAlfredEncoding_patcher = mock.patch('waiter.isAlfredEncoding')
-        self.mock_isAlfredEncoding = self.isAlfredEncoding_patcher.start()
-        self.hashed_filename_patcher = mock.patch('waiter.hashed_filename')
-        self.mock_hashed_filename = self.hashed_filename_patcher.start()
-        self.buildWaiterPath_patcher = mock.patch('waiter.buildWaiterPath')
-        self.mock_buildWaiterPath = self.buildWaiterPath_patcher.start()
-        self.humansize_patcher = mock.patch('waiter.humansize')
-        self.mock_humansize = self.humansize_patcher.start()
+class TestBuildFileDictHelper:
+    @pytest.fixture(autouse=True)
+    def setUp(self, mocker):
+        self.mock_getsize = mocker.patch('waiter.os.path.getsize')
+
+        mocker.patch('waiter.MINIMUM_FILE_SIZE', 10000000)
+        mocker.patch('waiter.STREAMABLE_FILE_TYPES', '.mp4')
+        self.mock_isAlfredEncoding = mocker.patch('waiter.isAlfredEncoding')
+        self.mock_hashed_filename = mocker.patch('waiter.hashed_filename')
+        self.mock_buildWaiterPath = mocker.patch('waiter.buildWaiterPath')
+        self.mock_humansize = mocker.patch('waiter.humansize')
 
         self.token = {'filename': 'some.dir',
                       'guid': 'asdf1234',
@@ -279,54 +238,38 @@ class TestBuildFileDictHelper(unittest.TestCase):
                       'displayname': 'Some Dir',
                       'videoprogresses': []}
 
-    def tearDown(self):
-        self.getsize_patcher.stop()
-        self.MINIMUM_FILE_SIZE_patcher.stop()
-        self.STREAMABLE_FILE_TYPES_patcher.stop()
-        self.isAlfredEncoding_patcher.stop()
-        self.humansize_patcher.stop()
-        self.hashed_filename_patcher.stop()
-        self.buildWaiterPath_patcher.stop()
-
     def test_file_too_small(self):
         self.mock_getsize.return_value = 1000000
 
         expected = None
         actual = _buildFileDictHelper('/root', 'filename.mp4', self.token)
-        self.assertEqual(expected, actual)
-        self.assertFalse(self.mock_buildWaiterPath.called)
-        self.assertFalse(self.mock_hashed_filename.called)
-        self.assertFalse(self.mock_isAlfredEncoding.called)
+        assert expected == actual
+        assert not self.mock_buildWaiterPath.called
+        assert not self.mock_hashed_filename.called
+        assert not self.mock_isAlfredEncoding.called
 
     def test_file_not_streamable(self):
         self.mock_getsize.return_value = 100000000
 
         expected = None
         actual = _buildFileDictHelper('/root', 'filename.mkv', self.token)
-        self.assertEqual(expected, actual)
-        self.assertFalse(self.mock_buildWaiterPath.called)
-        self.assertFalse(self.mock_hashed_filename.called)
-        self.assertFalse(self.mock_isAlfredEncoding.called)
+        assert expected == actual
+        assert not self.mock_buildWaiterPath.called
+        assert not self.mock_hashed_filename.called
+        assert not self.mock_isAlfredEncoding.called
 
 
-class TestSendFileForDownload(unittest.TestCase):
-    def setUp(self):
-        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.EXTERNAL_MEDIAVIEWER_BASE_URL', 'BASE_URL')
-        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher.start()
-        self.BASE_PATH_patcher = mock.patch('waiter.BASE_PATH', 'BASE_PATH')
-        self.BASE_PATH_patcher.start()
-        self.getTokenByGUID_patcher = mock.patch('waiter.getTokenByGUID')
-        self.mock_getTokenByGUID = self.getTokenByGUID_patcher.start()
-        self.render_template_patcher = mock.patch('waiter.render_template')
-        self.mock_render_template = self.render_template_patcher.start()
-        self.checkForValidToken_patcher = mock.patch('waiter.checkForValidToken')
-        self.mock_checkForValidToken = self.checkForValidToken_patcher.start()
-        self.buildEntries_patcher = mock.patch('waiter.buildEntries')
-        self.mock_buildEntries = self.buildEntries_patcher.start()
-        self.hashed_filename_patcher = mock.patch('waiter.hashed_filename')
-        self.mock_hashed_filename = self.hashed_filename_patcher.start()
-        self.send_file_partial_patcher = mock.patch('waiter.send_file_partial')
-        self.mock_send_file_partial = self.send_file_partial_patcher.start()
+class TestSendFileForDownload:
+    @pytest.fixture(autouse=True)
+    def setUp(self, mocker):
+        mocker.patch('waiter.EXTERNAL_MEDIAVIEWER_BASE_URL', 'BASE_URL')
+        mocker.patch('waiter.BASE_PATH', 'BASE_PATH')
+        self.mock_getTokenByGUID = mocker.patch('waiter.getTokenByGUID')
+        self.mock_render_template = mocker.patch('waiter.render_template')
+        self.mock_checkForValidToken = mocker.patch('waiter.checkForValidToken')
+        self.mock_buildEntries = mocker.patch('waiter.buildEntries')
+        self.mock_hashed_filename = mocker.patch('waiter.hashed_filename')
+        self.mock_send_file_partial = mocker.patch('waiter.send_file_partial')
 
         self.token = {'path': 'test_path',
                       'filename': 'test_filename',
@@ -339,21 +282,11 @@ class TestSendFileForDownload(unittest.TestCase):
                                                      }]
         self.mock_hashed_filename.return_value = 'hashPath'
 
-    def tearDown(self):
-        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher.stop()
-        self.BASE_PATH_patcher.stop()
-        self.getTokenByGUID_patcher.stop()
-        self.render_template_patcher.stop()
-        self.checkForValidToken_patcher.stop()
-        self.buildEntries_patcher.stop()
-        self.hashed_filename_patcher.stop()
-        self.send_file_partial_patcher.stop()
-
     def test_handle_exception(self):
         self.mock_checkForValidToken.side_effect = Exception('some error')
         expected = self.mock_render_template.return_value, 400
         actual = send_file_for_download('guid', 'hashPath')
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
                                                           errorText='An error has occurred',
@@ -366,7 +299,7 @@ class TestSendFileForDownload(unittest.TestCase):
 
         expected = self.mock_render_template.return_value
         actual = send_file_for_download('guid', 'hashPath')
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_getTokenByGUID.assert_called_once_with('guid')
         self.mock_checkForValidToken.assert_called_once_with(self.token,
                                                              'guid')
@@ -381,9 +314,9 @@ class TestSendFileForDownload(unittest.TestCase):
 
         expected = self.mock_send_file_partial.return_value
         actual = send_file_for_download('guid', 'hashPath')
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_buildEntries.assert_called_once_with(self.token)
-        self.assertFalse(self.mock_hashed_filename.called)
+        assert not self.mock_hashed_filename.called
         self.mock_send_file_partial.assert_called_once_with('unhashed/path/to/file',
                                                             'file',
                                                             self.token)
@@ -393,10 +326,10 @@ class TestSendFileForDownload(unittest.TestCase):
 
         expected = self.mock_render_template.return_value, 400
         actual = send_file_for_download('guid', 'badHashPath')
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_buildEntries.assert_called_once_with(self.token)
-        self.assertFalse(self.mock_hashed_filename.called)
-        self.assertFalse(self.mock_send_file_partial.called)
+        assert not self.mock_hashed_filename.called
+        assert not self.mock_send_file_partial.called
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
                                                           errorText='An error has occurred',
@@ -407,44 +340,32 @@ class TestSendFileForDownload(unittest.TestCase):
     def test_tv_file(self):
         expected = self.mock_send_file_partial.return_value
         actual = send_file_for_download('guid', 'hashPath')
-        self.assertEqual(expected, actual)
-        self.assertTrue(self.mock_buildEntries.called)
-        self.assertFalse(self.mock_hashed_filename.called)
+        assert expected == actual
+        assert self.mock_buildEntries.called
+        assert not self.mock_hashed_filename.called
         self.mock_send_file_partial.assert_called_once_with('unhashed/path/to/file',
                                                             'file',
                                                             self.token)
 
-class TestGetFile(unittest.TestCase):
-    def setUp(self):
-        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher = mock.patch('waiter.EXTERNAL_MEDIAVIEWER_BASE_URL', 'BASE_URL')
-        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher.start()
-        self.WAITER_OFFSET_URL = mock.patch('waiter.WAITER_OFFSET_URL', 'OFFSET_URL')
-        self.WAITER_OFFSET_URL.start()
-        self.log_patcher = mock.patch('waiter.log')
-        self.mock_log = self.log_patcher.start()
-        self.STREAMABLE_FILE_TYPES_patcher = mock.patch('waiter.STREAMABLE_FILE_TYPES', ('.mp4',))
-        self.STREAMABLE_FILE_TYPES_patcher.start()
-        self.getTokenByGUID_patcher = mock.patch('waiter.getTokenByGUID')
-        self.mock_getTokenByGUID = self.getTokenByGUID_patcher.start()
-        self.checkForValidToken_patcher = mock.patch('waiter.checkForValidToken')
-        self.mock_checkForValidToken = self.checkForValidToken_patcher.start()
-        self.render_template_patcher = mock.patch('waiter.render_template')
-        self.mock_render_template = self.render_template_patcher.start()
-        self.buildWaiterPath_patcher = mock.patch('waiter.buildWaiterPath')
-        self.mock_buildWaiterPath = self.buildWaiterPath_patcher.start()
-        self.hashed_filename_patcher = mock.patch('waiter.hashed_filename')
-        self.mock_hashed_filename = self.hashed_filename_patcher.start()
-        self.getsize_patcher = mock.patch('waiter.os.path.getsize')
-        self.mock_getsize = self.getsize_patcher.start()
-        self.humansize_patcher = mock.patch('waiter.humansize')
-        self.mock_humansize = self.humansize_patcher.start()
-        self.isAlfredEncoding_patcher = mock.patch('waiter.isAlfredEncoding')
-        self.mock_isAlfredEncoding = self.isAlfredEncoding_patcher.start()
-        self.buildEntries_patcher = mock.patch('waiter.buildEntries')
-        self.mock_buildEntries = self.buildEntries_patcher.start()
 
-        self.getMediaGenres_patcher = mock.patch('waiter.getMediaGenres')
-        self.mock_getMediaGenres = self.getMediaGenres_patcher.start()
+class TestGetFile:
+    @pytest.fixture(autouse=True)
+    def setUp(self, mocker):
+        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher = mocker.patch('waiter.EXTERNAL_MEDIAVIEWER_BASE_URL', 'BASE_URL')
+        self.WAITER_OFFSET_URL = mocker.patch('waiter.WAITER_OFFSET_URL', 'OFFSET_URL')
+        self.mock_log = mocker.patch('waiter.log')
+        self.STREAMABLE_FILE_TYPES_patcher = mocker.patch('waiter.STREAMABLE_FILE_TYPES', ('.mp4',))
+        self.mock_getTokenByGUID = mocker.patch('waiter.getTokenByGUID')
+        self.mock_checkForValidToken = mocker.patch('waiter.checkForValidToken')
+        self.mock_render_template = mocker.patch('waiter.render_template')
+        self.mock_buildWaiterPath = mocker.patch('waiter.buildWaiterPath')
+        self.mock_hashed_filename = mocker.patch('waiter.hashed_filename')
+        self.mock_getsize = mocker.patch('waiter.os.path.getsize')
+        self.mock_humansize = mocker.patch('waiter.humansize')
+        self.mock_isAlfredEncoding = mocker.patch('waiter.isAlfredEncoding')
+        self.mock_buildEntries = mocker.patch('waiter.buildEntries')
+
+        self.mock_getMediaGenres = mocker.patch('waiter.getMediaGenres')
         self.mock_getMediaGenres.return_value = ('tv_genres', 'movie_genres')
 
         self.token = {'ismovie': False,
@@ -460,28 +381,12 @@ class TestGetFile(unittest.TestCase):
         self.mock_checkForValidToken.return_value = None
         self.mock_hashed_filename.return_value = 'test_hash'
 
-    def tearDown(self):
-        self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher.stop()
-        self.WAITER_OFFSET_URL.stop()
-        self.log_patcher.stop()
-        self.STREAMABLE_FILE_TYPES_patcher.stop()
-        self.getTokenByGUID_patcher.stop()
-        self.render_template_patcher.stop()
-        self.checkForValidToken_patcher.stop()
-        self.buildWaiterPath_patcher.stop()
-        self.hashed_filename_patcher.stop()
-        self.getsize_patcher.stop()
-        self.humansize_patcher.stop()
-        self.isAlfredEncoding_patcher.stop()
-        self.buildEntries_patcher.stop()
-        self.getMediaGenres_patcher.stop()
-
     def test_invalid_token(self):
         self.mock_checkForValidToken.return_value = 'got an error'
 
         expected = self.mock_render_template.return_value
         actual = get_file('guid')
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
                                                           errorText='got an error',
@@ -493,7 +398,7 @@ class TestGetFile(unittest.TestCase):
 
         expected = self.mock_render_template.return_value
         actual = get_file('guid')
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_render_template.assert_called_once_with('error.html',
                                                           title='Error',
                                                           errorText='Invalid URL for movie type',
@@ -503,7 +408,7 @@ class TestGetFile(unittest.TestCase):
     def test_valid(self):
         expected = self.mock_render_template.return_value
         actual = get_file('guid')
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_getMediaGenres.assert_called_once_with('guid')
         self.mock_render_template.assert_called_once_with(
             'display.html',
@@ -531,7 +436,7 @@ class TestGetFile(unittest.TestCase):
 
         expected = self.mock_render_template.return_value
         actual = get_file('guid')
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_getMediaGenres.assert_called_once_with('guid')
         self.mock_render_template.assert_called_once_with(
             'display.html',
@@ -558,7 +463,7 @@ class TestGetFile(unittest.TestCase):
 
         expected = self.mock_render_template.return_value
         actual = get_file('guid')
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_getMediaGenres.assert_called_once_with('guid')
         self.mock_render_template.assert_called_once_with(
             'display.html',
@@ -630,23 +535,16 @@ class TestGetStatus:
         self.mock_log.debug.assert_any_call('status: True')
 
 
-class TestXSendfile(unittest.TestCase):
-    def setUp(self):
-        self.log_patcher = mock.patch('waiter.log')
-        self.mock_log = self.log_patcher.start()
-        self.mimetypes_patcher = mock.patch('waiter.mimetypes')
-        self.mock_mimetypes = self.mimetypes_patcher.start()
-        self.Response_patcher = mock.patch('waiter.Response')
-        self.mock_response = self.Response_patcher.start()
+class TestXSendfile:
+    @pytest.fixture(autouse=True)
+    def setUp(self, mocker):
+        self.mock_log = mocker.patch('waiter.log')
+        self.mock_mimetypes = mocker.patch('waiter.mimetypes')
+        self.mock_response = mocker.patch('waiter.Response')
 
         self.response_obj = mock.MagicMock()
 
         self.mock_response.return_value = self.response_obj
-
-    def tearDown(self):
-        self.log_patcher.stop()
-        self.mimetypes_patcher.stop()
-        self.Response_patcher.stop()
 
     def test_(self):
         path = 'path/to/file'
@@ -655,22 +553,18 @@ class TestXSendfile(unittest.TestCase):
 
         expected = self.response_obj
         actual = xsendfile(path, filename, size)
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
-class TestSendFilePartialWithNginx(unittest.TestCase):
-    def setUp(self):
-        self.USE_NGINX_patcher = mock.patch('waiter.USE_NGINX', True)
-        self.USE_NGINX_patcher.start()
-        self.request_patcher = mock.patch('waiter.request')
-        self.mock_request = self.request_patcher.start()
-        self.getsize_patcher = mock.patch('waiter.os.path.getsize')
-        self.mock_getsize = self.getsize_patcher.start()
-        self.parseRangeHeaders_patcher = mock.patch('waiter.parseRangeHeaders')
-        self.mock_parseRangeHeaders = self.parseRangeHeaders_patcher.start()
-        self.xsendfile_patcher = mock.patch('waiter.xsendfile')
-        self.mock_xsendfile = self.xsendfile_patcher.start()
-        self.app_sendfile_patcher = mock.patch('waiter.app_sendfile')
-        self.mock_app_sendfile = self.app_sendfile_patcher.start()
+
+class TestSendFilePartialWithNginx:
+    @pytest.fixture(autouse=True)
+    def setUp(self, mocker):
+        mocker.patch('waiter.USE_NGINX', True)
+        self.mock_request = mocker.patch('waiter.request')
+        self.mock_getsize = mocker.patch('waiter.os.path.getsize')
+        self.mock_parseRangeHeaders = mocker.patch('waiter.parseRangeHeaders')
+        self.mock_xsendfile = mocker.patch('waiter.xsendfile')
+        self.mock_app_sendfile = mocker.patch('waiter.app_sendfile')
 
         self.mock_request.headers.get.return_value = 'test_range_header'
 
@@ -681,51 +575,44 @@ class TestSendFilePartialWithNginx(unittest.TestCase):
         self.mock_getsize.return_value = 100
         self.mock_parseRangeHeaders.return_value = (100, 0, 100)
 
-    def tearDown(self):
-        self.USE_NGINX_patcher.stop()
-        self.request_patcher.stop()
-        self.getsize_patcher.stop()
-        self.parseRangeHeaders_patcher.stop()
-        self.xsendfile_patcher.stop()
-        self.app_sendfile_patcher.stop()
-
     def test_with_range_header(self):
         expected = self.mock_xsendfile.return_value
         actual = send_file_partial(self.path, self.filename, self.token)
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_getsize.assert_called_once_with('path/to/file')
-        self.assertFalse(self.mock_parseRangeHeaders.called)
+        assert not self.mock_parseRangeHeaders.called
         self.mock_xsendfile.assert_called_once_with(self.path,
                                                     self.filename,
                                                     100,
                                                     range_header='test_range_header')
-        self.assertFalse(self.mock_app_sendfile.called)
+        assert not self.mock_app_sendfile.called
 
     def test_no_range_header(self):
         self.mock_request.headers.get.return_value = None
 
         expected = self.mock_xsendfile.return_value
         actual = send_file_partial(self.path, self.filename, self.token)
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_getsize.assert_called_once_with('path/to/file')
-        self.assertFalse(self.mock_parseRangeHeaders.called)
+        assert not self.mock_parseRangeHeaders.called
         self.mock_xsendfile.assert_called_once_with(self.path,
                                                     self.filename,
                                                     100,
                                                     range_header=None)
-        self.assertFalse(self.mock_app_sendfile.called)
+        assert not self.mock_app_sendfile.called
 
     def test_test(self):
         expected = self.mock_xsendfile.return_value
         actual = send_file_partial(self.path, self.filename, self.token, test=True)
-        self.assertEqual(expected, actual)
+        assert expected == actual
         self.mock_getsize.assert_called_once_with('path/to/file')
-        self.assertFalse(self.mock_parseRangeHeaders.called)
+        assert not self.mock_parseRangeHeaders.called
         self.mock_xsendfile.assert_called_once_with(self.path,
                                                     self.filename,
                                                     100,
                                                     range_header='test_range_header')
-        self.assertFalse(self.mock_app_sendfile.called)
+        assert not self.mock_app_sendfile.called
+
 
 class TestSendFilePartialWithoutNginx(unittest.TestCase):
     def setUp(self):
