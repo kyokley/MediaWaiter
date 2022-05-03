@@ -50,8 +50,8 @@ class TestGetTokenByGUID:
         actual = getTokenByGUID(test_guid)
 
         self.mock_requests.get.assert_called_once_with('TEST_GUID_URL_url',
-                                                     auth=('TEST_WAITER_USERNAME', 'TEST_WAITER_PASSWORD'),
-                                                     verify='TEST_VERIFY_REQUESTS')
+                                                       auth=('TEST_WAITER_USERNAME', 'TEST_WAITER_PASSWORD'),
+                                                       verify='TEST_VERIFY_REQUESTS')
         self.mock_get_result.json.assert_called_once_with()
         assert expected == actual
 
@@ -278,8 +278,8 @@ class TestSendFileForDownload:
         self.mock_getTokenByGUID.return_value = self.token
         self.mock_checkForValidToken.return_value = None
         self.mock_buildEntries.return_value = [{'hashedWaiterPath': 'hashPath',
-                                                     'unhashedPath': 'unhashed/path/to/file',
-                                                     }]
+                                                'unhashedPath': 'unhashed/path/to/file',
+                                                }]
         self.mock_hashed_filename.return_value = 'hashPath'
 
     def test_handle_exception(self):
@@ -627,6 +627,7 @@ class TestSendFilePartialWithNginx(unittest.TestCase):
                                                     100,
                                                     range_header='test_range_header')
         self.assertFalse(self.mock_app_sendfile.called)
+
 
 class TestSendFilePartialWithoutNginx(unittest.TestCase):
     def setUp(self):
