@@ -556,15 +556,22 @@ class TestXSendfile:
         assert expected == actual
 
 
-class TestSendFilePartialWithNginx:
-    @pytest.fixture(autouse=True)
-    def setUp(self, mocker):
-        mocker.patch('waiter.USE_NGINX', True)
-        self.mock_request = mocker.patch('waiter.request')
-        self.mock_getsize = mocker.patch('waiter.os.path.getsize')
-        self.mock_parseRangeHeaders = mocker.patch('waiter.parseRangeHeaders')
-        self.mock_xsendfile = mocker.patch('waiter.xsendfile')
-        self.mock_app_sendfile = mocker.patch('waiter.app_sendfile')
+# I wasn't able to convert this test because mocking waiter.request was
+# failing some werkzeug thing. *shrugs*
+class TestSendFilePartialWithNginx(unittest.TestCase):
+    def setUp(self):
+        self.USE_NGINX_patcher = mock.patch('waiter.USE_NGINX', True)
+        self.USE_NGINX_patcher.start()
+        self.request_patcher = mock.patch('waiter.request')
+        self.mock_request = self.request_patcher.start()
+        self.getsize_patcher = mock.patch('waiter.os.path.getsize')
+        self.mock_getsize = self.getsize_patcher.start()
+        self.parseRangeHeaders_patcher = mock.patch('waiter.parseRangeHeaders')
+        self.mock_parseRangeHeaders = self.parseRangeHeaders_patcher.start()
+        self.xsendfile_patcher = mock.patch('waiter.xsendfile')
+        self.mock_xsendfile = self.xsendfile_patcher.start()
+        self.app_sendfile_patcher = mock.patch('waiter.app_sendfile')
+        self.mock_app_sendfile = self.app_sendfile_patcher.start()
 
         self.mock_request.headers.get.return_value = 'test_range_header'
 
@@ -575,44 +582,51 @@ class TestSendFilePartialWithNginx:
         self.mock_getsize.return_value = 100
         self.mock_parseRangeHeaders.return_value = (100, 0, 100)
 
+    def tearDown(self):
+        self.USE_NGINX_patcher.stop()
+        self.request_patcher.stop()
+        self.getsize_patcher.stop()
+        self.parseRangeHeaders_patcher.stop()
+        self.xsendfile_patcher.stop()
+        self.app_sendfile_patcher.stop()
+
     def test_with_range_header(self):
         expected = self.mock_xsendfile.return_value
         actual = send_file_partial(self.path, self.filename, self.token)
-        assert expected == actual
+        self.assertEqual(expected, actual)
         self.mock_getsize.assert_called_once_with('path/to/file')
-        assert not self.mock_parseRangeHeaders.called
+        self.assertFalse(self.mock_parseRangeHeaders.called)
         self.mock_xsendfile.assert_called_once_with(self.path,
                                                     self.filename,
                                                     100,
                                                     range_header='test_range_header')
-        assert not self.mock_app_sendfile.called
+        self.assertFalse(self.mock_app_sendfile.called)
 
     def test_no_range_header(self):
         self.mock_request.headers.get.return_value = None
 
         expected = self.mock_xsendfile.return_value
         actual = send_file_partial(self.path, self.filename, self.token)
-        assert expected == actual
+        self.assertEqual(expected, actual)
         self.mock_getsize.assert_called_once_with('path/to/file')
-        assert not self.mock_parseRangeHeaders.called
+        self.assertFalse(self.mock_parseRangeHeaders.called)
         self.mock_xsendfile.assert_called_once_with(self.path,
                                                     self.filename,
                                                     100,
                                                     range_header=None)
-        assert not self.mock_app_sendfile.called
+        self.assertFalse(self.mock_app_sendfile.called)
 
     def test_test(self):
         expected = self.mock_xsendfile.return_value
         actual = send_file_partial(self.path, self.filename, self.token, test=True)
-        assert expected == actual
+        self.assertEqual(expected, actual)
         self.mock_getsize.assert_called_once_with('path/to/file')
-        assert not self.mock_parseRangeHeaders.called
+        self.assertFalse(self.mock_parseRangeHeaders.called)
         self.mock_xsendfile.assert_called_once_with(self.path,
                                                     self.filename,
                                                     100,
                                                     range_header='test_range_header')
-        assert not self.mock_app_sendfile.called
-
+        self.assertFalse(self.mock_app_sendfile.called)
 
 class TestSendFilePartialWithoutNginx(unittest.TestCase):
     def setUp(self):
