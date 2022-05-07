@@ -71,7 +71,7 @@ def _extract_donation_info(token):
 def logErrorsAndContinue(func):
     @wraps(func)
     def func_wrapper(*args, **kwargs):
-        log.debug('Attempting %s' % func.__name__)
+        log.debug(f'Attempting {func.__name__}')
         try:
             res = func(*args, **kwargs)
             return res
@@ -407,14 +407,14 @@ def get_status():
         else:
             log.debug('tv shows directory failed')
         linked = moviesLinked and tvLinked
-        log.debug('Result is %s' % linked)
+        log.debug(f'Result is {linked}')
 
         res['status'] = linked
     except Exception as e:
         log.error(e, exc_info=True)
         res['status'] = False
 
-    log.debug('status: %s' % (res['status'],))
+    log.debug(f'status: {res["status"]}')
     return res, 200 if res['status'] else 500
 
 
@@ -427,12 +427,12 @@ def after_request(response):
 def xsendfile(path, filename, size, range_header=None):
     path = str(path)
 
-    log.debug('path: %s' % path)
-    log.debug('filename: %s' % filename)
+    log.debug(f'path: {path}')
+    log.debug(f'filename: {filename}')
     mime = mimetypes.guess_type(path)[0]
     path = path.split('/', 3)[-1]
-    redirected_path = '/download/%s' % (path,)
-    log.debug('redirected_path is %s' % redirected_path)
+    redirected_path = f'/download/{path}'
+    log.debug(f'redirected_path is {redirected_path}')
     resp = Response(None,
                     206,
                     mimetype=mime,
@@ -444,9 +444,9 @@ def xsendfile(path, filename, size, range_header=None):
     resp.headers.add('Content-Range',
                      f'bytes {byte1}-{byte1 + length -1}/{size}'
                                                 )
-    log.debug('X-Accel-Redirect: %s' % resp.headers['X-Accel-Redirect'])
-    log.debug('Content-Disposition: %s' % resp.headers['Content-Disposition'])
-    log.debug('Content-Range: %s' % resp.headers['Content-Range'])
+    log.debug(f'X-Accel-Redirect: {resp.headers["X-Accel-Redirect"]}')
+    log.debug(f'Content-Disposition: {resp.headers["Content-Disposition"]}')
+    log.debug(f'Content-Range: {resp.headers["Content-Range"]}')
     return resp
 
 
@@ -458,7 +458,7 @@ def send_file_partial(path,
     size = os.path.getsize(path)
 
     if USE_NGINX:
-        log.debug("Using NGINX to send %s" % filename)
+        log.debug(f"Using NGINX to send {filename}")
         return xsendfile(path, filename, size, range_header=range_header)
     else:
         return app_sendfile(path, filename, size, range_header=range_header)
@@ -581,7 +581,7 @@ def videoOffset(guid, hashedFilename):
         return jsonify(data)
     elif request.method == 'POST':
         print('POST-ing video offset:')
-        print('offset: %s' % request.form['offset'])
+        print(f'offset: {request.form["offset"]}')
         setVideoOffset(hashedFilename, guid, request.form['offset'])
         return jsonify({'msg': 'success'})
     elif request.method == 'DELETE':

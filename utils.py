@@ -34,11 +34,11 @@ class delayedRetry(object):
 
     def __call__(self, func):
         def wrap(*args, **kwargs):
-            log.debug('Attempting %s' % func.__name__)
+            log.debug(f'Attempting {func.__name__}')
             last_exc = None
             for i in range(self.attempts):
                 try:
-                    log.debug('Attempt %s' % i)
+                    log.debug(f'Attempt {i}')
                     res = func(*args, **kwargs)
                     log.debug('Success')
                     return res
@@ -47,16 +47,16 @@ class delayedRetry(object):
                     last_exc = e
                 time.sleep(self.interval)
             else:
-                log.error('Failure after %s attempts' % self.attempts)
+                log.error(f'Failure after {self.attempts} attempts')
                 raise last_exc
         return wrap
 
 def checkForValidToken(token, guid):
     if not token:
-        log.warn('Token is invalid GUID: %s' % (guid,))
+        log.warn(f'Token is invalid GUID: {guid}')
         return "This token is invalid! Return to Movie or TV Show tab to generate a new one."
     if not token['isvalid']:
-        log.warn('Token Expired GUID: %s' % (guid,))
+        log.warn(f'Token Expired GUID: {guid}')
         return "This token has expired! Return to Movie or TV Show tab to generate a new one."
 
 def parseRangeHeaders(size, range_header):
