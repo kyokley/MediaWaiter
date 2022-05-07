@@ -442,9 +442,8 @@ def xsendfile(path, filename, size, range_header=None):
 
     (length, byte1, byte2) = parseRangeHeaders(size, range_header)
     resp.headers.add('Content-Range',
-                     'bytes {0}-{1}/{2}'.format(byte1,
-                                                byte1 + length - 1,
-                                                size))
+                     f'bytes {byte1}-{byte1 + length -1}/{size}'
+                                                )
     log.debug('X-Accel-Redirect: %s' % resp.headers['X-Accel-Redirect'])
     log.debug('Content-Disposition: %s' % resp.headers['Content-Disposition'])
     log.debug('Content-Range: %s' % resp.headers['Content-Range'])
@@ -490,9 +489,8 @@ def app_sendfile(path,
                   mimetype=mimetypes.guess_type(path)[0],
                   direct_passthrough=True)
     rv.headers.add('Content-Range',
-                   'bytes {0}-{1}/{2}'.format(byte1,
-                                              byte1 + length - 1,
-                                              size))
+                   f'bytes {byte1}-{byte1 + length -1}/{size}'
+                                              )
     if filename:
         rv.headers['Content-Disposition'] = f"attachement; filename={filename}"
     else:

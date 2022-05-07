@@ -26,8 +26,8 @@ except (IOError, FileNotFoundError):
                               for _ in range(50)])
         with open(SECRET_FILE, 'w') as secret_file:
             secret_file.write(SECRET_KEY)
-    except IOError:
-        Exception('Please create a %s file with random characters to generate your secret key!' % SECRET_FILE)
+    except IOError as e:
+        raise Exception(f'{e}\nPlease create a {SECRET_FILE} file with random characters to generate your secret key!')
 
 # The system expects the Movie and tv show folders to exist in a
 # BASE_PATH folder. The path to that folder is defined below

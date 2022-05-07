@@ -24,8 +24,8 @@ def humansize(nbytes):
     while nbytes >= 1024 and i < len(suffixes)-1:
         nbytes /= 1024.
         i += 1
-    f = ('%.2f' % nbytes).rstrip('0').rstrip('.')
-    return '%s %s' % (f, suffixes[i])
+    val = ('%.2f' % nbytes).rstrip('0').rstrip('.')
+    return f'{val} {suffixes[i]}'
 
 class delayedRetry(object):
     def __init__(self, attempts=5, interval=1):
@@ -132,7 +132,7 @@ def deleteVideoOffset(filename, guid):
         raise
 
 def getMediaGenres(guid):
-    genre_url = MEDIAVIEWER_BASE_URL + '/ajaxgenres/{}/'.format(guid)
+    genre_url = MEDIAVIEWER_BASE_URL + f'/ajaxgenres/{guid}/'
 
     try:
         resp = requests.get(genre_url)
@@ -142,9 +142,9 @@ def getMediaGenres(guid):
         raise
 
     data = resp.json()
-    tv_genres = [(mg[1], MEDIAVIEWER_BASE_URL + '/tvshows/genre/{}/'.format(mg[0]))
+    tv_genres = [(mg[1], MEDIAVIEWER_BASE_URL + f'/tvshows/genre/{mg[0]}/')
                     for mg in data['tv_genres']]
-    movie_genres = [(mg[1], MEDIAVIEWER_BASE_URL + '/movies/genre/{}/'.format(mg[0]))
+    movie_genres = [(mg[1], MEDIAVIEWER_BASE_URL + f'/movies/genre/{mg[0]}/')
                         for mg in data['movie_genres']]
     return tv_genres, movie_genres
 
