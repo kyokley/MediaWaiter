@@ -450,11 +450,13 @@ def xsendfile(path, filename, size, range_header=None):
     log.debug(f"redirected_path is {redirected_path}")
     resp = Response(None, 206, mimetype=mime, direct_passthrough=True)
     resp.headers["X-Accel-Redirect"] = redirected_path
+    resp.headers["X-Accel-Buffering"] = 'no'
     resp.headers["Content-Disposition"] = f"attachement; filename={filename}"
 
     (length, byte1, byte2) = parseRangeHeaders(size, range_header)
     resp.headers.add("Content-Range", f"bytes {byte1}-{byte2}/{size}")
     log.debug(f'X-Accel-Redirect: {resp.headers["X-Accel-Redirect"]}')
+    log.debug(f'X-Accel-Buffering: {resp.headers["X-Accel-Buffering"]}')
     log.debug(f'Content-Disposition: {resp.headers["Content-Disposition"]}')
     log.debug(f'Content-Range: {resp.headers["Content-Range"]}')
     return resp
