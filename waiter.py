@@ -489,7 +489,7 @@ def app_sendfile(path, filename, size, range_header=None):
     rv = Response(
         data, 206, mimetype=mimetypes.guess_type(path)[0], direct_passthrough=True
     )
-    rv.headers.add("Content-Range", f"bytes {byte1}-{byte1 + length -1}/{size}")
+    rv.headers.add("Content-Range", f"bytes {byte1}-{byte2}/{size}")
     if filename:
         rv.headers["Content-Disposition"] = f"attachement; filename={filename}"
     else:
