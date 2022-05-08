@@ -470,6 +470,7 @@ def send_file_partial(path, filename, token, test=False):
         log.debug(f"Using NGINX to send {filename}")
         return xsendfile(path, filename, size, range_header=range_header)
     else:
+        log.debug(f"Using Flask to send {filename}")
         return app_sendfile(path, filename, size, range_header=range_header)
 
 
