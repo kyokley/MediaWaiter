@@ -160,7 +160,8 @@ class TestParseRangeHeaders:
 
     def test_first_500_bytes(self):
         length, byte1, byte2 = parseRangeHeaders(
-            self.file_size, '0-', default_length=self.default_length)
+            self.file_size, "0-", default_length=self.default_length
+        )
 
         assert length == self.default_length
         assert byte1 == 0
@@ -168,7 +169,8 @@ class TestParseRangeHeaders:
 
     def test_second_500_bytes(self):
         length, byte1, byte2 = parseRangeHeaders(
-            self.file_size, '500-', default_length=self.default_length)
+            self.file_size, "500-", default_length=self.default_length
+        )
 
         assert length == self.default_length
         assert byte1 == 500
@@ -178,7 +180,8 @@ class TestParseRangeHeaders:
         self.default_length = 2000
 
         length, byte1, byte2 = parseRangeHeaders(
-            self.file_size, '500-', default_length=self.default_length)
+            self.file_size, "500-", default_length=self.default_length
+        )
 
         assert length == 734
         assert byte1 == 500
@@ -188,7 +191,8 @@ class TestParseRangeHeaders:
         self.default_length = 2000
 
         length, byte1, byte2 = parseRangeHeaders(
-            self.file_size, '734-', default_length=self.default_length)
+            self.file_size, "734-", default_length=self.default_length
+        )
 
         assert length == 500
         assert byte1 == 734
