@@ -1,5 +1,6 @@
 ARG BASE_IMAGE=python:3.9-alpine
 
+FROM --platform=linux/amd64 ${BASE_IMAGE} AS builder
 FROM ${BASE_IMAGE} AS static-builder
 WORKDIR /code
 
@@ -39,12 +40,12 @@ COPY poetry.lock pyproject.toml configs/docker_settings.py /code/
 RUN poetry install --no-dev && mkdir /root/logs /root/media
 
 
-FROM base AS prod
+FROM --platform=linux/amd64 base AS prod
 COPY . /code
 COPY --from=static-builder /code/node_modules /var/static/bower_components
 COPY ./static/assets /var/static/assets
 CMD uwsgi --ini /code/server/uwsgi.ini
 
-FROM base AS dev
+FROM --platform=linux/amd64 base AS dev
 COPY --from=static-builder /code/node_modules /var/static/bower_components
 RUN poetry install
