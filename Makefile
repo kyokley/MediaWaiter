@@ -55,3 +55,6 @@ push: build ## Push image to docker hub
 	docker push kyokley/mediawaiter
 
 publish: push ## Alias for push
+
+autoformat: build-dev
+	docker run --rm -t -v $$(pwd):/code kyokley/mediawaiter /venv/bin/black /code

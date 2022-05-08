@@ -1,2 +1,2 @@
-BASE_PATH = '/root/media'
-LOG_PATH = '/root/logs'
+BASE_PATH = "/root/media"
+LOG_PATH = "/root/logs"
