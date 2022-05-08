@@ -6,7 +6,7 @@ authors = ["Kevin Yokley <kyokley2@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-flask = "^1.0"
+flask = "^2.0"
 uwsgi = "^2.0"
 requests = "^2.21"
 secure = "^0.3.0"
