@@ -18,6 +18,8 @@ from settings import (
 )
 import hashlib
 
+ONE_MB = 1000000
+
 suffixes = ["B", "KB", "MB", "GB", "TB", "PB"]
 
 
@@ -77,9 +79,10 @@ def parseRangeHeaders(size, range_header):
         byte1 = int(g[0]) if g[0] else 0
         byte2 = int(g[1]) if g[1] else None
 
-    length = size - byte1
-    if byte2 is not None:
-        length = byte2 - byte1
+    if byte2 is None:
+        byte2 = max(byte1 + 10 * ONE_MB, size)
+
+    length = byte2 - byte1
     return (length, byte1, byte2)
 
 

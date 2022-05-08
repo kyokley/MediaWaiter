@@ -453,7 +453,7 @@ def xsendfile(path, filename, size, range_header=None):
     resp.headers["Content-Disposition"] = f"attachement; filename={filename}"
 
     (length, byte1, byte2) = parseRangeHeaders(size, range_header)
-    resp.headers.add("Content-Range", f"bytes {byte1}-{byte1 + length -1}/{size}")
+    resp.headers.add("Content-Range", f"bytes {byte1}-{byte2}/{size}")
     log.debug(f'X-Accel-Redirect: {resp.headers["X-Accel-Redirect"]}')
     log.debug(f'Content-Disposition: {resp.headers["Content-Disposition"]}')
     log.debug(f'Content-Range: {resp.headers["Content-Range"]}')
