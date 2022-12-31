@@ -306,7 +306,7 @@ class TestSendFileForDownload:
         self.mock_buildEntries.return_value = [
             {
                 "hashedWaiterPath": "hashPath",
-                "unhashedPath": "unhashed/path/to/file",
+                "unhashedPath": Path("unhashed/path/to/file"),
             }
         ]
         self.mock_hashed_filename.return_value = "hashPath"
@@ -348,7 +348,7 @@ class TestSendFileForDownload:
         self.mock_buildEntries.assert_called_once_with(self.token)
         assert not self.mock_hashed_filename.called
         self.mock_send_file_partial.assert_called_once_with(
-            "unhashed/path/to/file", "file", self.token
+            Path("unhashed/path/to/file"), "file", self.token
         )
 
     def test_bad_movie_file(self):
@@ -375,7 +375,7 @@ class TestSendFileForDownload:
         assert self.mock_buildEntries.called
         assert not self.mock_hashed_filename.called
         self.mock_send_file_partial.assert_called_once_with(
-            "unhashed/path/to/file", "file", self.token
+            Path("unhashed/path/to/file"), "file", self.token
         )
 
 
