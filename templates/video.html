@@ -23,9 +23,9 @@
                     preload="auto">
 
                     <source src="{{ video_file }}" type="video/mp4" />
-                    {% if subtitle_file %}
-                        <track id="text1" label="English" kind="subtitles" srclang="en" src="{{ subtitle_file }}">
-                    {% endif %}
+                    {% for subtitle_file in subtitle_files%}
+                            <track id="text{{ loop.index }}" label="English-{{ loop.index }}" kind="subtitles" srclang="en" src="{{ subtitle_file }}"/>
+                    {% endfor %}
                     <p class="vjs-no-js">Sorry, your browser doesn't support HTML5 video.</p>
                     </video>
                 </div>
@@ -128,9 +128,9 @@
                     preload="auto">
 
                     <source src="{{ video_file }}" type="video/mp4" />
-                    {% if subtitle_file %}
-                        <track id="text1" label="English" kind="subtitles" srclang="en" src="{{ subtitle_file }}">
-                    {% endif %}
+                    {% for subtitle_file in subtitle_files%}
+                            <track id="text{{ loop.index }}" label="English-{{ loop.index }}" kind="subtitles" srclang="en" src="{{ subtitle_file }}"/>
+                    {% endfor %}
                     <p class="vjs-no-js">Sorry, your browser doesn't support HTML5 video.</p>
                     </video>`);
 

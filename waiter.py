@@ -2,6 +2,7 @@ import os
 import mimetypes
 import secure
 
+from collections import namedtuple
 from pathlib import Path
 from functools import wraps
 from flask import Flask, Response, request, send_file, render_template, jsonify
@@ -37,8 +38,8 @@ from utils import (
 from log import log
 import requests
 
+Subtitle = namedtuple('Subtitle', 'path,hashed_filename,waiter_path')
 STREAMABLE_FILE_TYPES = (".mp4",)
-SUBTITLE_FILE_TYPES = (".vtt",)
 
 app = Flask(__name__, static_url_path="", static_folder="/var/static")
 
@@ -207,15 +208,16 @@ def _buildFileDictHelper(root, filename, token):
         "stream", token["guid"], hashedWaiterPath, includeLastSlash=True
     )
 
-    subtitle_file = Path(str(path.parent / path.stem) + ".vtt")
-    if subtitle_file.exists():
-        subtitle_basename = subtitle_file.name
-        hashedSubtitleFile = hashed_filename(
-            str(Path(token["filename"]) / subtitle_basename)
-        )
-    else:
-        subtitle_file = None
-        hashedSubtitleFile = None
+    subtitle_files = []
+    for subtitle_file in path.parent.glob("*.vtt"):
+        if str(Path(filename).stem) in str(subtitle_file):
+            hashedSubtitleFile = hashed_filename(
+                    str(Path(token['filename']) / subtitle_file.name))
+            subtitle = Subtitle(
+                path=subtitle_file,
+                hashed_filename=hashedSubtitleFile,
+                waiter_path=buildWaiterPath("file", token["guid"], hashedSubtitleFile))
+            subtitle_files.append(subtitle)
 
     fileDict = {
         "path": buildWaiterPath(
@@ -228,10 +230,7 @@ def _buildFileDictHelper(root, filename, token):
         "filename": filename.split("." + MEDIAVIEWER_SUFFIX)[0],
         "size": humansize(size),
         "isAlfredEncoding": True,
-        "unhashedSubtitleFile": subtitle_file,
-        "subtitleWaiterPath": hashedSubtitleFile
-        and buildWaiterPath("file", token["guid"], hashedSubtitleFile),
-        "hashedSubtitleFile": hashedSubtitleFile,
+        "subtitleFiles": subtitle_files,
         "ismovie": token["ismovie"],
         "displayName": token["displayname"],
         "hasProgress": hashedWaiterPath in token["videoprogresses"],
@@ -240,12 +239,14 @@ def _buildFileDictHelper(root, filename, token):
 
 
 def _getFileEntryFromHash(token, hashPath):
-    movieEntries = buildEntries(token)
-    for entry in movieEntries:
+    entries = buildEntries(token)
+    for entry in entries:
         if entry["hashedWaiterPath"] == hashPath:
             return entry
-        elif entry["hashedSubtitleFile"] == hashPath:
-            return {"unhashedPath": entry["unhashedSubtitleFile"]}
+
+        for subtitle in entry["subtitleFiles"]:
+            if subtitle.hashed_filename == hashPath:
+                return {"unhashedPath": subtitle.path}
     else:
         raise Exception("Unable to find matching path")
 
@@ -267,8 +268,7 @@ def send_file_for_download(guid, hashPath):
 
     fullPath = _getFileEntryFromHash(token, hashPath)["unhashedPath"]
 
-    filename = os.path.basename(fullPath)
-    return send_file_partial(fullPath, filename, token)
+    return send_file_partial(fullPath, fullPath.name, token)
 
 
 @app.route(APP_NAME + "/file/<guid>/")
@@ -343,7 +343,8 @@ def autoplay(guid):
         filename=token["filename"],
         hashPath=file_entry["hashedWaiterPath"],
         video_file=file_entry["path"],
-        subtitle_file=file_entry["subtitleWaiterPath"],
+        subtitle_files=[subtitle.waiter_path
+                        for subtitle in file_entry["subtitleFiles"]],
         viewedUrl=WAITER_VIEWED_URL,
         offsetUrl=WAITER_OFFSET_URL,
         guid=guid,
@@ -527,7 +528,8 @@ def video(guid, hashPath):
         filename=token["filename"],
         hashPath=hashPath,
         video_file=file_entry["path"],
-        subtitle_file=file_entry["subtitleWaiterPath"],
+        subtitle_files=[subtitle.waiter_path
+                        for subtitle in file_entry["subtitleFiles"]],
         viewedUrl=WAITER_VIEWED_URL,
         offsetUrl=WAITER_OFFSET_URL,
         guid=guid,
