@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=python:3.9-alpine
+ARG BASE_IMAGE=python:3.10-alpine
 
 FROM --platform=linux/amd64 ${BASE_IMAGE} AS builder
 FROM ${BASE_IMAGE} AS static-builder
