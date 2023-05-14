@@ -2,7 +2,6 @@
 /*global localStorage: false */
 var seconds = 15;
 var countdownTimer;
-var pretext = "This file will be downloaded automatically in <b>";
 var cancelBtn;
 var filePath;
 var video;
