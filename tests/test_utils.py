@@ -6,6 +6,7 @@ from utils import (
     getMediaGenres,
     parseRangeHeaders,
 )
+from settings import REQUESTS_TIMEOUT
 
 
 class TestHumanSize:
@@ -148,7 +149,7 @@ class TestGetMediaGenres:
         )
         actual = getMediaGenres(self.test_guid)
 
-        self.mock_get.assert_called_once_with("base_url/ajaxgenres/test_guid/")
+        self.mock_get.assert_called_once_with("base_url/ajaxgenres/test_guid/", timeout=REQUESTS_TIMEOUT)
         assert expected == actual
 
 

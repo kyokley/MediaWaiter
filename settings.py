@@ -58,6 +58,8 @@ VERIFY_REQUESTS = True
 GOOGLE_CAST_APP_ID = "insert cast SDK ID here"
 MEDIAWAITER_PROTOCOL = "https://"
 
+REQUESTS_TIMEOUT = 3  # in secs
+
 try:
     from local_settings import *
 except:  # nosec

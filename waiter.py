@@ -22,6 +22,7 @@ from settings import (
     MINIMUM_FILE_SIZE,
     EXTERNAL_MEDIAVIEWER_BASE_URL,
     GOOGLE_CAST_APP_ID,
+    REQUESTS_TIMEOUT,
 )
 from utils import (
     humansize,
@@ -105,6 +106,7 @@ def getTokenByGUID(guid):
             MEDIAVIEWER_GUID_URL % {"guid": guid},
             auth=(WAITER_USERNAME, WAITER_PASSWORD),
             verify=VERIFY_REQUESTS,
+            timeout=REQUESTS_TIMEOUT,
         )
         return data.json()
     except Exception as e:
@@ -573,6 +575,7 @@ def ajaxviewed(guid):
             data=values,
             auth=(WAITER_USERNAME, WAITER_PASSWORD),
             verify=VERIFY_REQUESTS,
+            timeout=REQUESTS_TIMEOUT,
         )
 
         req.raise_for_status()

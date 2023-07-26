@@ -15,6 +15,7 @@ from settings import (
     MEDIAWAITER_PROTOCOL,
     HOST,
     PORT,
+    REQUESTS_TIMEOUT,
 )
 import hashlib
 
@@ -108,6 +109,7 @@ def getVideoOffset(filename, guid):
             MEDIAVIEWER_GUID_OFFSET_URL % {"guid": guid, "filename": filename},
             auth=(WAITER_USERNAME, WAITER_PASSWORD),
             verify=VERIFY_REQUESTS,
+            timeout=REQUESTS_TIMEOUT,
         )
         resp.raise_for_status()
         resp = resp.json()
@@ -128,6 +130,7 @@ def setVideoOffset(filename, guid, offset):
             auth=(WAITER_USERNAME, WAITER_PASSWORD),
             verify=VERIFY_REQUESTS,
             data=data,
+            timeout=REQUESTS_TIMEOUT,
         )
         resp.raise_for_status()
     except Exception as e:
@@ -141,6 +144,7 @@ def deleteVideoOffset(filename, guid):
             MEDIAVIEWER_GUID_OFFSET_URL % {"guid": guid, "filename": filename},
             auth=(WAITER_USERNAME, WAITER_PASSWORD),
             verify=VERIFY_REQUESTS,
+            timeout=REQUESTS_TIMEOUT,
         )
         resp.raise_for_status()
     except Exception as e:
@@ -152,7 +156,7 @@ def getMediaGenres(guid):
     genre_url = MEDIAVIEWER_BASE_URL + f"/ajaxgenres/{guid}/"
 
     try:
-        resp = requests.get(genre_url)
+        resp = requests.get(genre_url, timeout=REQUESTS_TIMEOUT)
         resp.raise_for_status()
     except Exception as e:
         log.error(e)
