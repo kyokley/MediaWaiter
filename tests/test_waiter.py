@@ -13,6 +13,7 @@ from waiter import (
     xsendfile,
     send_file_partial,
 )
+from settings import REQUESTS_TIMEOUT
 import mock
 
 
@@ -54,6 +55,7 @@ class TestGetTokenByGUID:
             "TEST_GUID_URL_url",
             auth=("TEST_WAITER_USERNAME", "TEST_WAITER_PASSWORD"),
             verify="TEST_VERIFY_REQUESTS",
+            timeout=REQUESTS_TIMEOUT,
         )
         self.mock_get_result.json.assert_called_once_with()
         assert expected == actual
