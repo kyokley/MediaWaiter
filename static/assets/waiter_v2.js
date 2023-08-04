@@ -232,21 +232,22 @@ function setupVideoPlayerPage(dirPath){
 
 function hasScrolled(){
     var topNavbarHeight = $('#top-navbar').outerHeight() + 20;
-    var bottomNavbarHeight = $('#bottom-navbar').outerHeight() + 20;
 
     var st = $(this).scrollTop();
-    if (Math.abs(lastScrollTop - st) <= delta)
+    var diff = Math.abs(lastScrollTop - st);
+    if (diff <= delta)
         return;
 
-    if(st > lastScrollTop && st > topNavbarHeight){
+    if(st > lastScrollTop && diff > topNavbarHeight){
         $('#top-navbar').removeClass('nav-show').addClass('nav-hide');
         $('#bottom-navbar').removeClass('nav-show').addClass('nav-hide');
-    } else if(st < lastScrollTop && st > bottomNavbarHeight){
+        lastScrollTop = st;
+    } else if(st < lastScrollTop && diff > topNavbarHeight){
             $('#top-navbar').removeClass('nav-hide').addClass('nav-show');
             $('#bottom-navbar').removeClass('nav-hide').addClass('nav-show');
+        lastScrollTop = st;
     }
 
-    lastScrollTop = st;
 }
 
 function scrollSetup(){
