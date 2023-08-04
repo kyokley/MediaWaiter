@@ -60,6 +60,24 @@ body{
     display: block;
 }
 
+tbody > tr > td > a, nav > ol > li > a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+tbody > tr > td > a:hover, nav > ol > li > a:hover {
+    text-decoration: underline;
+}
+
+.navbar-text a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.navbar-text a:hover {
+    text-decoration: underline;
+}
+
 .navbar .sub-menu:before {
     border-bottom: 7px solid transparent;
     border-left: none;
