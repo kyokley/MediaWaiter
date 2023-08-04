@@ -2,15 +2,7 @@
 <html>
     <head>
         {% block head %}
-            <link href="/assets/waiter.css" rel="stylesheet">
-            <link href="/bootswatch-dist/css/bootstrap.min.css" rel="stylesheet">
-            <link href="/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
-            <link href="/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
-            <!-- <link href="/video-js/responsive-video-js.css" rel="stylesheet"> -->
-            <link href="https://vjs.zencdn.net/c/video-js.css" rel="stylesheet"> <!-- Uncomment above to host locally -->
-            <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
-
-            <title>MediaViewer - {{title}}</title>
+            {{ super() }}
         {% endblock %}
     </head>
     <body>
@@ -20,16 +12,21 @@
 
         {% block jumbotron %}
             <div class="container">
-                <div class="jumbotron">
-                    <h1>Epic Fail :-(</h1>
+                <div class="row">
+                    <div class="col">
+                        <h1>Epic Fail :-(</h1>
+                    </div>
                 </div>
-                <h3>Sorry...</h3>
             </div>
         {% endblock %}
 
         {% block body %}
             <div class="container">
-                {{errorText}}
+                <div class="row">
+                    <div class="col">
+                        {{errorText}}
+                    </div>
+                </div>
             </div>
 
             {% block main_table %}
