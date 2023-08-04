@@ -13,7 +13,6 @@ var viewed;
 var didScroll;
 var lastScrollTop = 0;
 var delta = 10;
-var navbarHeight = $('.navbar-fixed-top').outerHeight() + 20;
 var binge_mode;
 var has_next_link;
 var should_redirect = true;
@@ -232,16 +231,19 @@ function setupVideoPlayerPage(dirPath){
 }
 
 function hasScrolled(){
+    var topNavbarHeight = $('#top-navbar').outerHeight() + 20;
+    var bottomNavbarHeight = $('#bottom-navbar').outerHeight() + 20;
+
     var st = $(this).scrollTop();
     if (Math.abs(lastScrollTop - st) <= delta)
         return;
 
-    if(st > lastScrollTop && st > navbarHeight){
-        $('.navbar-fixed-top').removeClass('nav-show').addClass('nav-hide');
-        $('.navbar-fixed-bottom').removeClass('nav-show').addClass('nav-hide');
-    } else {
-        $('.navbar-fixed-top').removeClass('nav-hide').addClass('nav-show');
-        $('.navbar-fixed-bottom').removeClass('nav-hide').addClass('nav-show');
+    if(st > lastScrollTop && st > topNavbarHeight){
+        $('#top-navbar').removeClass('nav-show').addClass('nav-hide');
+        $('#bottom-navbar').removeClass('nav-show').addClass('nav-hide');
+    } else if(st < lastScrollTop && st > bottomNavbarHeight){
+            $('#top-navbar').removeClass('nav-hide').addClass('nav-show');
+            $('#bottom-navbar').removeClass('nav-hide').addClass('nav-show');
     }
 
     lastScrollTop = st;
