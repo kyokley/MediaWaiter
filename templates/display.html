@@ -129,17 +129,17 @@
                                     {% if file.streamable %}
                                         {% if file.hasProgress %}
                                             <td>
-                                                <a class='btn btn-info play-controls' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Resume</a>
+                                                <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Resume</a>
                                             </td>
                                             <td>
-                                                <a class='btn btn-info play-controls'
+                                                <a class='btn btn-info'
                                                     name='startover-btn'
                                                     id='startover-btn'
                                                     onclick='clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'><i class="bi-arrow-counterclockwise"></i> Start Over</a>
                                             </td>
                                         {% else %}
                                             <td>
-                                                <a class='btn btn-info play-controls' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Play</a>
+                                                <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Play</a>
                                             </td>
                                             <td></td>
                                         {% endif %}
