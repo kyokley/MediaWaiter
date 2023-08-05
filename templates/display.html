@@ -2,14 +2,15 @@
     <head>
         {% block head %}
             <link href="/assets/waiter.css" rel="stylesheet">
-            <link href="/bower_components/bootswatch-dist/css/bootstrap.min.css" rel="stylesheet">
-            <link href="/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
-            <link href="/bower_components/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
-            <link href="/bower_components/video.js/dist/video-js.min.css" rel="stylesheet">
-            <link href="/bower_components/@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.css" rel="stylesheet">
-            <link href="/bower_components/videojs-seek-buttons/dist/videojs-seek-buttons.css" rel="stylesheet">
-            <link rel="stylesheet" href="/bower_components/videojs-mobile-ui/dist/videojs-mobile-ui.css">
-            <link rel="stylesheet" href="/bower_components/@silvermine/videojs-airplay/dist/silvermine-videojs-airplay.css">
+            <link href="/assets/bootswatch/bootstrap.min.css" rel="stylesheet">
+            <link href="/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+            <link href="/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet">
+            <link href="/video.js/dist/video-js.min.css" rel="stylesheet">
+            <link href="/@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.css" rel="stylesheet">
+            <link href="/videojs-seek-buttons/dist/videojs-seek-buttons.css" rel="stylesheet">
+            <link rel="stylesheet" href="/videojs-mobile-ui/dist/videojs-mobile-ui.css">
+            <link rel="stylesheet" href="/@silvermine/videojs-airplay/dist/silvermine-videojs-airplay.css">
+            <link href="/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
             <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
 
 
@@ -18,81 +19,100 @@
     </head>
 
     <body>
-        {% block navbar%}
-            <div class="navbar navbar-default navbar-fixed-top" role="navigation">
-                <div class="container">
-                    <div class="navbar-header">
-                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                            <span class="sr-only">Toggle navigation</span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </button>
-                        <a class="navbar-brand" href="{{ mediaviewer_base_url }}/">MediaViewer <span class="glyphicon glyphicon-film"></span></a>
-                    </div>
-                   <div class="navbar-collapse collapse">
-                        <ul class="nav navbar-nav">
-                            <li><a href="{{ mediaviewer_base_url }}/">Home</a></li>
+        <nav id="top-navbar" class="navbar navbar-expand-md fixed-top navbar-dark bg-dark bg-body-tertiary nav-show" role="navigation" data-bs-theme="dark">
+            <div class="container-fluid">
+            {% block navbar%}
+                <a class="navbar-brand" href="{{ mediaviewer_base_url }}/">MediaViewer <i class="bi-film"></i></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-content">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbar-content">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ mediaviewer_base_url }}/">Home</a>
+                        </li>
+                        <li class="nav-item dropdown">
                             {% if ismovie %}
-                                <li class="active dropdown">
+                                <a class="nav-link active dropdown-toggle" href="{{ mediaviewer_base_url }}/movies/" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Movies <span class="caret"></span></a>
                             {% else %}
-                                <li class="dropdown">
+                                <a class="nav-link dropdown-toggle" href="{{ mediaviewer_base_url }}/movies/" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Movies <span class="caret"></span></a>
                             {% endif %}
-                                <a href="{{ mediaviewer_base_url }}/movies/" role="button" aria-haspopup="true" aria-expanded="false">Movies <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    {% for genre in movie_genres %}
-                                        <li><a href="{{ genre[1] }}">{{genre[0]}}</a></li>
-                                    {% endfor %}
-                                </ul>
-                            </li>
+                            <div class="dropdown-menu">
+                                <a class="nav-link dropdown-item" href="{{ mediaviewer_base_url }}/movies/">All</a>
+                                {% for genre in movie_genres %}
+                                    <a class="nav-link dropdown-item" href="{{ genre[1] }}">{{genre[0]}}</a>
+                                {% endfor %}
+                            </div>
+                        </li>
 
-                            {% if not ismovie %}
-                                <li class="active dropdown">
-                            {% else %}
-                                <li class="dropdown">
-                            {% endif %}
-                                <a href="{{ mediaviewer_base_url }}/tvshows/" role="button" aria-haspopup="true" aria-expanded="false">TV Shows <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    {% for genre in tv_genres %}
-                                        <li><a href="{{ genre[1] }}">{{genre[0]}}</a></li>
-                                    {% endfor %}
-                                </ul>
-                            </li>
-
-                            <li><a href="{{ mediaviewer_base_url }}/requests/">Requests</a></li>
-                            <li><a href="{{ mediaviewer_base_url }}/settings/"><span class="glyphicon glyphicon-cog"></span></a></li>
-                            <li class="navbar-right"><a href="{{ mediaviewer_base_url }}/logout/">Log out</a></li>
-                        </ul>
-                        {% if username %}
-                            <p class="navbar-text navbar-right">Signed in as <a href="{{ mediaviewer_base_url }}/settings/" class="navbar-link">{{ username }}</a></p>
+                        <li class="nav-item dropdown">
+                        {% if not ismovie %}
+                            <a class="nav-link active dropdown-toggle" href="{{ mediaviewer_base_url }}/tvshows/" role="button" aria-haspopup="true" aria-expanded="false">TV Shows <span class="caret"></span></a>
+                        {% else %}
+                            <a class="nav-link dropdown-toggle" href="{{ mediaviewer_base_url }}/tvshows/" role="button" aria-haspopup="true" aria-expanded="false">TV Shows <span class="caret"></span></a>
                         {% endif %}
-                    </div><!--/.nav-collapse -->
-                </div>
+
+                            <div class="dropdown-menu">
+                                <a class="nav-link dropdown-item" href="{{ mediaviewer_base_url }}/tvshows/summary/">All</a>
+                                {% for genre in tv_genres %}
+                                    <a class="nav-link dropdown-item" href="{{ genre[1] }}">{{genre[0]}}</a>
+                                {% endfor %}
+                            </div>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ mediaviewer_base_url }}/requests/">Requests</a>
+                        </li>
+                        <li class="nav-link">
+                            <a href="{{ mediaviewer_base_url }}/settings/"><i class="bi-gear"></i></a>
+                        </li>
+                        <li class="navbar-right">
+                            <a class="nav-link" href="{{ mediaviewer_base_url }}/logout/">Log out</a>
+                        </li>
+                    </ul>
+                    {% if username %}
+                        <span class="navbar-text navbar-right">Signed in as <a href="{{ mediaviewer_base_url }}/settings/" class="navbar-link">{{ username }}</a></span>
+                    {% endif %}
+                </div><!--/.nav-collapse -->
             </div>
+        </nav>
         {% endblock %}
 
+        <div class="container py-2">
         {% block jumbotron %}
-            <div class="container container-header">
-                <div class="jumbotron">
-                    <ol class="breadcrumb">
-                        <li><a href="{{ mediaviewer_base_url }}/">Home</a></li>
-                        {% if ismovie %}
-                            <li><a href="{{ mediaviewer_base_url }}/movies/">Movies</a></li>
-                            <li class="active">{{ title }}</li>
-                        {% else %}
-                            <li><a href="{{ mediaviewer_base_url }}/tvshows/summary/">TV Shows</a></li>
-                            <li class="active"><a href="{{ mediaviewer_base_url }}/tvshows/{{ pathid }}/">{{ pathname }}</a></li>
-                        {% endif %}
-                    </ol>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{ mediaviewer_base_url }}/">Home</a>
+                    </li>
+                    {% if ismovie %}
+                        <li class="breadcrumb-item">
+                            <a href="{{ mediaviewer_base_url }}/movies/">Movies</a>
+                        </li>
+                        <li class="breadcrumb-item active">{{ title }}</li>
+                    {% else %}
+                        <li class="breadcrumb-item">
+                            <a href="{{ mediaviewer_base_url }}/tvshows/summary/">TV Shows</a>
+                        </li>
+                        <li class="breadcrumb-item active">
+                            <a href="{{ mediaviewer_base_url }}/tvshows/{{ pathid }}/">{{ pathname }}</a>
+                        </li>
+                    {% endif %}
+                </ol>
+            </nav>
+            <div class="container text-center">
+                <div class="row">
                     <h1>{{title}}</h1>
                 </div>
             </div>
         {% endblock %}
+        </div>
 
         {% block body %}
             <div class="container">
                 {% block main_table %}
-                    <table id="myTable" class="table table-hover dt-responsive">
+                    <table id="myTable" class="table table-dark table-striped table-hover">
                         <thead>
                             <tr>
                                 <th class="all">Filename</th>
@@ -109,17 +129,17 @@
                                     {% if file.streamable %}
                                         {% if file.hasProgress %}
                                             <td>
-                                                <a class='btn btn-info play-controls' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><span class="glyphicon glyphicon-play"></span> Resume</a>
+                                                <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Resume</a>
                                             </td>
                                             <td>
-                                                <a class='btn btn-info play-controls'
+                                                <a class='btn btn-info'
                                                     name='startover-btn'
                                                     id='startover-btn'
-                                                    onclick='clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'><span class="glyphicon glyphicon-repeat"></span> Start Over</a>
+                                                    onclick='clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'><i class="bi-arrow-counterclockwise"></i> Start&nbsp;Over</a>
                                             </td>
                                         {% else %}
                                             <td>
-                                                <a class='btn btn-info play-controls' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><span class="glyphicon glyphicon-play"></span> Play</a>
+                                                <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Play</a>
                                             </td>
                                             <td></td>
                                         {% endif %}
@@ -135,13 +155,19 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                    <div class="row episode-row">
-                        {% if previous_link %}
-                            <a class='btn btn-info episode-controls' name='previous-btn' id='previous-btn' href="{{ previous_link }}"><span class="glyphicon glyphicon-step-backward"></span> Previous Episode</a>
-                        {% endif %}
-                        {% if next_link %}
-                            <a class='btn btn-info episode-controls' name='next-btn' id='next-btn' href="{{ next_link }}"><span class="glyphicon glyphicon-step-forward"></span> Next Episode</a>
-                        {% endif %}
+                    <div class="container text-center">
+                        <div class="row justify-content-center">
+                            {% if previous_link %}
+                                <div class="col-auto">
+                                    <a class='btn btn-info' name='previous-btn' id='previous-btn' href="{{ previous_link }}"><i class="bi-arrow-left-circle-fill"></i> Previous Episode</a>
+                                </div>
+                            {% endif %}
+                            {% if next_link %}
+                                <div class="col-auto">
+                                    <a class='btn btn-info' name='next-btn' id='next-btn' href="{{ next_link }}"><i class="bi-arrow-right-circle-fill"></i> Next Episode</a>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                 {% endblock %}
             </div>
@@ -150,15 +176,15 @@
 
     <footer>
     {% block footer %}
-        <div class="navbar navbar-default navbar-fixed-bottom">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p class="navbar-text">Alfred status is <span id="waiter-status" class="label label-success">Connected</span></p>
+    <nav id="bottom-navbar" class="navbar navbar-expand-md fixed-bottom navbar-dark bg-body-tertiary nav-show" data-bs-theme="dark">
+        <div class="container-fluid text-center">
+            <div class="row justify-content-between">
+                    <div class="col-5">
+                        <span class="navbar-text">Alfred status is <span id="waiter-status" class="badge text-bg-success">Connected</span></span>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-7">
                         {% if donation_site_name and donation_site_url %}
-                            <p class="text-right donation-text">If you can, please consider donating to <a href="{{ donation_site_url }}">{{ donation_site_name }}</a></p>
+                            <span class="navbar-text">If you can, please consider donating to <a href="{{ donation_site_url }}">{{ donation_site_name }}</a></span>
                         {% endif %}
                     </div>
                 </div>
@@ -170,17 +196,17 @@
 </html>
 
 {% block javascript_includes %}
-    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
-    <script src="/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
-    <script src="/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
-    <script src="/bower_components/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
-    <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="/jquery/dist/jquery.min.js"></script>
+    <script src="/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
+    <script src="/bootstrap/dist/js/bootstrap.min.js"></script>
     <head data-cast-api-enabled="true"> <!-- allow chromecast extention -->
-    <script src="/bower_components/video.js/dist/video.js"></script>
-    <script src="/bower_components/@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.js"></script>
-    <script src="/bower_components/videojs-seek-buttons/dist/videojs-seek-buttons.min.js"></script>
-    <script src="/bower_components/videojs-mobile-ui/dist/videojs-mobile-ui.min.js"></script>
-    <script src="/bower_components/@silvermine/videojs-airplay/dist/silvermine-videojs-airplay.min.js"></script>
+    <script src="/video.js/dist/video.js"></script>
+    <script src="/@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.js"></script>
+    <script src="/videojs-seek-buttons/dist/videojs-seek-buttons.min.js"></script>
+    <script src="/videojs-mobile-ui/dist/videojs-mobile-ui.min.js"></script>
+    <script src="/@silvermine/videojs-airplay/dist/silvermine-videojs-airplay.min.js"></script>
 
     <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
     <script src="/assets/waiter_v2.js"></script>

@@ -1,74 +1,43 @@
 body{
-    padding-bottom: 50px;
-    padding-top: 110px;
-}
-th {
-    text-align: center;
-    padding-left: 20px;
-    padding-right: 20px;
-}
-
-td {
-    text-align: center;
-    padding-left: 10px;
-    padding-right: 10px;
-}
-
-.top-message {
-     margin-bottom: 15px;
-     margin-top: 15px;
-}
-
-.container-header {
-    text-align: center;
-}
-
-.container-header .breadcrumb {
-    text-align: left;
+    padding-top: 75px;
+    padding-bottom: 100px;
 }
 
 #viewedText {
     margin-bottom: 20px;
 }
 
-.navbar.navbar-fixed-top.nav-hide {
-  top: -110px;
+#top-navbar.nav-hide {
+  top: -100px;
   transition: top 0.3s ease-in-out;
 }
 
-.navbar.navbar-fixed-top.nav-show {
+#top-navbar.nav-show {
   top: 0;
   transition: top 0.3s ease-in-out;
 }
 
-.navbar.navbar-fixed-bottom.nav-hide {
-  bottom: -110px;
+#bottom-navbar.nav-hide {
+  bottom: -100px;
   transition: bottom 0.3s ease-in-out;
 }
 
-.navbar.navbar-fixed-bottom.nav-show {
-  bottom: 0;
+#bottom-navbar.nav-show {
+  bottom: 0px;
   transition: bottom 0.3s ease-in-out;
 }
 
-.play-controls {
-    width: 108px;
+#bottom-navbar.nav-show #bottom-navbar.navbar-text {
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+#bottom-navbar > .container-fluid {
+    display: block;
 }
 
 .bingeWatchRow {
     margin-bottom: 10px;
-}
-
-.episode-controls {
-    width: 150px;
-    margin-left: 5px;
-    margin-right: 5px;
-}
-
-.episode-row {
-    margin-top: 15px;
-    text-align: center;
-    margin-bottom: 50px;
 }
 
 .dropdown-menu .sub-menu {
@@ -87,8 +56,33 @@ td {
     display: block;
 }
 
-.nav-tabs .dropdown-menu, .nav-pills .dropdown-menu, .navbar .dropdown-menu {
-    margin-top: 0;
+.dropdown-menu {
+    width: 20%;
+    overflow-y: scroll;
+    max-height: 200px;
+    overscroll-behavior: none;
+}
+
+tbody > tr > td > a, nav > ol > li > a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+tbody > tr > td > a:hover, nav > ol > li > a:hover {
+    text-decoration: underline;
+}
+
+#resume-btn:hover, #startover-btn:hover {
+    text-decoration: none;
+}
+
+.navbar-text a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.navbar-text a:hover {
+    text-decoration: underline;
 }
 
 .navbar .sub-menu:before {
@@ -111,8 +105,4 @@ td {
 
 #cancel-btn {
     margin-left: 10px;
-}
-
-.donation-text {
-    margin-top: 13px;
 }
