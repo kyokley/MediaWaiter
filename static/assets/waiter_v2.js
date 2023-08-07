@@ -103,7 +103,7 @@ function markViewed(guid){
                     var finishedElement = document.getElementById('viewedText');
                     var toggleElement = document.getElementById('bingewatch-btn');
                     if(binge_mode && has_next_link && should_redirect){
-                        finishedElement.innerHTML = "Marking file viewed... Binge mode active! Preparing next video <a class='btn btn-info play-controls' name='cancel-btn' id='cancel-btn' onclick='cancelBingeWatch();'><span class='glyphicon glyphicon-remove'></span> Cancel</a>";
+                        finishedElement.innerHTML = "Marking file viewed... Binge mode active! Preparing next video <button class='btn btn-info play-controls' name='cancel-btn' id='cancel-btn' onclick='cancelBingeWatch();'><i class='bi-x-octagon-fill'></i> Cancel</button>";
                         if(toggleElement){
                             toggleElement.onclick = function(){};
                             toggleElement.setAttribute('disabled', 'disabled');
