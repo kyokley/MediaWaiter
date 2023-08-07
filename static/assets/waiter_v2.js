@@ -99,17 +99,20 @@ function markViewed(guid){
                 data: {viewed: 'true',
                        guid: guid},
                 success: function(json){
-                    console.log(json);
                     var finishedElement = document.getElementById('viewedText');
                     var toggleElement = document.getElementById('bingewatch-btn');
+                    var rowElement = document.getElementById('binge-watch-row');
+
                     if(binge_mode && has_next_link && should_redirect){
                         finishedElement.innerHTML = "Marking file viewed... Binge mode active! Preparing next video <button class='btn btn-info play-controls' name='cancel-btn' id='cancel-btn' onclick='cancelBingeWatch();'><i class='bi-x-octagon-fill'></i> Cancel</button>";
                         if(toggleElement){
                             toggleElement.onclick = function(){};
                             toggleElement.setAttribute('disabled', 'disabled');
+                            rowElement.style = "display:none;";
                         }
                     }else{
                         finishedElement.innerText = "Marking file viewed!";
+                        rowElement.style = "display:none;";
                     }
                 }
             });
