@@ -16,6 +16,7 @@ var delta = 10;
 var binge_mode;
 var has_next_link;
 var should_redirect = true;
+var aspectRatio = 9/16;
 
 function prepareDataTable($){
     var tableElement = $('#myTable');
@@ -264,4 +265,64 @@ function scrollSetup(){
                 didScroll = false;
             }
         }, 250);
+}
+
+function resizeVideoJS(id){
+    // Get the parent element's actual width
+    const video = document.querySelector(id);
+    var width = video.parentElement.offsetWidth;
+    // Set width to fill parent element, Set height
+    video.player.width(width);
+    video.player.height(width * aspectRatio);
+}
+
+async function togglePictureInPicture() {
+  // Close Picture-in-Picture window if any.
+  if (documentPictureInPicture.window) {
+    documentPictureInPicture.window.close();
+    return;
+  }
+
+  // Open a Picture-in-Picture window.
+  const video = document.querySelector("#video1");
+  const width = video.parentElement.offsetWidth;
+  const pipWindow = await documentPictureInPicture.requestWindow({
+    width: width,
+    height: width * aspectRatio,
+  });
+
+  // Copy all style sheets.
+  [...document.styleSheets].forEach((styleSheet) => {
+    try {
+      const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
+      const style = document.createElement('style');
+
+      style.textContent = cssRules;
+      pipWindow.document.head.appendChild(style);
+    } catch (e) {
+      const link = document.createElement('link');
+
+      link.rel = 'stylesheet';
+      link.type = styleSheet.type;
+      link.media = styleSheet.media;
+      link.href = styleSheet.href;
+      pipWindow.document.head.appendChild(link);
+    }
+  });
+
+  // Move video to the Picture-in-Picture window and make it full page.
+  pipWindow.document.body.append(video);
+  video.classList.toggle("fullpage", true);
+
+  // Listen for the PiP closing event to move the video back.
+  pipWindow.addEventListener("pagehide", (event) => {
+    const videoContainer = document.querySelector("#video-container");
+    const pipVideo = event.target.querySelector("#video1");
+    pipVideo.classList.toggle("fullpage", false);
+    videoContainer.append(pipVideo);
+  });
+
+  pipWindow.onresize = function () {
+      resizeVideoJS("#video1"); // Call the function on resize
+  };
 }
