@@ -60,7 +60,7 @@ MEDIAWAITER_PROTOCOL = "https://"
 
 REQUESTS_TIMEOUT = 3  # in secs
 
-DEFAULT_THEME = 'dark'
+DEFAULT_THEME = "dark"
 
 try:
     from local_settings import *
