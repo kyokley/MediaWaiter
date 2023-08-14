@@ -23,6 +23,7 @@ from settings import (
     EXTERNAL_MEDIAVIEWER_BASE_URL,
     GOOGLE_CAST_APP_ID,
     REQUESTS_TIMEOUT,
+    DEFAULT_THEME,
 )
 from utils import (
     humansize,
@@ -78,9 +79,11 @@ def logErrorsAndContinue(func):
             try:
                 token = getTokenByGUID(kwargs.get("guid"))
                 username = token["username"]
+                theme = token['theme']
             except Exception as e:
                 log.error(e)
                 username = None
+                theme = DEFAULT_THEME
             return (
                 render_template(
                     "error.html",
@@ -88,6 +91,7 @@ def logErrorsAndContinue(func):
                     errorText=errorText,
                     mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                     username=username,
+                    theme=theme,
                 ),
                 400,
             )
@@ -132,6 +136,7 @@ def get_dirPath(guid):
             title="Error",
             errorText=errorStr,
             mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get('theme', DEFAULT_THEME),
         )
 
     files = []
@@ -164,6 +169,7 @@ def get_dirPath(guid):
         binge_mode=False,
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
+        theme=token.get('theme', DEFAULT_THEME),
     )
 
 
@@ -266,6 +272,7 @@ def send_file_for_download(guid, hashPath):
             title="Error",
             errorText=errorStr,
             mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get('theme', DEFAULT_THEME),
         )
 
     fullPath = _getFileEntryFromHash(token, hashPath)["unhashedPath"]
@@ -286,6 +293,7 @@ def get_file(guid):
             title="Error",
             errorText=("Invalid URL for movie type" if token["ismovie"] else errorStr),
             mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get('theme', DEFAULT_THEME),
         )
 
     files = buildEntries(token)
@@ -317,6 +325,7 @@ def get_file(guid):
         binge_mode=token["binge_mode"],
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
+        theme=token.get('theme', DEFAULT_THEME),
     )
 
 
@@ -333,6 +342,7 @@ def autoplay(guid):
             title="Error",
             errorText=("Invalid URL for movie type" if token["ismovie"] else errorStr),
             mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get('theme', DEFAULT_THEME),
         )
 
     files = buildEntries(token)
@@ -374,6 +384,7 @@ def autoplay(guid):
         CAST_ID=GOOGLE_CAST_APP_ID,
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
+        theme=token.get('theme', DEFAULT_THEME),
     )
 
 
@@ -517,6 +528,7 @@ def video(guid, hashPath):
             title="Error",
             errorText=errorStr,
             mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get('theme', DEFAULT_THEME),
         )
 
     file_entry = _getFileEntryFromHash(token, hashPath)
@@ -559,6 +571,7 @@ def video(guid, hashPath):
         CAST_ID=GOOGLE_CAST_APP_ID,
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
+        theme=token.get('theme', DEFAULT_THEME),
     )
 
 
