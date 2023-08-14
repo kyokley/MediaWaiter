@@ -1,8 +1,7 @@
 <html>
     <head>
         {% block head %}
-            <link href="/assets/waiter.css" rel="stylesheet">
-            <link href="/assets/bootswatch/bootstrap.min.css" rel="stylesheet">
+
             <link href="/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
             <link href="/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet">
             <link href="/video.js/dist/video-js.min.css" rel="stylesheet">
@@ -13,13 +12,21 @@
             <link href="/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
             <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
 
+            <link href="/assets/waiter.css" rel="stylesheet">
+            {% if theme == 'light' %}
+                <link href="/assets/bootswatch/bootstrap-light.min.css" rel="stylesheet">
+            {% else %}
+                <link href="/assets/bootswatch/bootstrap-dark.min.css" rel="stylesheet">
+                <link href="/assets/dark.css" rel="stylesheet">
+            {% endif %}
+
 
             <title>MediaViewer - {{title}}</title>
         {% endblock %}
     </head>
 
     <body>
-        <nav id="top-navbar" class="navbar navbar-expand-md fixed-top navbar-dark bg-dark bg-body-tertiary nav-show" role="navigation" data-bs-theme="dark">
+        <nav id="top-navbar" class="navbar navbar-expand-md fixed-top navbar-{{ theme }} bg-{{ theme }} bg-body-tertiary nav-show" role="navigation" data-bs-theme="{{ theme }}">
             <div class="container-fluid">
             {% block navbar%}
                 <a class="navbar-brand" href="{{ mediaviewer_base_url }}/">MediaViewer <i class="bi-film"></i></a>
@@ -64,8 +71,8 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ mediaviewer_base_url }}/requests/">Requests</a>
                         </li>
-                        <li class="nav-link">
-                            <a href="{{ mediaviewer_base_url }}/settings/"><i class="bi-gear"></i></a>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ mediaviewer_base_url }}/settings/"><i class="bi-gear"></i></a>
                         </li>
                         <li class="navbar-right">
                             <a class="nav-link" href="{{ mediaviewer_base_url }}/logout/">Log out</a>
@@ -112,7 +119,7 @@
         {% block body %}
             <div class="container">
                 {% block main_table %}
-                    <table id="myTable" class="table table-dark table-striped table-hover">
+                    <table id="myTable" class="table table-{{ theme }} table-striped table-hover">
                         <thead>
                             <tr>
                                 <th class="all">Filename</th>
@@ -176,7 +183,7 @@
 
     <footer>
     {% block footer %}
-    <nav id="bottom-navbar" class="navbar navbar-expand-md fixed-bottom navbar-dark bg-body-tertiary nav-show" data-bs-theme="dark">
+        <nav id="bottom-navbar" class="navbar navbar-expand-md fixed-bottom navbar-{{ theme }} bg-{{ theme }} bg-body-tertiary nav-show" data-bs-theme="{{ theme }}">
         <div class="container-fluid text-center">
             <div class="row justify-content-between">
                     <div class="col-5">

@@ -64,7 +64,6 @@ body{
 }
 
 tbody > tr > td > a, nav > ol > li > a {
-    color: #ffffff;
     text-decoration: none;
 }
 
@@ -72,17 +71,17 @@ tbody > tr > td > a:hover, nav > ol > li > a:hover {
     text-decoration: underline;
 }
 
-#resume-btn:hover, #startover-btn:hover {
-    text-decoration: none;
-}
-
 .navbar-text a {
-    color: #ffffff;
     text-decoration: none;
 }
 
 .navbar-text a:hover {
     text-decoration: underline;
+}
+
+
+#resume-btn:hover, #startover-btn:hover {
+    text-decoration: none;
 }
 
 .navbar .sub-menu:before {

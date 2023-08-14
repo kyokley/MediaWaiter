@@ -23,6 +23,7 @@ from settings import (
     EXTERNAL_MEDIAVIEWER_BASE_URL,
     GOOGLE_CAST_APP_ID,
     REQUESTS_TIMEOUT,
+    DEFAULT_THEME,
 )
 from utils import (
     humansize,
@@ -39,7 +40,7 @@ from utils import (
 from log import log
 import requests
 
-Subtitle = namedtuple('Subtitle', 'path,hashed_filename,waiter_path')
+Subtitle = namedtuple("Subtitle", "path,hashed_filename,waiter_path")
 STREAMABLE_FILE_TYPES = (".mp4",)
 
 app = Flask(__name__, static_url_path="", static_folder="/var/static")
@@ -69,6 +70,7 @@ def logErrorsAndContinue(func):
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         log.debug(f"Attempting {func.__name__}")
+        token = None
         try:
             res = func(*args, **kwargs)
             return res
@@ -77,10 +79,11 @@ def logErrorsAndContinue(func):
             errorText = "An error has occurred"
             try:
                 token = getTokenByGUID(kwargs.get("guid"))
-                username = token["username"]
             except Exception as e:
                 log.error(e)
-                username = None
+
+            username = token.get("username") if token else None
+            theme = token.get("theme", DEFAULT_THEME) if token else DEFAULT_THEME
             return (
                 render_template(
                     "error.html",
@@ -88,6 +91,7 @@ def logErrorsAndContinue(func):
                     errorText=errorText,
                     mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
                     username=username,
+                    theme=theme,
                 ),
                 400,
             )
@@ -132,6 +136,7 @@ def get_dirPath(guid):
             title="Error",
             errorText=errorStr,
             mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get("theme", DEFAULT_THEME),
         )
 
     files = []
@@ -164,6 +169,7 @@ def get_dirPath(guid):
         binge_mode=False,
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
+        theme=token.get("theme", DEFAULT_THEME),
     )
 
 
@@ -214,11 +220,13 @@ def _buildFileDictHelper(root, filename, token):
     for subtitle_file in path.parent.glob("*.vtt"):
         if str(Path(filename).stem) in str(subtitle_file):
             hashedSubtitleFile = hashed_filename(
-                    str(Path(token['filename']) / subtitle_file.name))
+                str(Path(token["filename"]) / subtitle_file.name)
+            )
             subtitle = Subtitle(
                 path=subtitle_file,
                 hashed_filename=hashedSubtitleFile,
-                waiter_path=buildWaiterPath("file", token["guid"], hashedSubtitleFile))
+                waiter_path=buildWaiterPath("file", token["guid"], hashedSubtitleFile),
+            )
             subtitle_files.append(subtitle)
 
     fileDict = {
@@ -266,6 +274,7 @@ def send_file_for_download(guid, hashPath):
             title="Error",
             errorText=errorStr,
             mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get("theme", DEFAULT_THEME),
         )
 
     fullPath = _getFileEntryFromHash(token, hashPath)["unhashedPath"]
@@ -286,6 +295,7 @@ def get_file(guid):
             title="Error",
             errorText=("Invalid URL for movie type" if token["ismovie"] else errorStr),
             mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get("theme", DEFAULT_THEME),
         )
 
     files = buildEntries(token)
@@ -317,6 +327,7 @@ def get_file(guid):
         binge_mode=token["binge_mode"],
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
+        theme=token.get("theme", DEFAULT_THEME),
     )
 
 
@@ -333,6 +344,7 @@ def autoplay(guid):
             title="Error",
             errorText=("Invalid URL for movie type" if token["ismovie"] else errorStr),
             mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get("theme", DEFAULT_THEME),
         )
 
     files = buildEntries(token)
@@ -345,8 +357,9 @@ def autoplay(guid):
         filename=token["filename"],
         hashPath=file_entry["hashedWaiterPath"],
         video_file=file_entry["path"],
-        subtitle_files=[subtitle.waiter_path
-                        for subtitle in file_entry["subtitleFiles"]],
+        subtitle_files=[
+            subtitle.waiter_path for subtitle in file_entry["subtitleFiles"]
+        ],
         viewedUrl=WAITER_VIEWED_URL,
         offsetUrl=WAITER_OFFSET_URL,
         guid=guid,
@@ -374,6 +387,7 @@ def autoplay(guid):
         CAST_ID=GOOGLE_CAST_APP_ID,
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
+        theme=token.get("theme", DEFAULT_THEME),
     )
 
 
@@ -517,6 +531,7 @@ def video(guid, hashPath):
             title="Error",
             errorText=errorStr,
             mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get("theme", DEFAULT_THEME),
         )
 
     file_entry = _getFileEntryFromHash(token, hashPath)
@@ -530,8 +545,9 @@ def video(guid, hashPath):
         filename=token["filename"],
         hashPath=hashPath,
         video_file=file_entry["path"],
-        subtitle_files=[subtitle.waiter_path
-                        for subtitle in file_entry["subtitleFiles"]],
+        subtitle_files=[
+            subtitle.waiter_path for subtitle in file_entry["subtitleFiles"]
+        ],
         viewedUrl=WAITER_VIEWED_URL,
         offsetUrl=WAITER_OFFSET_URL,
         guid=guid,
@@ -559,6 +575,7 @@ def video(guid, hashPath):
         CAST_ID=GOOGLE_CAST_APP_ID,
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
+        theme=token.get("theme", DEFAULT_THEME),
     )
 
 

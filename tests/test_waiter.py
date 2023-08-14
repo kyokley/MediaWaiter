@@ -13,7 +13,7 @@ from waiter import (
     xsendfile,
     send_file_partial,
 )
-from settings import REQUESTS_TIMEOUT
+from settings import REQUESTS_TIMEOUT, DEFAULT_THEME
 import mock
 
 
@@ -101,6 +101,7 @@ class TestGetDirPath:
             errorText="An error has occurred",
             username=None,
             mediaviewer_base_url="BASE_URL",
+            theme=DEFAULT_THEME,
         )
 
     def test_invalidToken(self):
@@ -118,6 +119,7 @@ class TestGetDirPath:
             title="Error",
             errorText="Got an error",
             mediaviewer_base_url="BASE_URL",
+            theme=mock.ANY,
         )
 
     def test_ismovie(self):
@@ -156,6 +158,7 @@ class TestGetDirPath:
             binge_mode=False,
             donation_site_name="",
             donation_site_url="",
+            theme=DEFAULT_THEME,
         )
 
     def test_not_a_movie(self):
@@ -187,6 +190,7 @@ class TestGetDirPath:
             errorText="An error has occurred",
             username="some.user",
             mediaviewer_base_url="BASE_URL",
+            theme=DEFAULT_THEME,
         )
 
 
@@ -324,6 +328,7 @@ class TestSendFileForDownload:
             errorText="An error has occurred",
             mediaviewer_base_url="BASE_URL",
             username=None,
+            theme=DEFAULT_THEME,
         )
 
     def test_invalid_token(self):
@@ -339,6 +344,7 @@ class TestSendFileForDownload:
             title="Error",
             errorText="got some error",
             mediaviewer_base_url="BASE_URL",
+            theme=DEFAULT_THEME,
         )
 
     def test_movie_file(self):
@@ -368,6 +374,7 @@ class TestSendFileForDownload:
             errorText="An error has occurred",
             mediaviewer_base_url="BASE_URL",
             username=None,
+            theme=DEFAULT_THEME,
         )
 
     def test_tv_file(self):
@@ -430,6 +437,7 @@ class TestGetFile:
             title="Error",
             errorText="got an error",
             mediaviewer_base_url="BASE_URL",
+            theme=DEFAULT_THEME,
         )
 
     def test_movie_file(self):
@@ -443,6 +451,7 @@ class TestGetFile:
             title="Error",
             errorText="Invalid URL for movie type",
             mediaviewer_base_url="BASE_URL",
+            theme=DEFAULT_THEME,
         )
 
     def test_valid(self):
@@ -468,6 +477,7 @@ class TestGetFile:
             binge_mode=True,
             donation_site_name="",
             donation_site_url="",
+            theme=DEFAULT_THEME,
         )
 
     def test_valid_with_next_and_previous(self):
@@ -496,6 +506,7 @@ class TestGetFile:
             binge_mode=True,
             donation_site_name="",
             donation_site_url="",
+            theme=DEFAULT_THEME,
         )
 
     def test_valid_no_binge_mode(self):
@@ -523,6 +534,7 @@ class TestGetFile:
             binge_mode=False,
             donation_site_name="",
             donation_site_url="",
+            theme=DEFAULT_THEME,
         )
 
 

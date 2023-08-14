@@ -1,0 +1,7 @@
+tbody > tr > td > a, nav > ol > li > a {
+    color: #ffffff;
+}
+
+.navbar-text a {
+    color: #ffffff;
+}
