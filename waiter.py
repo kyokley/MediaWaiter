@@ -70,6 +70,7 @@ def logErrorsAndContinue(func):
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         log.debug(f"Attempting {func.__name__}")
+        token = None
         try:
             res = func(*args, **kwargs)
             return res
@@ -78,12 +79,11 @@ def logErrorsAndContinue(func):
             errorText = "An error has occurred"
             try:
                 token = getTokenByGUID(kwargs.get("guid"))
-                username = token["username"]
-                theme = token['theme']
             except Exception as e:
                 log.error(e)
-                username = None
-                theme = DEFAULT_THEME
+
+            username = token.get("username") if token else None
+            theme = token.get("theme", DEFAULT_THEME) if token else DEFAULT_THEME
             return (
                 render_template(
                     "error.html",
