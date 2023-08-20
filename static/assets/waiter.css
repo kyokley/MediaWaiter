@@ -2,6 +2,17 @@ body{
     padding-top: 75px;
     padding-bottom: 100px;
 }
+@media (min-width: 980px) {
+      body {
+              padding-top: 75px;
+    }
+}
+
+@media (max-width: 768px) {
+      body {
+              padding-top: 75px;
+    }
+}
 
 #viewedText {
     margin-bottom: 20px;
@@ -63,6 +74,10 @@ body{
     overscroll-behavior: none;
 }
 
+.nav-link .dropdown-item {
+    padding-left: 10px;
+}
+
 tbody > tr > td > a, nav > ol > li > a {
     text-decoration: none;
 }
@@ -84,24 +99,13 @@ tbody > tr > td > a:hover, nav > ol > li > a:hover {
     text-decoration: none;
 }
 
-.navbar .sub-menu:before {
-    border-bottom: 7px solid transparent;
-    border-left: none;
-    border-right: 7px solid rgba(0, 0, 0, 0.2);
-    border-top: 7px solid transparent;
-    left: -7px;
-    top: 10px;
-}
-.navbar .sub-menu:after {
-    border-top: 6px solid transparent;
-    border-left: none;
-    border-right: 6px solid #fff;
-    border-bottom: 6px solid transparent;
-    left: 10px;
-    top: 11px;
-    left: -6px;
-}
-
 #cancel-btn {
     margin-left: 10px;
+}
+
+.dropdown-menu {
+    width: 20%;
+    overflow-y: scroll;
+    max-height: 200px;
+    overscroll-behavior: none;
 }

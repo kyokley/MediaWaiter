@@ -1,7 +1,6 @@
 <html>
-    <head>
+    <head data-cast-api-enabled="true">
         {% block head %}
-
             <link href="/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
             <link href="/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet">
             <link href="/video.js/dist/video-js.min.css" rel="stylesheet">
@@ -41,9 +40,9 @@
                         </li>
                         <li class="nav-item dropdown">
                             {% if ismovie %}
-                                <a class="nav-link active dropdown-toggle" href="{{ mediaviewer_base_url }}/movies/" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Movies <span class="caret"></span></a>
+                                <a class="nav-link active dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Movies <span class="caret"></span></a>
                             {% else %}
-                                <a class="nav-link dropdown-toggle" href="{{ mediaviewer_base_url }}/movies/" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Movies <span class="caret"></span></a>
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Movies <span class="caret"></span></a>
                             {% endif %}
                             <div class="dropdown-menu">
                                 <a class="nav-link dropdown-item" href="{{ mediaviewer_base_url }}/movies/">All</a>
@@ -55,9 +54,9 @@
 
                         <li class="nav-item dropdown">
                         {% if not ismovie %}
-                            <a class="nav-link active dropdown-toggle" href="{{ mediaviewer_base_url }}/tvshows/" role="button" aria-haspopup="true" aria-expanded="false">TV Shows <span class="caret"></span></a>
+                            <a class="nav-link active dropdown-toggle" href="#" role="button" aria-haspopup="true" aria-expanded="false">TV Shows <span class="caret"></span></a>
                         {% else %}
-                            <a class="nav-link dropdown-toggle" href="{{ mediaviewer_base_url }}/tvshows/" role="button" aria-haspopup="true" aria-expanded="false">TV Shows <span class="caret"></span></a>
+                            <a class="nav-link dropdown-toggle" href="#" role="button" aria-haspopup="true" aria-expanded="false">TV Shows <span class="caret"></span></a>
                         {% endif %}
 
                             <div class="dropdown-menu">
@@ -200,15 +199,13 @@
     {% endblock %}
     </footer>
 
-</html>
 
 {% block javascript_includes %}
     <script src="/jquery/dist/jquery.min.js"></script>
     <script src="/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="/bootstrap/dist/js/bootstrap.min.js"></script>
     <script src="/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
     <script src="/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
-    <script src="/bootstrap/dist/js/bootstrap.min.js"></script>
-    <head data-cast-api-enabled="true"> <!-- allow chromecast extention -->
     <script src="/video.js/dist/video.js"></script>
     <script src="/@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.js"></script>
     <script src="/videojs-seek-buttons/dist/videojs-seek-buttons.min.js"></script>
@@ -230,3 +227,4 @@
         });
     </script>
 {% endblock %}
+</html>
