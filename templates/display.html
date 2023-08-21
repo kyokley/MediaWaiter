@@ -146,19 +146,11 @@
                                     {% if file.streamable %}
                                         {% if file.hasProgress %}
                                             <td>
-                                                <div class="container-fluid text-center">
-                                                    <div class="row justify-content-center">
-                                                        <div class="col-auto">
-                                                            <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Resume</a>
-                                                        </div>
-                                                        <div class="col-auto">
-                                                            <a class='btn btn-info'
-                                                                name='startover-btn'
-                                                                id='startover-btn'
-                                                                onclick='clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'><i class="bi-arrow-counterclockwise"></i> Start&nbsp;Over</a>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Resume</a>
+                                                <a class='btn btn-info'
+                                                    name='startover-btn'
+                                                    id='startover-btn'
+                                                    onclick='clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'><i class="bi-arrow-counterclockwise"></i> Start&nbsp;Over</a>
                                             </td>
                                         {% else %}
                                             <td>
