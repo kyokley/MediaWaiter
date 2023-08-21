@@ -2,17 +2,6 @@ body{
     padding-top: 75px;
     padding-bottom: 100px;
 }
-@media (min-width: 980px) {
-      body {
-              padding-top: 75px;
-    }
-}
-
-@media (max-width: 768px) {
-      body {
-              padding-top: 75px;
-    }
-}
 
 #viewedText {
     margin-bottom: 20px;
