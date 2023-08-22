@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
     <head data-cast-api-enabled="true">
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="">
-        <meta name="author" content="">
-
         {% block head %}
             <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
 
@@ -127,14 +121,13 @@
 
         {% block body %}
             {% block main_table %}
-                <div class="container-fluid">
+                <div class="container">
                     <table id="myTable" class="table table-{{ theme }} table-striped table-hover">
                         <thead>
                             <tr>
                                 <th></th>
                                 <th class="all">Filename</th>
                                 <th class="all">Streaming</th>
-                                <th class="all"></th>
                                 <th class="desktop">Size</th>
                             </tr>
                         </thead>
@@ -148,25 +141,29 @@
                                     {% if file.streamable %}
                                         {% if file.hasProgress %}
                                             <td>
-                                                <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Resume</a>
-                                            </td>
-                                            <td>
-                                                <a class='btn btn-info'
-                                                    name='startover-btn'
-                                                    id='startover-btn'
-                                                    onclick='clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'><i class="bi-arrow-counterclockwise"></i> Start&nbsp;Over</a>
+                                                <div class="container justify-content-evenly">
+                                                    <div class="row row-cols-1 row-cols-lg-2 gy-2">
+                                                        <div class="col-10">
+                                                            <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Resume</a>
+                                                        </div>
+                                                        <div class="col-10">
+                                                            <a class='btn btn-info'
+                                                                name='startover-btn'
+                                                                id='startover-btn'
+                                                                onclick='clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'><i class="bi-arrow-counterclockwise"></i> Start&nbsp;Over</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </td>
                                         {% else %}
                                             <td>
                                                 <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Play</a>
                                             </td>
-                                            <td></td>
                                         {% endif %}
                                     {% else %}
                                         <td>
                                             Not Streamable
                                         </td>
-                                        <td></td>
                                     {% endif %}
                                     <td>{{file.size}}</td>
                                 </tr>
@@ -212,6 +209,7 @@
 
         {% block javascript_includes %}
             <script src="/jquery/dist/jquery.min.js"></script>
+            <script src="/@popperjs/core/dist/umd/popper.min.js"></script>
             <script src="/datatables.net/js/jquery.dataTables.min.js"></script>
             <script src="/bootstrap/dist/js/bootstrap.min.js"></script>
             <script src="/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
@@ -222,7 +220,6 @@
             <script src="/videojs-seek-buttons/dist/videojs-seek-buttons.min.js"></script>
             <script src="/videojs-mobile-ui/dist/videojs-mobile-ui.min.js"></script>
             <script src="/@silvermine/videojs-airplay/dist/silvermine-videojs-airplay.min.js"></script>
-
             <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
             <script src="/assets/waiter_v2.js"></script>
         {% endblock %}

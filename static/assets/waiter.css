@@ -88,11 +88,6 @@ tbody > tr > td > a:hover, nav > ol > li > a:hover {
     text-decoration: none;
 }
 
-#resume-btn, #startover-btn {
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-
 #cancel-btn {
     margin-left: 10px;
 }
@@ -104,6 +99,7 @@ tbody > tr > td > a:hover, nav > ol > li > a:hover {
     overscroll-behavior: none;
 }
 
+/* Class to allow for more aggressive line breaking */
 .dont-break-out {
 
   /* These are technically the same, but use both */
