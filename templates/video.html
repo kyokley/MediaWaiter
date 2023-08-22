@@ -1,56 +1,35 @@
 {% extends "display.html" %}
-<html>
-    <head>
-        {% block head %}
-            {{ super() }}
-        {% endblock %}
-    </head>
+{% block body %}
+    <div class="container">
+        <div id="video-container" class="row">
+            <video id="video1" class="video-js vjs-default-skin vjs-big-play-centered"
+            controls
+            preload="auto">
 
-    <body>
-        {% block navbar %}
-            {{ super() }}
-        {% endblock %}
-
-        {% block jumbotron %}
-            {{ super() }}
-        {% endblock %}
-
-        {% block body %}
-            <div class="container">
-                <div id="video-container" class="row">
-                    <video id="video1" class="video-js vjs-default-skin vjs-big-play-centered"
-                    controls
-                    preload="auto">
-
-                    <source src="{{ video_file }}" type="video/mp4" />
-                    {% for subtitle_file in subtitle_files%}
-                            <track id="text{{ loop.index }}" label="English-{{ loop.index }}" kind="subtitles" srclang="en" src="{{ subtitle_file }}"/>
-                    {% endfor %}
-                    <p class="vjs-no-js">Sorry, your browser doesn't support HTML5 video.</p>
-                    </video>
-                </div>
-                <div class="row">
-                    <div class="col-xs-12">
-                        <div class="text-center" id="viewedText"></div>
-                    </div>
-                </div>
-                {% if binge_mode and next_link %}
-                <div id="binge-watch-row" class="row bingeWatchRow">
-                    <div class="col-xs-12">
-                        Binge watching is <button class='btn btn-success play-controls' name='bingewatch-btn' id='bingewatch-btn' onclick='toggleBingeWatch();'>Enabled</button>
-                    </div>
-                </div>
-                {% endif %}
-                {% block main_table %}
-                    {{ super() }}
-                {% endblock %}
+            <source src="{{ video_file }}" type="video/mp4" />
+            {% for subtitle_file in subtitle_files%}
+                    <track id="text{{ loop.index }}" label="English-{{ loop.index }}" kind="subtitles" srclang="en" src="{{ subtitle_file }}"/>
+            {% endfor %}
+            <p class="vjs-no-js">Sorry, your browser doesn't support HTML5 video.</p>
+            </video>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="text-center" id="viewedText"></div>
             </div>
-        {% endblock %}
-    </body>
-</html>
+        </div>
+        {% if binge_mode and next_link %}
+            <div id="binge-watch-row" class="row bingeWatchRow">
+                <div class="col-xs-12">
+                    Binge watching is <button class='btn btn-success play-controls' name='bingewatch-btn' id='bingewatch-btn' onclick='toggleBingeWatch();'>Enabled</button>
+                </div>
+            </div>
+        {% endif %}
+    </div>
 
-{% block javascript_includes %}
-    {{ super() }}
+    {% block main_table %}
+        {{ super() }}
+    {% endblock %}
 {% endblock %}
 
 {% block javascript %}
@@ -60,6 +39,9 @@
             guid = '{{ guid }}';
             offsetUrl = '{{ offsetUrl }}';
             dirPath = '{{ hashPath }}';
+
+            prepareDataTable($);
+
             {% if binge_mode %}
                 binge_mode = true;
             {% else %}

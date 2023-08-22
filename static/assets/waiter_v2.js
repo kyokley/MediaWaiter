@@ -30,14 +30,15 @@ function prepareDataTable($){
         responsive: {
             details: {
                 type: 'column',
-                target: -1
             }
         },
-        columnDefs: [{
-                    className: 'control',
-                    orderable: false,
-                    targets: -1
-        }]
+        columnDefs: [
+            {
+                className: 'dtr-control',
+                orderable: false,
+                targets: 0
+            },
+        ]
     });
 }
 

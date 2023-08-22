@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/kyokley/MediaWaiter#readme",
   "dependencies": {
+    "@popperjs/core": "^2.11.8",
     "@silvermine/videojs-airplay": "^1.2.0",
     "@silvermine/videojs-chromecast": "^1.4.1",
     "bootstrap": "^5.3.1",
