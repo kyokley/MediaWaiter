@@ -141,23 +141,19 @@
                                     {% if file.streamable %}
                                         {% if file.hasProgress %}
                                             <td>
-                                                <div class="container justify-content-evenly">
-                                                    <div class="row row-cols-1 row-cols-lg-2 gy-2">
-                                                        <div class="col-10">
-                                                            <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Resume</a>
-                                                        </div>
-                                                        <div class="col-10">
-                                                            <a class='btn btn-info'
-                                                                name='startover-btn'
-                                                                id='startover-btn'
-                                                                onclick='clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'><i class="bi-arrow-counterclockwise"></i> Start&nbsp;Over</a>
-                                                        </div>
-                                                    </div>
+                                                <div class="d-grid gap-2 col-10 mx-auto">
+                                                    <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Resume</a>
+                                                    <a class='btn btn-info'
+                                                        name='startover-btn'
+                                                        id='startover-btn'
+                                                        onclick='clearVideoPosition("{{ file.hashedWaiterPath }}"); window.open("{{ file.streamingPath }}", "_self")'><i class="bi-arrow-counterclockwise"></i> Start&nbsp;Over</a>
                                                 </div>
                                             </td>
                                         {% else %}
                                             <td>
-                                                <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Play</a>
+                                                <div class="d-grid gap-2 col-10 mx-auto">
+                                                    <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Play</a>
+                                                </div>
                                             </td>
                                         {% endif %}
                                     {% else %}

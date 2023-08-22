@@ -63,10 +63,6 @@ body{
     overscroll-behavior: none;
 }
 
-.nav-link .dropdown-item {
-    padding-left: 10px;
-}
-
 tbody > tr > td > a, nav > ol > li > a {
     text-decoration: none;
 }
@@ -83,6 +79,9 @@ tbody > tr > td > a:hover, nav > ol > li > a:hover {
     text-decoration: underline;
 }
 
+.nav-link.dropdown-item {
+    padding-left: 10px;
+}
 
 #resume-btn:hover, #startover-btn:hover {
     text-decoration: none;
