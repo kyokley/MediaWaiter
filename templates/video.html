@@ -19,16 +19,17 @@
             </div>
         </div>
         {% if binge_mode and next_link %}
-        <div id="binge-watch-row" class="row bingeWatchRow">
-            <div class="col-xs-12">
-                Binge watching is <button class='btn btn-success play-controls' name='bingewatch-btn' id='bingewatch-btn' onclick='toggleBingeWatch();'>Enabled</button>
+            <div id="binge-watch-row" class="row bingeWatchRow">
+                <div class="col-xs-12">
+                    Binge watching is <button class='btn btn-success play-controls' name='bingewatch-btn' id='bingewatch-btn' onclick='toggleBingeWatch();'>Enabled</button>
+                </div>
             </div>
-        </div>
         {% endif %}
-        {% block main_table %}
-            {{ super() }}
-        {% endblock %}
     </div>
+
+    {% block main_table %}
+        {{ super() }}
+    {% endblock %}
 {% endblock %}
 
 {% block javascript %}
@@ -38,6 +39,9 @@
             guid = '{{ guid }}';
             offsetUrl = '{{ offsetUrl }}';
             dirPath = '{{ hashPath }}';
+
+            prepareDataTable($);
+
             {% if binge_mode %}
                 binge_mode = true;
             {% else %}

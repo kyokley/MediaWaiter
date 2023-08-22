@@ -5,3 +5,7 @@ tbody > tr > td > a, nav > ol > li > a {
 .navbar-text a {
     color: #ffffff;
 }
+
+table.dataTable.dtr-column>tbody>tr>td.dtr-control:before, table.dataTable.dtr-column>tbody>tr>th.dtr-control:before, table.dataTable.dtr-column>tbody>tr>td.control:before, table.dataTable.dtr-column>tbody>tr>th.control:before {
+    color: white;
+}

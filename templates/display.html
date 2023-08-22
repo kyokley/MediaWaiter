@@ -89,13 +89,13 @@
                         {% if username %}
                             <span class="navbar-text navbar-right">Signed in as <a href="{{ mediaviewer_base_url }}/settings/" class="navbar-link">{{ username }}</a></span>
                         {% endif %}
-                    </div><!-- .nav-collapse -->
+                    </div>
                 </div>
             </nav>
         {% endblock %}
 
-        <div class="container py-2">
-            {% block jumbotron %}
+        {% block jumbotron %}
+            <div class="container py-2">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item">
@@ -122,31 +122,35 @@
                             </div>
                     </div>
                 </nav>
-            {% endblock %}
-        </div>
+            </div>
+        {% endblock %}
 
         {% block body %}
-            <div class="container">
-                {% block main_table %}
+            {% block main_table %}
+                <div class="container-fluid">
                     <table id="myTable" class="table table-{{ theme }} table-striped table-hover">
                         <thead>
                             <tr>
+                                <th></th>
                                 <th class="all">Filename</th>
                                 <th class="all">Streaming</th>
+                                <th class="all"></th>
                                 <th class="desktop">Size</th>
-                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for file in files %}
                                 <tr>
+                                    <td></td>
                                     <td>
-                                        <a class="link" href="#" onclick='window.open("{{ file.streamingPath }}", "_self")'>{{ file.filename }}</a>
+                                        <a class="link dont-break-out" href="#" onclick='window.open("{{ file.streamingPath }}", "_self")'>{{ file.filename }}</a>
                                     </td>
                                     {% if file.streamable %}
                                         {% if file.hasProgress %}
                                             <td>
                                                 <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Resume</a>
+                                            </td>
+                                            <td>
                                                 <a class='btn btn-info'
                                                     name='startover-btn'
                                                     id='startover-btn'
@@ -156,14 +160,15 @@
                                             <td>
                                                 <a class='btn btn-info' name='resume-btn' id='resume-btn' onclick='window.open("{{ file.streamingPath }}", "_self")'><i class="bi-play-circle-fill"></i> Play</a>
                                             </td>
+                                            <td></td>
                                         {% endif %}
                                     {% else %}
                                         <td>
                                             Not Streamable
                                         </td>
+                                        <td></td>
                                     {% endif %}
                                     <td>{{file.size}}</td>
-                                    <td></td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -182,8 +187,8 @@
                             {% endif %}
                         </div>
                     </div>
-                {% endblock %}
-            </div>
+                </div>
+            {% endblock %}
         {% endblock %}
 
         {% block footer %}
