@@ -57,7 +57,6 @@ body{
 }
 
 .dropdown-menu {
-    width: 20%;
     overflow-y: scroll;
     max-height: 200px;
     overscroll-behavior: none;
