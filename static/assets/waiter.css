@@ -90,13 +90,6 @@ tbody > tr > td > a:hover, nav > ol > li > a:hover {
     margin-left: 10px;
 }
 
-.dropdown-menu {
-    width: 20%;
-    overflow-y: scroll;
-    max-height: 200px;
-    overscroll-behavior: none;
-}
-
 /* Class to allow for more aggressive line breaking */
 .dont-break-out {
 
