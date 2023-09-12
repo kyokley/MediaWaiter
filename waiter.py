@@ -1,11 +1,10 @@
 import os
-import mimetypes
 import secure
 
 from collections import namedtuple
 from pathlib import Path
 from functools import wraps
-from flask import Flask, Response, request, send_file, render_template, jsonify
+from flask import Flask, request, send_file, render_template, jsonify
 from werkzeug.middleware.proxy_fix import ProxyFix
 from settings import (
     BASE_PATH,
@@ -29,7 +28,6 @@ from utils import (
     humansize,
     delayedRetry,
     checkForValidToken,
-    parseRangeHeaders,
     buildWaiterPath,
     getVideoOffset,
     setVideoOffset,
@@ -116,12 +114,6 @@ def getTokenByGUID(guid):
     except Exception as e:
         log.error(e)
         raise
-
-
-def modifyCookie(resp):
-    resp.set_cookie("fileDownload", "true")
-    resp.set_cookie("path", "/")
-    return resp
 
 
 @app.route(APP_NAME + "/dir/<guid>/")
@@ -279,7 +271,12 @@ def send_file_for_download(guid, hashPath):
 
     fullPath = _getFileEntryFromHash(token, hashPath)["unhashedPath"]
 
-    return send_file_partial(fullPath, fullPath.name, token)
+    resp = send_file_partial(fullPath, fullPath.name)
+    if request.method.lower() == 'head':
+        resp.status = 200
+        resp.headers.pop('X-Accel-Redirect', None)
+        resp.headers.pop('X-Accel-Buffering', None)
+    return resp
 
 
 @app.route(APP_NAME + "/file/<guid>/")
@@ -456,66 +453,33 @@ def after_request(response):
     return response
 
 
-def xsendfile(path, filename, size, range_header=None):
+def xsendfile(path, filename):
     path = str(path)
 
     log.debug(f"path: {path}")
     log.debug(f"filename: {filename}")
-    mime = mimetypes.guess_type(path)[0]
     path = path.split("/", 3)[-1]
     redirected_path = f"/download/{path}"
     log.debug(f"redirected_path is {redirected_path}")
-    resp = Response(None, 206, mimetype=mime, direct_passthrough=True)
+    resp = send_file(path,
+                     conditional=True)
     resp.headers["X-Accel-Redirect"] = redirected_path
     resp.headers["X-Accel-Buffering"] = "no"
-    resp.headers["Content-Disposition"] = f"attachement; filename={filename}"
 
-    (length, byte1, byte2) = parseRangeHeaders(size, range_header)
-    resp.headers.add("Content-Range", f"bytes {byte1}-{byte2}/{size}")
     log.debug(f'X-Accel-Redirect: {resp.headers["X-Accel-Redirect"]}')
     log.debug(f'X-Accel-Buffering: {resp.headers["X-Accel-Buffering"]}')
-    log.debug(f'Content-Disposition: {resp.headers["Content-Disposition"]}')
-    log.debug(f'Content-Range: {resp.headers["Content-Range"]}')
     return resp
 
 
-def send_file_partial(path, filename, token, test=False):
-    range_header = request.headers.get("Range", None)
-    size = os.path.getsize(path)
-
+def send_file_partial(path, filename):
     if USE_NGINX:
         log.debug(f"Using NGINX to send {filename}")
-        return xsendfile(path, filename, size, range_header=range_header)
+        return xsendfile(path, filename)
     else:
         log.debug(f"Using Flask to send {filename}")
-        return app_sendfile(path, filename, size, range_header=range_header)
-
-
-def app_sendfile(path, filename, size, range_header=None):
-    path = str(path)
-    if not range_header:
-        resp = send_file(path, as_attachment=True, attachment_filename=filename)
-        return modifyCookie(resp)
-
-    length = byte1 = byte2 = 0
-    if range_header:
-        (length, byte1, byte2) = parseRangeHeaders(size, range_header)
-
-    data = None
-    with open(path, "rb") as f:
-        f.seek(byte1)
-        data = f.read(length)
-
-    rv = Response(
-        data, 206, mimetype=mimetypes.guess_type(path)[0], direct_passthrough=True
-    )
-    rv.headers.add("Content-Range", f"bytes {byte1}-{byte2}/{size}")
-    if filename:
-        rv.headers["Content-Disposition"] = f"attachement; filename={filename}"
-    else:
-        rv.headers["Content-Disposition"] = "attachement;"
-
-    return modifyCookie(rv)
+        resp = send_file(path,
+                         conditional=True)
+        return resp
 
 
 @app.route(APP_NAME + "/stream/<guid>/<path:hashPath>")

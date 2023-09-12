@@ -1,5 +1,4 @@
 import time
-import re
 import requests
 
 from werkzeug.urls import url_fix
@@ -68,24 +67,6 @@ def checkForValidToken(token, guid):
     if not token["isvalid"]:
         log.warn(f"Token Expired GUID: {guid}")
         return "This token has expired! Return to Movie or TV Show tab to generate a new one."
-
-
-def parseRangeHeaders(size, range_header, max_length=10 * ONE_MB):
-    byte1, byte2 = 0, None
-
-    if range_header:
-        m = re.search(r"(\d+)-(\d*)", range_header)
-        g = m.groups()
-
-        byte1 = int(g[0]) if g[0] else 0
-        byte2 = int(g[1]) if g[1] else None
-
-    if byte2 is None or (byte2 - byte1) > max_length:
-        byte2 = min(byte1 + max_length, size) - 1
-        byte2 = max(0, byte2)
-
-    length = byte2 - byte1 + 1
-    return (length, byte1, byte2)
 
 
 def buildWaiterPath(place, guid, filePath, includeLastSlash=True):
