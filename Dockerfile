@@ -37,7 +37,7 @@ ENV PYTHONPATH=/code
 RUN pip install -U pip wheel && pip install -U poetry
 COPY poetry.lock pyproject.toml configs/docker_settings.py /code/
 
-RUN poetry install --no-dev && mkdir /root/logs /root/media
+RUN poetry install --without dev && mkdir /root/logs /root/media
 
 
 FROM --platform=linux/amd64 base AS prod

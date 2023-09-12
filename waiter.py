@@ -455,8 +455,7 @@ def xsendfile(path, filename):
     path = path.split("/", 3)[-1]
     redirected_path = f"/download/{path}"
     log.debug(f"redirected_path is {redirected_path}")
-    resp = send_file(path,
-                     conditional=True)
+    resp = send_file(path, conditional=True)
     resp.headers["X-Accel-Redirect"] = redirected_path
     resp.headers["X-Accel-Buffering"] = "no"
 
@@ -471,8 +470,7 @@ def send_file_partial(path, filename):
         return xsendfile(path, filename)
     else:
         log.debug(f"Using Flask to send {filename}")
-        return send_file(path,
-                         conditional=True)
+        return send_file(path, conditional=True)
 
 
 @app.route(APP_NAME + "/stream/<guid>/<path:hashPath>")
