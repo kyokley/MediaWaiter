@@ -80,7 +80,7 @@ def parseRangeHeaders(size, range_header, default_length=10 * ONE_MB):
         byte1 = int(g[0]) if g[0] else 0
         byte2 = int(g[1]) if g[1] else None
 
-    if byte2 is None:
+    if byte2 is None or (byte2 - byte1) > default_length:
         byte2 = min(byte1 + default_length, size) - 1
         byte2 = max(0, byte2)
 
