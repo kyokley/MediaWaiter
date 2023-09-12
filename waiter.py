@@ -270,13 +270,7 @@ def send_file_for_download(guid, hashPath):
         )
 
     fullPath = _getFileEntryFromHash(token, hashPath)["unhashedPath"]
-
-    resp = send_file_partial(fullPath, fullPath.name)
-    if request.method.lower() == 'head':
-        resp.status = 200
-        resp.headers.pop('X-Accel-Redirect', None)
-        resp.headers.pop('X-Accel-Buffering', None)
-    return resp
+    return send_file_partial(fullPath, fullPath.name)
 
 
 @app.route(APP_NAME + "/file/<guid>/")
@@ -477,9 +471,8 @@ def send_file_partial(path, filename):
         return xsendfile(path, filename)
     else:
         log.debug(f"Using Flask to send {filename}")
-        resp = send_file(path,
+        return send_file(path,
                          conditional=True)
-        return resp
 
 
 @app.route(APP_NAME + "/stream/<guid>/<path:hashPath>")
