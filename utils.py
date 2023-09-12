@@ -70,7 +70,7 @@ def checkForValidToken(token, guid):
         return "This token has expired! Return to Movie or TV Show tab to generate a new one."
 
 
-def parseRangeHeaders(size, range_header, max_length=25 * ONE_MB):
+def parseRangeHeaders(size, range_header, max_length=10 * ONE_MB):
     byte1, byte2 = 0, None
 
     if range_header:
