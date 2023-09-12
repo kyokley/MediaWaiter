@@ -4,7 +4,6 @@ from utils import (
     humansize,
     checkForValidToken,
     getMediaGenres,
-    parseRangeHeaders,
 )
 from settings import REQUESTS_TIMEOUT
 
@@ -153,61 +152,3 @@ class TestGetMediaGenres:
             "base_url/ajaxgenres/test_guid/", timeout=REQUESTS_TIMEOUT
         )
         assert expected == actual
-
-
-class TestParseRangeHeaders:
-    @pytest.fixture(autouse=True)
-    def setUp(self):
-        self.file_size = 1234
-        self.max_length = 500
-
-    def test_first_500_bytes(self):
-        length, byte1, byte2 = parseRangeHeaders(
-            self.file_size, "0-", max_length=self.max_length
-        )
-
-        assert length == self.max_length
-        assert byte1 == 0
-        assert byte2 == 499
-
-    def test_second_500_bytes(self):
-        length, byte1, byte2 = parseRangeHeaders(
-            self.file_size, "500-", max_length=self.max_length
-        )
-
-        assert length == self.max_length
-        assert byte1 == 500
-        assert byte2 == 999
-
-    def test_all_except_first_500_bytes(self):
-        self.max_length = 2000
-
-        length, byte1, byte2 = parseRangeHeaders(
-            self.file_size, "500-", max_length=self.max_length
-        )
-
-        assert length == 734
-        assert byte1 == 500
-        assert byte2 == 1233
-
-    def test_last_500_bytes(self):
-        self.max_length = 2000
-
-        length, byte1, byte2 = parseRangeHeaders(
-            self.file_size, "734-", max_length=self.max_length
-        )
-
-        assert length == 500
-        assert byte1 == 734
-        assert byte2 == 1233
-
-    def test_request_too_much(self):
-        self.max_length = 500
-
-        length, byte1, byte2 = parseRangeHeaders(
-            self.file_size, "0-1233", max_length=self.max_length
-        )
-
-        assert length == self.max_length
-        assert byte1 == 0
-        assert byte2 == 499

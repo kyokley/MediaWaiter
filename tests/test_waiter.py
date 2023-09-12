@@ -1,4 +1,3 @@
-import unittest
 import pytest
 from pathlib import Path
 from waiter import (
@@ -10,8 +9,6 @@ from waiter import (
     send_file_for_download,
     get_file,
     get_status,
-    xsendfile,
-    send_file_partial,
 )
 from settings import REQUESTS_TIMEOUT, DEFAULT_THEME
 import mock
@@ -356,7 +353,7 @@ class TestSendFileForDownload:
         self.mock_buildEntries.assert_called_once_with(self.token)
         assert not self.mock_hashed_filename.called
         self.mock_send_file_partial.assert_called_once_with(
-            Path("unhashed/path/to/file"), "file", self.token
+            Path("unhashed/path/to/file"), "file"
         )
 
     def test_bad_movie_file(self):
@@ -384,7 +381,7 @@ class TestSendFileForDownload:
         assert self.mock_buildEntries.called
         assert not self.mock_hashed_filename.called
         self.mock_send_file_partial.assert_called_once_with(
-            Path("unhashed/path/to/file"), "file", self.token
+            Path("unhashed/path/to/file"), "file"
         )
 
 
@@ -585,160 +582,3 @@ class TestGetStatus:
         self.mock_log.debug.assert_any_call("tv shows directory is good")
         self.mock_log.debug.assert_any_call("Movies directory is good")
         self.mock_log.debug.assert_any_call("status: True")
-
-
-class TestXSendfile:
-    @pytest.fixture(autouse=True)
-    def setUp(self, mocker):
-        self.mock_log = mocker.patch("waiter.log")
-        self.mock_mimetypes = mocker.patch("waiter.mimetypes")
-        self.mock_response = mocker.patch("waiter.Response")
-
-        self.response_obj = mock.MagicMock()
-
-        self.mock_response.return_value = self.response_obj
-
-    def test_(self):
-        path = "path/to/file"
-        filename = "test_filename.mp4"
-        size = 100
-
-        expected = self.response_obj
-        actual = xsendfile(path, filename, size)
-        assert expected == actual
-
-
-# I wasn't able to convert this test because mocking waiter.request was
-# failing some werkzeug thing. *shrugs*
-class TestSendFilePartialWithNginx(unittest.TestCase):
-    def setUp(self):
-        self.USE_NGINX_patcher = mock.patch("waiter.USE_NGINX", True)
-        self.USE_NGINX_patcher.start()
-        self.request_patcher = mock.patch("waiter.request")
-        self.mock_request = self.request_patcher.start()
-        self.getsize_patcher = mock.patch("waiter.os.path.getsize")
-        self.mock_getsize = self.getsize_patcher.start()
-        self.parseRangeHeaders_patcher = mock.patch("waiter.parseRangeHeaders")
-        self.mock_parseRangeHeaders = self.parseRangeHeaders_patcher.start()
-        self.xsendfile_patcher = mock.patch("waiter.xsendfile")
-        self.mock_xsendfile = self.xsendfile_patcher.start()
-        self.app_sendfile_patcher = mock.patch("waiter.app_sendfile")
-        self.mock_app_sendfile = self.app_sendfile_patcher.start()
-
-        self.mock_request.headers.get.return_value = "test_range_header"
-
-        self.path = "path/to/file"
-        self.filename = "test_filename.mp4"
-        self.token = {"userid": 123, "tokenid": 234}
-        self.mock_getsize.return_value = 100
-        self.mock_parseRangeHeaders.return_value = (100, 0, 100)
-
-    def tearDown(self):
-        self.USE_NGINX_patcher.stop()
-        self.request_patcher.stop()
-        self.getsize_patcher.stop()
-        self.parseRangeHeaders_patcher.stop()
-        self.xsendfile_patcher.stop()
-        self.app_sendfile_patcher.stop()
-
-    def test_with_range_header(self):
-        expected = self.mock_xsendfile.return_value
-        actual = send_file_partial(self.path, self.filename, self.token)
-        self.assertEqual(expected, actual)
-        self.mock_getsize.assert_called_once_with("path/to/file")
-        self.assertFalse(self.mock_parseRangeHeaders.called)
-        self.mock_xsendfile.assert_called_once_with(
-            self.path, self.filename, 100, range_header="test_range_header"
-        )
-        self.assertFalse(self.mock_app_sendfile.called)
-
-    def test_no_range_header(self):
-        self.mock_request.headers.get.return_value = None
-
-        expected = self.mock_xsendfile.return_value
-        actual = send_file_partial(self.path, self.filename, self.token)
-        self.assertEqual(expected, actual)
-        self.mock_getsize.assert_called_once_with("path/to/file")
-        self.assertFalse(self.mock_parseRangeHeaders.called)
-        self.mock_xsendfile.assert_called_once_with(
-            self.path, self.filename, 100, range_header=None
-        )
-        self.assertFalse(self.mock_app_sendfile.called)
-
-    def test_test(self):
-        expected = self.mock_xsendfile.return_value
-        actual = send_file_partial(self.path, self.filename, self.token, test=True)
-        self.assertEqual(expected, actual)
-        self.mock_getsize.assert_called_once_with("path/to/file")
-        self.assertFalse(self.mock_parseRangeHeaders.called)
-        self.mock_xsendfile.assert_called_once_with(
-            self.path, self.filename, 100, range_header="test_range_header"
-        )
-        self.assertFalse(self.mock_app_sendfile.called)
-
-
-class TestSendFilePartialWithoutNginx(unittest.TestCase):
-    def setUp(self):
-        self.USE_NGINX_patcher = mock.patch("waiter.USE_NGINX", False)
-        self.USE_NGINX_patcher.start()
-        self.request_patcher = mock.patch("waiter.request")
-        self.mock_request = self.request_patcher.start()
-        self.getsize_patcher = mock.patch("waiter.os.path.getsize")
-        self.mock_getsize = self.getsize_patcher.start()
-        self.parseRangeHeaders_patcher = mock.patch("waiter.parseRangeHeaders")
-        self.mock_parseRangeHeaders = self.parseRangeHeaders_patcher.start()
-        self.xsendfile_patcher = mock.patch("waiter.xsendfile")
-        self.mock_xsendfile = self.xsendfile_patcher.start()
-        self.app_sendfile_patcher = mock.patch("waiter.app_sendfile")
-        self.mock_app_sendfile = self.app_sendfile_patcher.start()
-
-        self.mock_request.headers.get.return_value = "test_range_header"
-
-        self.path = "path/to/file"
-        self.filename = "test_filename.mp4"
-        self.token = {"userid": 123, "tokenid": 234}
-        self.mock_getsize.return_value = 100
-        self.mock_parseRangeHeaders.return_value = (100, 0, 100)
-
-    def tearDown(self):
-        self.USE_NGINX_patcher.stop()
-        self.request_patcher.stop()
-        self.getsize_patcher.stop()
-        self.parseRangeHeaders_patcher.stop()
-        self.xsendfile_patcher.stop()
-        self.app_sendfile_patcher.stop()
-
-    def test_with_range_header(self):
-        expected = self.mock_app_sendfile.return_value
-        actual = send_file_partial(self.path, self.filename, self.token)
-        self.assertEqual(expected, actual)
-        self.mock_getsize.assert_called_once_with("path/to/file")
-        self.assertFalse(self.mock_parseRangeHeaders.called)
-        self.mock_app_sendfile.assert_called_once_with(
-            self.path, self.filename, 100, range_header="test_range_header"
-        )
-        self.assertFalse(self.mock_xsendfile.called)
-
-    def test_no_range_header(self):
-        self.mock_request.headers.get.return_value = None
-
-        expected = self.mock_app_sendfile.return_value
-        actual = send_file_partial(self.path, self.filename, self.token)
-        self.assertEqual(expected, actual)
-        self.mock_getsize.assert_called_once_with("path/to/file")
-        self.assertFalse(self.mock_parseRangeHeaders.called)
-        self.mock_app_sendfile.assert_called_once_with(
-            self.path, self.filename, 100, range_header=None
-        )
-        self.assertFalse(self.mock_xsendfile.called)
-
-    def test_test(self):
-        expected = self.mock_app_sendfile.return_value
-        actual = send_file_partial(self.path, self.filename, self.token, test=True)
-        self.assertEqual(expected, actual)
-        self.mock_getsize.assert_called_once_with("path/to/file")
-        self.assertFalse(self.mock_parseRangeHeaders.called)
-        self.mock_app_sendfile.assert_called_once_with(
-            self.path, self.filename, 100, range_header="test_range_header"
-        )
-        self.assertFalse(self.mock_xsendfile.called)

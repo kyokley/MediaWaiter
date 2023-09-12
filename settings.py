@@ -6,7 +6,7 @@ HOST = "127.0.0.1"
 PORT = 5000
 USE_NGINX = True
 
-MINIMUM_FILE_SIZE = 10000000
+MINIMUM_FILE_SIZE = 20_000_000
 
 REPO_DIR = os.path.dirname(os.path.abspath(__file__))
 # Generate a secret key
