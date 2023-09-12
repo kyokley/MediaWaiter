@@ -452,8 +452,7 @@ def xsendfile(path, filename):
 
     log.debug(f"path: {path}")
     log.debug(f"filename: {filename}")
-    path = path.split("/", 3)[-1]
-    redirected_path = f"/download/{path}"
+    redirected_path = f"/download/{path.split('/', 3)[-1]}"
     log.debug(f"redirected_path is {redirected_path}")
     resp = send_file(path, conditional=True)
     resp.headers["X-Accel-Redirect"] = redirected_path
