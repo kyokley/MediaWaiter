@@ -2,24 +2,24 @@
 <html lang="en">
     <head data-cast-api-enabled="true">
         {% block head %}
-            <link rel="shortcut icon" type="image/png" href="/assets/favicon.ico"/>
+            <link rel="shortcut icon" type="image/png" href="/static/assets/favicon.ico"/>
 
-            <link href="/video.js/dist/video-js.min.css" rel="stylesheet">
-            <link href="/@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.css" rel="stylesheet">
-            <link href="/videojs-seek-buttons/dist/videojs-seek-buttons.css" rel="stylesheet">
-            <link rel="stylesheet" href="/videojs-mobile-ui/dist/videojs-mobile-ui.css">
-            <link rel="stylesheet" href="/@silvermine/videojs-airplay/dist/silvermine-videojs-airplay.css">
+            <link href="/static/video.js/dist/video-js.min.css" rel="stylesheet">
+            <link href="/static/@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.css" rel="stylesheet">
+            <link href="/static/videojs-seek-buttons/dist/videojs-seek-buttons.css" rel="stylesheet">
+            <link rel="stylesheet" href="/static/videojs-mobile-ui/dist/videojs-mobile-ui.css">
+            <link rel="stylesheet" href="/static/@silvermine/videojs-airplay/dist/silvermine-videojs-airplay.css">
 
-            <link href="/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-            <link href="/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet">
-            <link href="/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+            <link href="/static/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+            <link href="/static/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet">
+            <link href="/static/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
-            <link href="/assets/waiter.css" rel="stylesheet">
+            <link href="/static/assets/waiter.css" rel="stylesheet">
             {% if theme == 'light' %}
-                <link href="/assets/bootswatch/bootstrap-light.min.css" rel="stylesheet">
+                <link href="/static/assets/bootswatch/bootstrap-light.min.css" rel="stylesheet">
             {% else %}
-                <link href="/assets/bootswatch/bootstrap-dark.min.css" rel="stylesheet">
-                <link href="/assets/dark.css" rel="stylesheet">
+                <link href="/static/assets/bootswatch/bootstrap-dark.min.css" rel="stylesheet">
+                <link href="/static/assets/dark.css" rel="stylesheet">
             {% endif %}
 
 
@@ -213,20 +213,20 @@
 
 
         {% block javascript_includes %}
-            <script src="/jquery/dist/jquery.min.js"></script>
-            <script src="/@popperjs/core/dist/umd/popper.min.js"></script>
-            <script src="/datatables.net/js/jquery.dataTables.min.js"></script>
-            <script src="/bootstrap/dist/js/bootstrap.min.js"></script>
-            <script src="/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
-            <script src="/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
-            <script src="/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
-            <script src="/video.js/dist/video.js"></script>
-            <script src="/@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.js"></script>
-            <script src="/videojs-seek-buttons/dist/videojs-seek-buttons.min.js"></script>
-            <script src="/videojs-mobile-ui/dist/videojs-mobile-ui.min.js"></script>
-            <script src="/@silvermine/videojs-airplay/dist/silvermine-videojs-airplay.min.js"></script>
+            <script src="/static/jquery/dist/jquery.min.js"></script>
+            <script src="/static/@popperjs/core/dist/umd/popper.min.js"></script>
+            <script src="/static/datatables.net/js/jquery.dataTables.min.js"></script>
+            <script src="/static/bootstrap/dist/js/bootstrap.min.js"></script>
+            <script src="/static/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+            <script src="/static/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+            <script src="/static/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
+            <script src="/static/video.js/dist/video.js"></script>
+            <script src="/static/@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.js"></script>
+            <script src="/static/videojs-seek-buttons/dist/videojs-seek-buttons.min.js"></script>
+            <script src="/static/videojs-mobile-ui/dist/videojs-mobile-ui.min.js"></script>
+            <script src="/static/@silvermine/videojs-airplay/dist/silvermine-videojs-airplay.min.js"></script>
             <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
-            <script src="/assets/waiter_v2.js"></script>
+            <script src="/static/assets/waiter_v2.js"></script>
         {% endblock %}
 
         {% block javascript %}

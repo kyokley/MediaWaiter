@@ -44,13 +44,6 @@ bandit: build-dev ## Run bandit
 down: ## Bring all containers down
 	docker-compose down
 
-static: build-dev down ## Install static files (Run from inside container)
-	docker-compose run mediawaiter /bin/sh -c " \
-	rm -rf node_modules && \
-	yarn install && \
-	rm -rf static/bower_components && \
-	mv node_modules static/bower_components"
-
 push: build ## Push image to docker hub
 	docker push kyokley/mediawaiter
 
