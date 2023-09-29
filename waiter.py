@@ -150,8 +150,8 @@ def get_dirPath(guid):
         username=token["username"],
         mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
         ismovie=token["ismovie"],
-        pathid=token["pathid"],
-        pathname=token["pathname"],
+        tv_id=token["tv_id"],
+        tv_name=token["tv_name"],
         guid=guid,
         offsetUrl=WAITER_OFFSET_URL,
         next_link=None,
@@ -299,8 +299,8 @@ def get_file(guid):
         username=token["username"],
         mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
         ismovie=token["ismovie"],
-        pathid=token["pathid"],
-        pathname=token["pathname"],
+        tv_id=token["tv_id"],
+        tv_name=token["tv_name"],
         guid=guid,
         offsetUrl=WAITER_OFFSET_URL,
         next_link=(
@@ -358,8 +358,8 @@ def autoplay(guid):
         files=files,
         mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
         ismovie=token["ismovie"],
-        pathid=token["pathid"],
-        pathname=token["pathname"],
+        tv_id=token["tv_id"],
+        tv_name=token["tv_name"],
         next_link=(
             f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
             f"/autoplaydownloadlink/{token.get('next_id')}/"
@@ -509,8 +509,8 @@ def video(guid, hashPath):
         files=files,
         mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
         ismovie=token["ismovie"],
-        pathid=token["pathid"],
-        pathname=token["pathname"],
+        tv_id=token["tv_id"],
+        tv_name=token["tv_name"],
         next_link=(
             f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
             f"/autoplaydownloadlink/{token.get('next_id')}/"
