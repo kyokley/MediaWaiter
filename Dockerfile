@@ -1,6 +1,5 @@
 ARG BASE_IMAGE=python:3.10-alpine
 
-FROM ${BASE_IMAGE} AS builder
 FROM ${BASE_IMAGE} AS static-builder
 WORKDIR /code
 
@@ -34,7 +33,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV PYTHONPATH=/code
 
 
-RUN pip install -U pip wheel && pip install -U poetry
+RUN pip install -U pip wheel setuptools && pip install -U poetry
 COPY poetry.lock pyproject.toml configs/docker_settings.py /code/
 
 RUN poetry install --without dev && mkdir /root/logs /root/media
