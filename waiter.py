@@ -303,12 +303,12 @@ def get_file(guid):
         guid=guid,
         offsetUrl=WAITER_OFFSET_URL,
         next_link=(
-            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/downloadlink/{token.get('next_id')}/"
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/autoplaydownloadlink/{token.get('next_id')}/"
             if token.get("next_id")
             else None
         ),
         previous_link=(
-            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/downloadlink/{token.get('previous_id')}/"
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/autoplaydownloadlink/{token.get('previous_id')}/"
             if token.get("previous_id")
             else None
         ),
