@@ -415,20 +415,22 @@ def movie_cli_links(guid):
 @app.route(APP_NAME + "/status", methods=["GET"])
 def get_status():
     res = dict()
+    base_path = Path(BASE_PATH)
+
     try:
         log.debug("Checking linking")
-        moviesLinked = os.path.exists(os.path.join(BASE_PATH, "Movies"))
-        if moviesLinked:
+        movies_path = base_path / 'Movies'
+        if movies_path.exists():
             log.debug("Movies directory is good")
         else:
             log.debug("Movies directory failed")
 
-        tvLinked = os.path.exists(os.path.join(BASE_PATH, "tv shows"))
-        if tvLinked:
+        tv_path = base_path / 'tv shows'
+        if tv_path.exists():
             log.debug("tv shows directory is good")
         else:
             log.debug("tv shows directory failed")
-        linked = moviesLinked and tvLinked
+        linked = movies_path.exists() and tv_path.exists()
         log.debug(f"Result is {linked}")
 
         res["status"] = linked
