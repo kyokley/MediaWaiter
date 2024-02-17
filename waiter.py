@@ -8,6 +8,7 @@ from flask import Flask, request, send_file, render_template, jsonify
 from werkzeug.middleware.proxy_fix import ProxyFix
 from settings import (
     BASE_PATH,
+    MEDIA_DIRS,
     APP_NAME,
     MEDIAVIEWER_GUID_URL,
     MEDIAVIEWER_VIEWED_URL,
@@ -419,18 +420,15 @@ def get_status():
 
     try:
         log.debug("Checking linking")
-        movies_path = base_path / 'Movies'
-        if movies_path.exists():
-            log.debug("Movies directory is good")
-        else:
-            log.debug("Movies directory failed")
+        linked = True
+        for dir in MEDIA_DIRS:
+            media_path = base_path / dir
+            if media_path.exists():
+                log.debug(f"{media_path} directory is good")
+            else:
+                log.debug(f"{media_path} directory failed")
+                linked = False
 
-        tv_path = base_path / 'tv shows'
-        if tv_path.exists():
-            log.debug("tv shows directory is good")
-        else:
-            log.debug("tv shows directory failed")
-        linked = movies_path.exists() and tv_path.exists()
         log.debug(f"Result is {linked}")
 
         res["status"] = linked
