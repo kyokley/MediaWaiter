@@ -25,13 +25,9 @@
     "datatables.net-bs5": "^1.13.6",
     "datatables.net-responsive-bs5": "^2.5.0",
     "datatables.net-scroller-bs5": "^2.2.0",
-    "jquery": "jquery/jquery-dist#^3.7.0",
+    "jquery": "^3.7.0",
     "video.js": "^7.17.0",
     "videojs-mobile-ui": "^0.7.0",
-    "videojs-seek-buttons": "^3.0.1",
-    "yarn": "^1.22.19"
-  },
-  "engines": {
-    "yarn": ">= 1.0.0"
+    "videojs-seek-buttons": "^3.0.1"
   }
 }

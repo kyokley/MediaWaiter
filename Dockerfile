@@ -3,11 +3,10 @@ ARG BASE_IMAGE=python:3.10-alpine
 FROM ${BASE_IMAGE} AS static-builder
 WORKDIR /code
 
-RUN apk update && apk add npm git
+RUN apk update && apk add npm git openssh
 
-RUN npm install -g yarn
-COPY package.json /code/package.json
-RUN yarn install
+COPY package.json package-lock.json /code/
+RUN npm install
 
 FROM ${BASE_IMAGE} AS base
 
