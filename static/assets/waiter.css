@@ -128,3 +128,8 @@ tbody > tr > td > a:hover, nav > ol > li > a:hover {
     animation-duration: 0.4s;
     animation-fill-mode: both;
 }
+
+li.nav-item > a.btn-outline-primary:hover {
+    color: var(--bs-btn-hover-border-color);
+    background-color: transparent;
+}
