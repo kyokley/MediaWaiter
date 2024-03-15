@@ -83,7 +83,7 @@
                             </li>
                         </ul>
                         {% if username %}
-                            <span class="navbar-text navbar-right">Signed in as <a href="{{ mediaviewer_base_url }}/settings/" class="navbar-link">{{ username }}</a></span>
+                            <span class="navbar-text navbar-right">Signed in as <a class="link-primary" href="{{ mediaviewer_base_url }}/settings/" class="navbar-link">{{ username }}</a></span>
                         {% endif %}
                     </div>
                 </div>
@@ -195,7 +195,7 @@
                             </div>
                             <div class="col-7">
                                 {% if donation_site_name and donation_site_url %}
-                                    <span class="navbar-text">If you can, please consider donating to <a href="{{ donation_site_url }}">{{ donation_site_name }}</a></span>
+                                    <span class="navbar-text">If you can, please consider donating to <a class="link-primary" href="{{ donation_site_url }}">{{ donation_site_name }}</a></span>
                                 {% endif %}
                             </div>
                         </div>
