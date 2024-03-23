@@ -113,7 +113,9 @@ function markViewed(guid){
                         }
                     }else{
                         finishedElement.innerText = "Marking file viewed!";
-                        rowElement.style = "display:none;";
+                        if(rowElement){
+                            rowElement.style = "display:none;";
+                        }
                     }
                 }
             });
