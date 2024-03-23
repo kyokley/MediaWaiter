@@ -2,19 +2,20 @@ import pytest
 import shutil
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def counter():
     def _counter():
         count = 1
         while True:
             yield count
             count += 1
+
     return _counter()
 
 
 @pytest.fixture
 def temp_directory(tmp_path, counter):
-    dir = tmp_path / f'test_dir{next(counter)}'
+    dir = tmp_path / f"test_dir{next(counter)}"
     dir.mkdir(exist_ok=True, parents=True)
     yield dir
 

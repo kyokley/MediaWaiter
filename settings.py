@@ -67,6 +67,6 @@ REQUESTS_TIMEOUT = 3  # in secs
 DEFAULT_THEME = "dark"
 
 try:
-    from local_settings import * # noqa
+    from local_settings import *  # noqa
 except:  # nosec # noqa
     pass

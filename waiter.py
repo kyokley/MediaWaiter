@@ -169,7 +169,7 @@ def get_dirPath(guid):
 def buildEntries(token):
     files = []
     if token["ismovie"]:
-        fullMoviePath = Path(token['path'])
+        fullMoviePath = Path(token["path"])
 
         for root, subFolders, filenames in os.walk(fullMoviePath):
             for filename in filenames:

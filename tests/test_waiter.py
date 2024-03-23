@@ -553,17 +553,15 @@ class TestGetStatus:
         self.mock_jsonify = mocker.patch("waiter.jsonify")
 
     def test_good(self, mocker):
-        mocker.patch("waiter.MEDIA_DIRS",
-                     [str(x) for x in self.media_dirs])
+        mocker.patch("waiter.MEDIA_DIRS", [str(x) for x in self.media_dirs])
 
         expected = ({"status": True}, 200)
         actual = get_status()
         assert expected == actual
 
     def test_bad(self, mocker):
-        self.media_dirs.append('/does/not/exist')
-        mocker.patch("waiter.MEDIA_DIRS",
-                     [str(x) for x in self.media_dirs])
+        self.media_dirs.append("/does/not/exist")
+        mocker.patch("waiter.MEDIA_DIRS", [str(x) for x in self.media_dirs])
 
         expected = ({"status": False}, 500)
         actual = get_status()
