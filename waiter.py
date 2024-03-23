@@ -8,6 +8,7 @@ from flask import Flask, request, send_file, render_template, jsonify
 from werkzeug.middleware.proxy_fix import ProxyFix
 from settings import (
     BASE_PATH,
+    MEDIA_DIRS,
     APP_NAME,
     MEDIAVIEWER_GUID_URL,
     MEDIAVIEWER_VIEWED_URL,
@@ -150,8 +151,8 @@ def get_dirPath(guid):
         username=token["username"],
         mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
         ismovie=token["ismovie"],
-        pathid=token["pathid"],
-        pathname=token["pathname"],
+        tv_id=token["tv_id"],
+        tv_name=token["tv_name"],
         guid=guid,
         offsetUrl=WAITER_OFFSET_URL,
         next_link=None,
@@ -168,8 +169,7 @@ def get_dirPath(guid):
 def buildEntries(token):
     files = []
     if token["ismovie"]:
-        remote_base_path = Path(token["path"]).stem
-        fullMoviePath = Path(BASE_PATH) / remote_base_path / token["filename"]
+        fullMoviePath = Path(token["path"])
 
         for root, subFolders, filenames in os.walk(fullMoviePath):
             for filename in filenames:
@@ -299,17 +299,17 @@ def get_file(guid):
         username=token["username"],
         mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
         ismovie=token["ismovie"],
-        pathid=token["pathid"],
-        pathname=token["pathname"],
+        tv_id=token["tv_id"],
+        tv_name=token["tv_name"],
         guid=guid,
         offsetUrl=WAITER_OFFSET_URL,
         next_link=(
-            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/downloadlink/{token.get('next_id')}/"
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/autoplaydownloadlink/{token.get('next_id')}/"
             if token.get("next_id")
             else None
         ),
         previous_link=(
-            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/downloadlink/{token.get('previous_id')}/"
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/autoplaydownloadlink/{token.get('previous_id')}/"
             if token.get("previous_id")
             else None
         ),
@@ -358,8 +358,8 @@ def autoplay(guid):
         files=files,
         mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
         ismovie=token["ismovie"],
-        pathid=token["pathid"],
-        pathname=token["pathname"],
+        tv_id=token["tv_id"],
+        tv_name=token["tv_name"],
         next_link=(
             f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
             f"/autoplaydownloadlink/{token.get('next_id')}/"
@@ -416,20 +416,19 @@ def movie_cli_links(guid):
 @app.route(APP_NAME + "/status", methods=["GET"])
 def get_status():
     res = dict()
+    base_path = Path(BASE_PATH)
+
     try:
         log.debug("Checking linking")
-        moviesLinked = os.path.exists(os.path.join(BASE_PATH, "Movies"))
-        if moviesLinked:
-            log.debug("Movies directory is good")
-        else:
-            log.debug("Movies directory failed")
+        linked = True
+        for dir in MEDIA_DIRS:
+            media_path = base_path / dir
+            if media_path.exists():
+                log.debug(f"{media_path} directory is good")
+            else:
+                log.debug(f"{media_path} directory failed")
+                linked = False
 
-        tvLinked = os.path.exists(os.path.join(BASE_PATH, "tv shows"))
-        if tvLinked:
-            log.debug("tv shows directory is good")
-        else:
-            log.debug("tv shows directory failed")
-        linked = moviesLinked and tvLinked
         log.debug(f"Result is {linked}")
 
         res["status"] = linked
@@ -509,8 +508,8 @@ def video(guid, hashPath):
         files=files,
         mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
         ismovie=token["ismovie"],
-        pathid=token["pathid"],
-        pathname=token["pathname"],
+        tv_id=token["tv_id"],
+        tv_name=token["tv_name"],
         next_link=(
             f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
             f"/autoplaydownloadlink/{token.get('next_id')}/"

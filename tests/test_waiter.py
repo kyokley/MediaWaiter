@@ -127,6 +127,8 @@ class TestGetDirPath:
             "username": "some.user",
             "pathid": 123,
             "pathname": "test_pathname",
+            "tv_id": None,
+            "tv_name": None,
         }
 
         expected = self.mock_render_template.return_value
@@ -144,8 +146,6 @@ class TestGetDirPath:
             username="some.user",
             mediaviewer_base_url="BASE_URL",
             ismovie=True,
-            pathid=123,
-            pathname="test_pathname",
             guid="test_guid",
             offsetUrl="OFFSET_URL",
             next_link=None,
@@ -156,6 +156,8 @@ class TestGetDirPath:
             donation_site_name="",
             donation_site_url="",
             theme=DEFAULT_THEME,
+            tv_id=None,
+            tv_name=None,
         )
 
     def test_not_a_movie(self):
@@ -414,8 +416,8 @@ class TestGetFile:
             "filename": "test_filename.mp4",
             "path": "test/path",
             "displayname": "test_displayname",
-            "pathid": 123,
-            "pathname": "test_pathname",
+            "tv_id": 123,
+            "tv_name": "test_pathname",
             "username": "some.user",
             "binge_mode": True,
         }
@@ -461,8 +463,8 @@ class TestGetFile:
             title="test_displayname",
             files=self.mock_buildEntries.return_value,
             ismovie=False,
-            pathid=123,
-            pathname="test_pathname",
+            tv_id=123,
+            tv_name="test_pathname",
             username="some.user",
             mediaviewer_base_url="BASE_URL",
             guid="guid",
@@ -490,14 +492,14 @@ class TestGetFile:
             title="test_displayname",
             files=self.mock_buildEntries.return_value,
             ismovie=False,
-            pathid=123,
-            pathname="test_pathname",
+            tv_id=123,
+            tv_name="test_pathname",
             username="some.user",
             mediaviewer_base_url="BASE_URL",
             guid="guid",
             offsetUrl="OFFSET_URL",
-            next_link="BASE_URL/downloadlink/123/",
-            previous_link="BASE_URL/downloadlink/234/",
+            next_link="BASE_URL/autoplaydownloadlink/123/",
+            previous_link="BASE_URL/autoplaydownloadlink/234/",
             tv_genres="tv_genres",
             movie_genres="movie_genres",
             binge_mode=True,
@@ -518,8 +520,8 @@ class TestGetFile:
             title="test_displayname",
             files=self.mock_buildEntries.return_value,
             ismovie=False,
-            pathid=123,
-            pathname="test_pathname",
+            tv_id=123,
+            tv_name="test_pathname",
             username="some.user",
             mediaviewer_base_url="BASE_URL",
             guid="guid",
@@ -537,48 +539,30 @@ class TestGetFile:
 
 class TestGetStatus:
     @pytest.fixture(autouse=True)
-    def setUp(self, mocker):
-        mocker.patch("waiter.BASE_PATH", "BASE_PATH")
-        self.mock_exists = mocker.patch("waiter.os.path.exists")
+    def setUp(self, mocker, temp_directory):
+        self.dir = temp_directory
+        mocker.patch("waiter.BASE_PATH", str(self.dir))
+
+        self.media_dirs = []
+        for i in range(3):
+            media_dir = self.dir / str(i)
+            media_dir.mkdir()
+            self.media_dirs.append(media_dir)
+
         self.mock_log = mocker.patch("waiter.log")
         self.mock_jsonify = mocker.patch("waiter.jsonify")
 
-    def test_bad_tv_status(self):
-        self.mock_exists.side_effect = [True, False]
-
-        expected = ({"status": False}, 500)
-        actual = get_status()
-        assert expected == actual
-        self.mock_log.debug.assert_any_call("Movies directory is good")
-        self.mock_log.debug.assert_any_call("tv shows directory failed")
-        self.mock_log.debug.assert_any_call("status: False")
-
-    def test_bad_movie_status(self):
-        self.mock_exists.side_effect = [False, True]
-
-        expected = ({"status": False}, 500)
-        actual = get_status()
-        assert expected == actual
-        self.mock_log.debug.assert_any_call("tv shows directory is good")
-        self.mock_log.debug.assert_any_call("Movies directory failed")
-        self.mock_log.debug.assert_any_call("status: False")
-
-    def test_bad_bad_status(self):
-        self.mock_exists.side_effect = [False, False]
-
-        expected = ({"status": False}, 500)
-        actual = get_status()
-        assert expected == actual
-        self.mock_log.debug.assert_any_call("tv shows directory failed")
-        self.mock_log.debug.assert_any_call("Movies directory failed")
-        self.mock_log.debug.assert_any_call("status: False")
-
-    def test_good_status(self):
-        self.mock_exists.side_effect = [True, True]
+    def test_good(self, mocker):
+        mocker.patch("waiter.MEDIA_DIRS", [str(x) for x in self.media_dirs])
 
         expected = ({"status": True}, 200)
         actual = get_status()
         assert expected == actual
-        self.mock_log.debug.assert_any_call("tv shows directory is good")
-        self.mock_log.debug.assert_any_call("Movies directory is good")
-        self.mock_log.debug.assert_any_call("status: True")
+
+    def test_bad(self, mocker):
+        self.media_dirs.append("/does/not/exist")
+        mocker.patch("waiter.MEDIA_DIRS", [str(x) for x in self.media_dirs])
+
+        expected = ({"status": False}, 500)
+        actual = get_status()
+        assert expected == actual

@@ -1,7 +1,6 @@
 import time
 import requests
 
-from werkzeug.urls import url_fix
 from log import log
 from settings import (
     APP_NAME,
@@ -78,7 +77,7 @@ def buildWaiterPath(place, guid, filePath, includeLastSlash=True):
         place=place,
         guid=guid,
         maybe_slash=includeLastSlash and "/" or "",
-        file_path=url_fix(filePath),
+        file_path=filePath,
     )
     return path
 

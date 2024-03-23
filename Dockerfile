@@ -1,14 +1,12 @@
 ARG BASE_IMAGE=python:3.10-alpine
 
-FROM ${BASE_IMAGE} AS builder
 FROM ${BASE_IMAGE} AS static-builder
 WORKDIR /code
 
-RUN apk update && apk add npm git
+RUN apk update && apk add npm git openssh
 
-RUN npm install -g yarn
-COPY package.json /code/package.json
-RUN yarn install
+COPY package.json package-lock.json /code/
+RUN npm install
 
 FROM ${BASE_IMAGE} AS base
 
@@ -34,7 +32,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV PYTHONPATH=/code
 
 
-RUN pip install -U pip wheel && pip install -U poetry
+RUN pip install -U pip wheel setuptools && pip install -U poetry
 COPY poetry.lock pyproject.toml configs/docker_settings.py /code/
 
 RUN poetry install --without dev && mkdir /root/logs /root/media

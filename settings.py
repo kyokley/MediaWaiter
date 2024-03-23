@@ -34,6 +34,10 @@ except (IOError, FileNotFoundError):
 # The system expects the Movie and tv show folders to exist in a
 # BASE_PATH folder. The path to that folder is defined below
 BASE_PATH = "/path/to/base/folder"
+
+# Directories for server status checking. Should be relative to the BASE_PATH.
+MEDIA_DIRS = ["Movies", "tv_shows"]
+
 APP_NAME = "/waiter"
 
 LOG_PATH = "/path/to/log/folder"
@@ -63,6 +67,6 @@ REQUESTS_TIMEOUT = 3  # in secs
 DEFAULT_THEME = "dark"
 
 try:
-    from local_settings import *
-except:  # nosec
+    from local_settings import *  # noqa
+except:  # nosec # noqa
     pass
