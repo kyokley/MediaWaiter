@@ -154,6 +154,23 @@ def getMediaGenres(guid):
     return tv_genres, movie_genres
 
 
+def get_collections(guid):
+    genre_url = MEDIAVIEWER_BASE_URL + f"/ajaxcollections/{guid}/"
+    try:
+        resp = requests.get(genre_url, timeout=REQUESTS_TIMEOUT)
+        resp.raise_for_status()
+    except Exception as e:
+        log.error(e)
+        raise
+
+    data = resp.json()
+    collections = [
+        (collection[1], MEDIAVIEWER_BASE_URL + f"/collections/{collection[0]}/")
+        for collection in data["collections"]
+    ]
+    return collections
+
+
 def hashed_filename(filename):
     peppered_string = filename + SECRET_KEY
     return hashlib.sha256(peppered_string.encode("utf-8")).hexdigest()

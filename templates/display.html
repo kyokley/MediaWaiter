@@ -35,6 +35,18 @@
                                 <a class="nav-link" href="{{ mediaviewer_base_url }}/">Home</a>
                             </li>
                             <li class="nav-item dropdown">
+                                <a class="btn dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Collections</a>
+                                <div class="row justify-content-center">
+                                    <div class="col-10">
+                                        <div class="dropdown-menu slide-in">
+                                            {% for collection in collections %}
+                                            <a class="nav-link dropdown-item" href="{{ collection[1] }}">{{collection[0]}}</a>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown">
                                 {% if ismovie %}
                                     <a class="btn btn-outline-primary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Movies <span class="caret"></span></a>
                                 {% else %}

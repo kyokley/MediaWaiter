@@ -35,6 +35,7 @@ from utils import (
     deleteVideoOffset,
     hashed_filename,
     getMediaGenres,
+    get_collections,
 )
 from log import log
 import requests
@@ -143,6 +144,7 @@ def get_dirPath(guid):
     files.sort(key=lambda x: x["filename"])
 
     tv_genres, movie_genres = getMediaGenres(guid)
+    collections = get_collections(guid)
     token = _extract_donation_info(token)
     return render_template(
         "display.html",
@@ -159,6 +161,7 @@ def get_dirPath(guid):
         previous_link=None,
         tv_genres=tv_genres,
         movie_genres=movie_genres,
+        collections=collections,
         binge_mode=False,
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
@@ -291,6 +294,7 @@ def get_file(guid):
 
     files = buildEntries(token)
     tv_genres, movie_genres = getMediaGenres(guid)
+    collections = get_collections(guid)
     token = _extract_donation_info(token)
     return render_template(
         "display.html",
@@ -315,6 +319,7 @@ def get_file(guid):
         ),
         tv_genres=tv_genres,
         movie_genres=movie_genres,
+        collections=collections,
         binge_mode=token["binge_mode"],
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
@@ -341,6 +346,7 @@ def autoplay(guid):
     files = buildEntries(token)
     file_entry = files[0]
     tv_genres, movie_genres = getMediaGenres(guid)
+    collections = get_collections(guid)
     token = _extract_donation_info(token)
     return render_template(
         "video.html",
@@ -374,6 +380,7 @@ def autoplay(guid):
         ),
         tv_genres=tv_genres,
         movie_genres=movie_genres,
+        collections=collections,
         binge_mode=token["binge_mode"],
         CAST_ID=GOOGLE_CAST_APP_ID,
         donation_site_name=token.get("donation_site_name"),
@@ -490,6 +497,7 @@ def video(guid, hashPath):
     file_entry = _getFileEntryFromHash(token, hashPath)
     files = buildEntries(token)
     tv_genres, movie_genres = getMediaGenres(guid)
+    collections = get_collections(guid)
 
     token = _extract_donation_info(token)
     return render_template(
@@ -524,6 +532,7 @@ def video(guid, hashPath):
         ),
         tv_genres=tv_genres,
         movie_genres=movie_genres,
+        collections=collections,
         binge_mode=token["binge_mode"],
         CAST_ID=GOOGLE_CAST_APP_ID,
         donation_site_name=token.get("donation_site_name"),
