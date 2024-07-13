@@ -1,5 +1,7 @@
 .PHONY: build build-dev up up-no-daemon tests attach shell help list static publish push static pytest bandit
 
+DOCKER_COMPOSE_EXECUTABLE=$$(which docker-compose >/dev/null 2>&1 && echo 'docker-compose' || echo 'docker compose')
+
 help: ## This help
 	@grep -F "##" $(MAKEFILE_LIST) | grep -vF '@grep -F "##" $$(MAKEFILE_LIST)' | sed -r 's/(:).*##/\1/' | sort
 
@@ -13,10 +15,10 @@ build-dev: ## Build dev container
 	docker build --tag=kyokley/mediawaiter --target=dev .
 
 up: ## Bring up containers and daemonize
-	docker-compose up -d
+	${DOCKER_COMPOSE_EXECUTABLE} up -d
 
 up-no-daemon: ## Bring up all containers
-	docker-compose up
+	${DOCKER_COMPOSE_EXECUTABLE} up
 
 attach: ## Attach to a running mediawaiter container
 	docker attach $$(docker ps -qf name=mediawaiter_mediawaiter)
@@ -39,10 +41,10 @@ bandit: build-dev ## Run bandit
 	docker run --rm -t \
 	    -v $$(pwd):/code \
 	    -v $$(pwd)/configs/docker_settings.py:/code/local_settings.py \
-	    kyokley/mediawaiter sh -c "/venv/bin/bandit -x '**/tests/test_*.py,.venv' -r ."
+	    kyokley/mediawaiter sh -c "/venv/bin/bandit -x '**/tests/test_*.py,./.venv' -r ."
 
 down: ## Bring all containers down
-	docker-compose down
+	${DOCKER_COMPOSE_EXECUTABLE} down
 
 push: build ## Push image to docker hub
 	docker push kyokley/mediawaiter
