@@ -7,10 +7,10 @@ authors = ["Kevin Yokley <kyokley2@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 flask = "^3.0"
-uwsgi = "^2.0"
 requests = "^2.21"
 secure = "^0.3.0"
 platformdirs = "^2.5.2"
+gunicorn = "^23.0.0"
 
 [tool.poetry.group.dev.dependencies]
 bpython = "^0.18.0"
