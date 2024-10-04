@@ -42,7 +42,7 @@ FROM base AS prod
 COPY . /code
 COPY --from=static-builder /code/node_modules /var/static
 COPY ./static/assets /var/static/assets
-CMD uwsgi --ini /code/server/uwsgi.ini
+CMD gunicorn waiter.app
 
 FROM base AS dev
 COPY --from=static-builder /code/node_modules /var/static
