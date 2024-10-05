@@ -44,6 +44,7 @@
 
   # https://devenv.sh/processes/
   processes.mw.exec = "make build-dev && make up";
+  containers.mw.name = "mediawaiter";
 
   # See full reference at https://devenv.sh/reference/options/
 }
