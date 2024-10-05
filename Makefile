@@ -14,6 +14,9 @@ build: ## Build prod-like container
 build-dev: ## Build dev container
 	docker build --tag=kyokley/mediawaiter --target=dev .
 
+build-base: ## Build dev container
+	docker build --tag=kyokley/mediawaiter --target=base-builder .
+
 up: ## Bring up containers and daemonize
 	${DOCKER_COMPOSE_EXECUTABLE} up -d
 
@@ -24,6 +27,12 @@ attach: ## Attach to a running mediawaiter container
 	docker attach $$(docker ps -qf name=mediawaiter_mediawaiter)
 
 shell: build-dev up ## Open a shell in a mediawaiter container
+	docker run --rm -it \
+	    -v $$(pwd):/code \
+	    -v $$(pwd)/configs/docker_settings.py:/code/local_settings.py \
+	    kyokley/mediawaiter sh
+
+shell-base: build-base ## Run shell in builder-base container
 	docker run --rm -it \
 	    -v $$(pwd):/code \
 	    -v $$(pwd)/configs/docker_settings.py:/code/local_settings.py \

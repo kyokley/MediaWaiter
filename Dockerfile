@@ -8,7 +8,7 @@ RUN apk update && apk add npm git openssh
 COPY package.json package-lock.json /code/
 RUN npm install
 
-FROM ${BASE_IMAGE} AS base
+FROM ${BASE_IMAGE} AS base-builder
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -31,8 +31,9 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV PYTHONPATH=/code
 
-
 RUN pip install -U pip wheel setuptools && pip install -U poetry
+
+FROM base-builder AS base
 COPY poetry.lock pyproject.toml configs/docker_settings.py /code/
 
 RUN poetry install --without dev && mkdir /root/logs /root/media
