@@ -596,3 +596,5 @@ if __name__ == "__main__":
         app.run(host=HOST, port=PORT)
     else:
         app.run(host=HOST, port=PORT, threaded=True)
+else:
+    gunicorn_app = app
