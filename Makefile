@@ -17,8 +17,12 @@ build-dev: ## Build dev container
 build-base: ## Build dev container
 	docker build --tag=kyokley/mediawaiter --target=base-builder .
 
+logs: ## Tail container logs
+	${DOCKER_COMPOSE_EXECUTABLE} logs -f mediawaiter
+
 up: ## Bring up containers and daemonize
 	${DOCKER_COMPOSE_EXECUTABLE} up -d
+	${DOCKER_COMPOSE_EXECUTABLE} logs -f mediawaiter
 
 up-no-daemon: ## Bring up all containers
 	${DOCKER_COMPOSE_EXECUTABLE} up
