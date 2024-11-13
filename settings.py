@@ -66,6 +66,10 @@ REQUESTS_TIMEOUT = 3  # in secs
 
 DEFAULT_THEME = "dark"
 
+JITSI_JWT_APP_ID = os.environ.get("JITSI_JWT_APP_ID", "")
+JITSI_JWT_APP_SECRET = os.environ.get("JITSI_JWT_APP_SECRET", "")
+JITSI_JWT_SUB = os.environ.get("JITSI_JWT_SUB", "")
+
 try:
     from local_settings import *  # noqa
 except:  # nosec # noqa

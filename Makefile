@@ -24,13 +24,16 @@ up: ## Bring up containers and daemonize
 	${DOCKER_COMPOSE_EXECUTABLE} up -d
 	${DOCKER_COMPOSE_EXECUTABLE} logs -f mediawaiter
 
+up-d: ## Bring up containers, daemonize, and return immediately
+	${DOCKER_COMPOSE_EXECUTABLE} up -d
+
 up-no-daemon: ## Bring up all containers
 	${DOCKER_COMPOSE_EXECUTABLE} up
 
 attach: ## Attach to a running mediawaiter container
 	docker attach $$(docker ps -qf name=mediawaiter_mediawaiter)
 
-shell: build-dev up ## Open a shell in a mediawaiter container
+shell: build-dev up-d ## Open a shell in a mediawaiter container
 	docker run --rm -it \
 	    -v $$(pwd):/code \
 	    -v $$(pwd)/configs/docker_settings.py:/code/local_settings.py \

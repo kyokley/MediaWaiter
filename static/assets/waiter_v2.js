@@ -16,6 +16,13 @@ var delta = 10;
 var binge_mode;
 var has_next_link;
 var should_redirect = true;
+var username;
+
+var watch_party_room_name;
+var jitsi_jwt;
+var video_url;
+var jitsi_meet;
+var video_stream_url;
 
 function prepareDataTable($){
     var tableElement = $('#myTable');
@@ -267,4 +274,31 @@ function scrollSetup(){
                 didScroll = false;
             }
         }, 250);
+}
+
+function watchPartySetup(){
+    const domain = 'bangup.dyndns.org';
+    const options = {
+        roomName: watch_party_room_name,
+        userInfo: {
+            displayName: username,
+            email: username
+        },
+        jwt: jitsi_jwt,
+        width: "100%",
+        height: "100%",
+        parentNode: document.querySelector('#jitsi-meet-container'),
+        lang: 'en'
+    };
+    jitsi_meet = new JitsiMeetExternalAPI(domain, options);
+    jitsi_meet.addEventListener('videoConferenceJoined', startVideo);
+    jitsi_meet.addEventListener('videoConferenceLeft', closeVideo);
+}
+
+function startVideo(arg){
+    jitsi_meet.executeCommand('startShareVideo', video_url);
+}
+
+function closeVideo(arg){
+    window.location.href = video_stream_url;
 }

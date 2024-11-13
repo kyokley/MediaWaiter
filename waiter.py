@@ -1,5 +1,7 @@
 import os
 import secure
+import jwt
+import uuid
 
 from collections import namedtuple
 from pathlib import Path
@@ -24,6 +26,9 @@ from settings import (
     GOOGLE_CAST_APP_ID,
     REQUESTS_TIMEOUT,
     DEFAULT_THEME,
+    JITSI_JWT_APP_ID,
+    JITSI_JWT_APP_SECRET,
+    JITSI_JWT_SUB,
 )
 from utils import (
     humansize,
@@ -500,6 +505,13 @@ def video(guid, hashPath):
     collections = get_collections(guid)
 
     token = _extract_donation_info(token)
+
+    watch_party_url = (f'{APP_NAME}/watch-party/{guid}/{hashPath}'
+                       if JITSI_JWT_APP_ID and
+                       JITSI_JWT_APP_SECRET and
+                       JITSI_JWT_SUB
+                       else "")
+
     return render_template(
         "video.html",
         title=token["displayname"],
@@ -538,6 +550,90 @@ def video(guid, hashPath):
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
         theme=token.get("theme", DEFAULT_THEME),
+        watch_party_url=watch_party_url,
+    )
+
+
+@app.route(APP_NAME + "/watch-party/<guid>/<path:hashPath>")
+@logErrorsAndContinue
+def watch_party(guid, hashPath):
+    token = getTokenByGUID(guid)
+
+    errorStr = checkForValidToken(token, guid)
+    if errorStr:
+        return render_template(
+            "error.html",
+            title="Error",
+            errorText=errorStr,
+            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get("theme", DEFAULT_THEME),
+        )
+
+    file_entry = _getFileEntryFromHash(token, hashPath)
+    files = buildEntries(token)
+    tv_genres, movie_genres = getMediaGenres(guid)
+    collections = get_collections(guid)
+
+    token = _extract_donation_info(token)
+
+    jitsi_payload = {
+            "context": {
+                "user": {
+                    "name": token["username"],
+                    "email": token["username"]
+                    }
+                },
+            "aud": JITSI_JWT_APP_ID,
+            "iss": JITSI_JWT_APP_ID,
+            "sub": JITSI_JWT_SUB,
+            "room": "*"
+            }
+    encoded_jwt = jwt.encode(jitsi_payload,
+                             JITSI_JWT_APP_SECRET,
+                             )
+    watch_party_room_name = uuid.uuid4()
+    video_stream_url = f'{APP_NAME}/file/{guid}/'
+    return render_template(
+        "watch_party.html",
+        title=token["displayname"],
+        filename=token["filename"],
+        hashPath=hashPath,
+        video_file=file_entry["path"],
+        subtitle_files=[
+            subtitle.waiter_path for subtitle in file_entry["subtitleFiles"]
+        ],
+        viewedUrl=WAITER_VIEWED_URL,
+        offsetUrl=WAITER_OFFSET_URL,
+        guid=guid,
+        username=token["username"],
+        files=files,
+        mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+        ismovie=token["ismovie"],
+        tv_id=token["tv_id"],
+        tv_name=token["tv_name"],
+        next_link=(
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
+            f"/autoplaydownloadlink/{token.get('next_id')}/"
+            if token.get("next_id")
+            else None
+        ),
+        previous_link=(
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
+            f"/autoplaydownloadlink/{token.get('previous_id')}/"
+            if token.get("previous_id")
+            else None
+        ),
+        tv_genres=tv_genres,
+        movie_genres=movie_genres,
+        collections=collections,
+        binge_mode=token["binge_mode"],
+        CAST_ID=GOOGLE_CAST_APP_ID,
+        donation_site_name=token.get("donation_site_name"),
+        donation_site_url=token.get("donation_site_url"),
+        theme=token.get("theme", DEFAULT_THEME),
+        jitsi_jwt=encoded_jwt,
+        watch_party_room_name=watch_party_room_name,
+        video_stream_url=video_stream_url,
     )
 
 

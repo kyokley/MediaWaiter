@@ -11,6 +11,7 @@ requests = "^2.21"
 secure = "^0.3.0"
 platformdirs = "^2.5.2"
 gunicorn = "^23.0.0"
+pyjwt = "^2.9.0"
 
 [tool.poetry.group.dev.dependencies]
 bpython = "^0.18.0"

@@ -18,13 +18,27 @@
                 <div class="text-center" id="viewedText"></div>
             </div>
         </div>
-        {% if binge_mode and next_link %}
-            <div id="binge-watch-row" class="row bingeWatchRow">
-                <div class="col-xs-12">
-                    Binge watching is <button class='btn btn-success play-controls' name='bingewatch-btn' id='bingewatch-btn' onclick='toggleBingeWatch();'>Enabled</button>
-                </div>
+        <div class="row text-center">
+            {% if binge_mode and next_link %}
+            <div class="col-1">
             </div>
-        {% endif %}
+            <div class="col-4">
+                Binge watching is <button class='btn btn-success play-controls' name='bingewatch-btn' id='bingewatch-btn' onclick='toggleBingeWatch();'>Enabled</button>
+            </div>
+            {% else %}
+            <div class="col-4">
+            </div>
+            {% endif %}
+            <div class="col-2">
+            </div>
+            {% if watch_party_url and username == "yokley" %}
+            <div class="col-4">
+                Start a <a href="{{ watch_party_url }}" class='btn btn-success play-controls'>Watch Party!</a>
+            </div>
+            {% endif %}
+            <div class="col-1">
+            </div>
+        </div>
     </div>
 
     {% block main_table %}

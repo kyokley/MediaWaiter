@@ -1,0 +1,32 @@
+{% extends "display.html" %}
+{% block body %}
+<div class="container">
+    <div id="jitsi-meet-container">
+    </div>
+</div>
+
+    {% block main_table %}
+        {{ super() }}
+    {% endblock %}
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://meet.jit.si/external_api.js'></script>
+    <script>
+        $(document).ready(function (){
+            viewedUrl = '{{ viewedUrl }}';
+            guid = '{{ guid }}';
+            offsetUrl = '{{ offsetUrl }}';
+            dirPath = '{{ hashPath }}';
+            watch_party_room_name = '{{ watch_party_room_name }}';
+            jitsi_jwt = '{{ jitsi_jwt }}';
+            video_stream_url = '{{ video_stream_url }}';
+
+            video_url = '{{ video_file }}';
+
+            prepareDataTable($);
+            watchPartySetup();
+
+        });
+    </script>
+{% endblock %}
