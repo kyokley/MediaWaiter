@@ -541,6 +541,68 @@ def video(guid, hashPath):
     )
 
 
+@app.route(APP_NAME + "/watch-party/<guid>/<path:hashPath>")
+@logErrorsAndContinue
+def watch_party(guid, hashPath):
+    token = getTokenByGUID(guid)
+
+    errorStr = checkForValidToken(token, guid)
+    if errorStr:
+        return render_template(
+            "error.html",
+            title="Error",
+            errorText=errorStr,
+            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get("theme", DEFAULT_THEME),
+        )
+
+    file_entry = _getFileEntryFromHash(token, hashPath)
+    files = buildEntries(token)
+    tv_genres, movie_genres = getMediaGenres(guid)
+    collections = get_collections(guid)
+
+    token = _extract_donation_info(token)
+    return render_template(
+        "watch_party.html",
+        title=token["displayname"],
+        filename=token["filename"],
+        hashPath=hashPath,
+        video_file=file_entry["path"],
+        subtitle_files=[
+            subtitle.waiter_path for subtitle in file_entry["subtitleFiles"]
+        ],
+        viewedUrl=WAITER_VIEWED_URL,
+        offsetUrl=WAITER_OFFSET_URL,
+        guid=guid,
+        username=token["username"],
+        files=files,
+        mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+        ismovie=token["ismovie"],
+        tv_id=token["tv_id"],
+        tv_name=token["tv_name"],
+        next_link=(
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
+            f"/autoplaydownloadlink/{token.get('next_id')}/"
+            if token.get("next_id")
+            else None
+        ),
+        previous_link=(
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
+            f"/autoplaydownloadlink/{token.get('previous_id')}/"
+            if token.get("previous_id")
+            else None
+        ),
+        tv_genres=tv_genres,
+        movie_genres=movie_genres,
+        collections=collections,
+        binge_mode=token["binge_mode"],
+        CAST_ID=GOOGLE_CAST_APP_ID,
+        donation_site_name=token.get("donation_site_name"),
+        donation_site_url=token.get("donation_site_url"),
+        theme=token.get("theme", DEFAULT_THEME),
+    )
+
+
 @app.route(APP_NAME + "/viewed/<guid>", methods=["POST"])
 @app.route(APP_NAME + "/viewed/<guid>/", methods=["POST"])
 def ajaxviewed(guid):

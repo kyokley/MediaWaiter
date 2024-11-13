@@ -1,0 +1,26 @@
+{% extends "display.html" %}
+{% block body %}
+    <div class="container">
+    </div>
+
+    {% block main_table %}
+        {{ super() }}
+    {% endblock %}
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://meet.jit.si/external_api.js'></script>
+    <script>
+        $(document).ready(function (){
+            viewedUrl = '{{ viewedUrl }}';
+            guid = '{{ guid }}';
+            offsetUrl = '{{ offsetUrl }}';
+            dirPath = '{{ hashPath }}';
+            watch_party_room = '{{ watch_party_room }}';
+
+            prepareDataTable($);
+            watchPartySetup();
+
+        });
+    </script>
+{% endblock %}

@@ -17,6 +17,8 @@ var binge_mode;
 var has_next_link;
 var should_redirect = true;
 
+var watch_party_room;
+
 function prepareDataTable($){
     var tableElement = $('#myTable');
 
@@ -267,4 +269,16 @@ function scrollSetup(){
                 didScroll = false;
             }
         }, 250);
+}
+
+function watchPartySetup(){
+    const domain = 'bangup.dyndns.org';
+    const options = {
+        roomName: watch_party_room,
+        width: 700,
+        height: 700,
+        parentNode: document.querySelector('#container'),
+        lang: 'en'
+    };
+    const api = new JitsiMeetExternalAPI(domain, options);
 }

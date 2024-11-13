@@ -20,8 +20,11 @@
         </div>
         {% if binge_mode and next_link %}
             <div id="binge-watch-row" class="row bingeWatchRow">
-                <div class="col-xs-12">
+                <div class="col-xs-6">
                     Binge watching is <button class='btn btn-success play-controls' name='bingewatch-btn' id='bingewatch-btn' onclick='toggleBingeWatch();'>Enabled</button>
+                </div>
+                <div class="col-xs-6">
+                    Start a <button class='btn btn-success play-controls' name='bingewatch-btn' id='bingewatch-btn' onclick='toggleBingeWatch();'>Watch Party!</button>
                 </div>
             </div>
         {% endif %}
