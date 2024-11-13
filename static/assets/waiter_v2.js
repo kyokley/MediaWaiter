@@ -16,8 +16,10 @@ var delta = 10;
 var binge_mode;
 var has_next_link;
 var should_redirect = true;
+var username;
 
 var watch_party_room;
+var jitsi_jwt;
 
 function prepareDataTable($){
     var tableElement = $('#myTable');
@@ -274,10 +276,15 @@ function scrollSetup(){
 function watchPartySetup(){
     const domain = 'bangup.dyndns.org';
     const options = {
-        roomName: watch_party_room,
+        // roomName: watch_party_room,
+        userInfo: {
+            displayName: username,
+            email: username
+        },
+        jwt: jitsi_jwt,
         width: 700,
         height: 700,
-        parentNode: document.querySelector('#container'),
+        parentNode: document.querySelector('#meet-container'),
         lang: 'en'
     };
     const api = new JitsiMeetExternalAPI(domain, options);

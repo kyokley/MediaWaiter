@@ -1,5 +1,6 @@
 import os
 import secure
+import jwt
 
 from collections import namedtuple
 from pathlib import Path
@@ -24,6 +25,9 @@ from settings import (
     GOOGLE_CAST_APP_ID,
     REQUESTS_TIMEOUT,
     DEFAULT_THEME,
+    JITSI_JWT_APP_ID,
+    JITSI_JWT_APP_SECRET,
+    JITSI_JWT_SUB,
 )
 from utils import (
     humansize,
@@ -500,6 +504,13 @@ def video(guid, hashPath):
     collections = get_collections(guid)
 
     token = _extract_donation_info(token)
+
+    watch_party_url = (f'{APP_NAME}/watch-party/{guid}/{hashPath}'
+                       if JITSI_JWT_APP_ID and
+                       JITSI_JWT_APP_SECRET and
+                       JITSI_JWT_SUB
+                       else "")
+
     return render_template(
         "video.html",
         title=token["displayname"],
@@ -538,7 +549,7 @@ def video(guid, hashPath):
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
         theme=token.get("theme", DEFAULT_THEME),
-        watch_party_url=f'/watch-party/{guid}/{hashPath}',
+        watch_party_url=watch_party_url,
     )
 
 
@@ -563,6 +574,22 @@ def watch_party(guid, hashPath):
     collections = get_collections(guid)
 
     token = _extract_donation_info(token)
+
+    jitsi_payload = {
+            "context": {
+                "user": {
+                    "name": token["username"],
+                    "email": token["username"]
+                    }
+                },
+            "aud": JITSI_JWT_APP_ID,
+            "iss": JITSI_JWT_APP_ID,
+            "sub": JITSI_JWT_SUB,
+            "room": "*"
+            }
+    encoded_jwt = jwt.encode(jitsi_payload,
+                             JITSI_JWT_APP_SECRET,
+                             )
     return render_template(
         "watch_party.html",
         title=token["displayname"],
@@ -601,6 +628,7 @@ def watch_party(guid, hashPath):
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
         theme=token.get("theme", DEFAULT_THEME),
+        jitsi_jwt=encoded_jwt,
     )
 
 
