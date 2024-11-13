@@ -592,7 +592,10 @@ def watch_party(guid, hashPath):
                              JITSI_JWT_APP_SECRET,
                              )
     watch_party_room_name = uuid.uuid4()
-    video_stream_url = f'{APP_NAME}/file/{guid}/'
+    if token["ismovie"]:
+        video_stream_url = f'{APP_NAME}/dir/{guid}/'
+    else:
+        video_stream_url = f'{APP_NAME}/file/{guid}/'
     return render_template(
         "watch_party.html",
         title=token["displayname"],
