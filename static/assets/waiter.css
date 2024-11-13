@@ -133,3 +133,8 @@ li.nav-item > a.btn-outline-primary:hover {
     color: var(--bs-btn-hover-border-color);
     background-color: transparent;
 }
+
+#jitsi-meet-container {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+}

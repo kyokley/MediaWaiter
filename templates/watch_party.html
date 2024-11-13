@@ -1,7 +1,7 @@
 {% extends "display.html" %}
 {% block body %}
 <div class="container">
-    <div id="meet-container">
+    <div id="jitsi-meet-container">
     </div>
 </div>
 
@@ -18,8 +18,11 @@
             guid = '{{ guid }}';
             offsetUrl = '{{ offsetUrl }}';
             dirPath = '{{ hashPath }}';
-            watch_party_room = '{{ watch_party_room }}';
+            watch_party_room_name = '{{ watch_party_room_name }}';
             jitsi_jwt = '{{ jitsi_jwt }}';
+            video_stream_url = '{{ video_stream_url }}';
+
+            video_url = '{{ video_file }}';
 
             prepareDataTable($);
             watchPartySetup();

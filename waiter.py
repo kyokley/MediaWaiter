@@ -1,6 +1,7 @@
 import os
 import secure
 import jwt
+import uuid
 
 from collections import namedtuple
 from pathlib import Path
@@ -590,6 +591,8 @@ def watch_party(guid, hashPath):
     encoded_jwt = jwt.encode(jitsi_payload,
                              JITSI_JWT_APP_SECRET,
                              )
+    watch_party_room_name = uuid.uuid4()
+    video_stream_url = f'{APP_NAME}/file/{guid}/'
     return render_template(
         "watch_party.html",
         title=token["displayname"],
@@ -629,6 +632,8 @@ def watch_party(guid, hashPath):
         donation_site_url=token.get("donation_site_url"),
         theme=token.get("theme", DEFAULT_THEME),
         jitsi_jwt=encoded_jwt,
+        watch_party_room_name=watch_party_room_name,
+        video_stream_url=video_stream_url,
     )
 
 
