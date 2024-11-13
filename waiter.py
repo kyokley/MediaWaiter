@@ -538,6 +538,7 @@ def video(guid, hashPath):
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
         theme=token.get("theme", DEFAULT_THEME),
+        watch_party_url=f'/watch-party/{guid}/{hashPath}',
     )
 
 
