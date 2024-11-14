@@ -353,6 +353,11 @@ def autoplay(guid):
     tv_genres, movie_genres = getMediaGenres(guid)
     collections = get_collections(guid)
     token = _extract_donation_info(token)
+
+    watch_party_url = get_watch_party_url(guid,
+                                          file_entry['hashedWaiterPath'],
+                                          token['username'])
+
     return render_template(
         "video.html",
         title=token["displayname"],
@@ -391,7 +396,20 @@ def autoplay(guid):
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
         theme=token.get("theme", DEFAULT_THEME),
+        watch_party_url=watch_party_url,
     )
+
+
+def get_watch_party_url(guid, hashPath, username):
+    watch_party_url = ''
+
+    if username in ('yokley',):
+        watch_party_url = (f'{APP_NAME}/watch-party/{guid}/{hashPath}'
+                        if JITSI_JWT_APP_ID and
+                        JITSI_JWT_APP_SECRET and
+                        JITSI_JWT_SUB
+                        else "")
+    return watch_party_url
 
 
 def _cli_links(guid):
@@ -506,11 +524,9 @@ def video(guid, hashPath):
 
     token = _extract_donation_info(token)
 
-    watch_party_url = (f'{APP_NAME}/watch-party/{guid}/{hashPath}'
-                       if JITSI_JWT_APP_ID and
-                       JITSI_JWT_APP_SECRET and
-                       JITSI_JWT_SUB
-                       else "")
+    watch_party_url = get_watch_party_url(guid,
+                                          hashPath,
+                                          token['username'])
 
     return render_template(
         "video.html",
