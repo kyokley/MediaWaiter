@@ -33,7 +33,11 @@
             </div>
             {% if watch_party_url and username == "yokley" %}
             <div class="col-4">
-                Start a <a href="{{ watch_party_url }}" class='btn btn-success play-controls'>Watch Party!</a>
+                Start a <a href="{{ watch_party_url }}"
+                           class='btn btn-primary play-controls'
+                           data-bs-toggle="tooltip"
+                           data-bs-title="This feature is still in beta but give it a try!"
+                           >Watch Party!</a>
             </div>
             {% endif %}
             <div class="col-1">
