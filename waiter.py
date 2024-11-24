@@ -401,15 +401,11 @@ def autoplay(guid):
 
 
 def get_watch_party_url(guid, hashPath, username):
-    watch_party_url = ''
-
-    if username in ('yokley',):
-        watch_party_url = (f'{APP_NAME}/watch-party/{guid}/{hashPath}'
-                        if JITSI_JWT_APP_ID and
-                        JITSI_JWT_APP_SECRET and
-                        JITSI_JWT_SUB
-                        else "")
-    return watch_party_url
+    return (f'{APP_NAME}/watch-party/{guid}/{hashPath}'
+                if JITSI_JWT_APP_ID and
+                JITSI_JWT_APP_SECRET and
+                JITSI_JWT_SUB
+                else "")
 
 
 def _cli_links(guid):
