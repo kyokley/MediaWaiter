@@ -24,6 +24,9 @@ var video_url;
 var jitsi_meet;
 var video_stream_url;
 
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
 function prepareDataTable($){
     var tableElement = $('#myTable');
 
@@ -293,6 +296,8 @@ function watchPartySetup(){
     jitsi_meet = new JitsiMeetExternalAPI(domain, options);
     jitsi_meet.addEventListener('videoConferenceJoined', startVideo);
     jitsi_meet.addEventListener('videoConferenceLeft', closeVideo);
+
+    jitsi_meet.executeCommand('setVideoQuality', 180);
 }
 
 function startVideo(arg){
