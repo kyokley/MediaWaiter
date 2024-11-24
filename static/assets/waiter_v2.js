@@ -287,6 +287,7 @@ function watchPartySetup(){
             displayName: username,
             email: username
         },
+        configOverwrite: { startWithAudioMuted: true },
         jwt: jitsi_jwt,
         width: "100%",
         height: "100%",
