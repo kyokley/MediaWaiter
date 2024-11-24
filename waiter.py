@@ -1,7 +1,8 @@
 import os
 import secure
 import jwt
-import uuid
+import random
+import string
 
 from collections import namedtuple
 from pathlib import Path
@@ -44,6 +45,11 @@ from utils import (
 )
 from log import log
 import requests
+
+rand = random.SystemRandom()
+
+ROOM_NAME_CHARS = string.ascii_letters + string.digits
+ROOM_NAME_LENGTH = 20
 
 Subtitle = namedtuple("Subtitle", "path,hashed_filename,waiter_path")
 STREAMABLE_FILE_TYPES = (".mp4",)
@@ -401,15 +407,11 @@ def autoplay(guid):
 
 
 def get_watch_party_url(guid, hashPath, username):
-    watch_party_url = ''
-
-    if username in ('yokley',):
-        watch_party_url = (f'{APP_NAME}/watch-party/{guid}/{hashPath}'
-                        if JITSI_JWT_APP_ID and
-                        JITSI_JWT_APP_SECRET and
-                        JITSI_JWT_SUB
-                        else "")
-    return watch_party_url
+    return (f'{APP_NAME}/watch-party/{guid}/{hashPath}'
+                if JITSI_JWT_APP_ID and
+                JITSI_JWT_APP_SECRET and
+                JITSI_JWT_SUB
+                else "")
 
 
 def _cli_links(guid):
@@ -570,6 +572,12 @@ def video(guid, hashPath):
     )
 
 
+def get_jitsi_room_name():
+    chars = [rand.choice(ROOM_NAME_CHARS)
+             for x in range(ROOM_NAME_LENGTH)]
+    return ''.join(chars)
+
+
 @app.route(APP_NAME + "/watch-party/<guid>/<path:hashPath>")
 @logErrorsAndContinue
 def watch_party(guid, hashPath):
@@ -607,7 +615,7 @@ def watch_party(guid, hashPath):
     encoded_jwt = jwt.encode(jitsi_payload,
                              JITSI_JWT_APP_SECRET,
                              )
-    watch_party_room_name = uuid.uuid4()
+    watch_party_room_name = get_jitsi_room_name()
     if token["ismovie"]:
         video_stream_url = f'{APP_NAME}/dir/{guid}/'
     else:
