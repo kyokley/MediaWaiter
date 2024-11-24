@@ -287,7 +287,14 @@ function watchPartySetup(){
             displayName: username,
             email: username
         },
-        configOverwrite: { startWithAudioMuted: true },
+        configOverwrite: {
+            fileRecordingsEnabled: false,
+            startWithAudioMuted: true,
+            startAudioMuted: 0
+        },
+        interfaceConfigOverwrite: {
+            APP_NAME: "MediaViewer"
+        },
         jwt: jitsi_jwt,
         width: "100%",
         height: "100%",
