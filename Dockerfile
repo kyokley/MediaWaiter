@@ -34,17 +34,26 @@ ENV PYTHONPATH=/code
 RUN pip install -U pip wheel setuptools && pip install -U poetry
 
 FROM base-builder AS base
+
+RUN groupadd -r user && \
+        useradd -r -g user user && \
+        chown -R user:user /app
+
 COPY poetry.lock pyproject.toml configs/docker_settings.py /code/
 
 RUN poetry install --without dev && mkdir /root/logs /root/media
 
 
 FROM base AS prod
+USER user
 COPY . /code
 COPY --from=static-builder /code/node_modules /var/static
 COPY ./static/assets /var/static/assets
 CMD gunicorn waiter:gunicorn_app
 
-FROM base AS dev
+FROM base AS dev-root
 COPY --from=static-builder /code/node_modules /var/static
 RUN poetry install
+
+FROM dev-root AS dev
+USER user
