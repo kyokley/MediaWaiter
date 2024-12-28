@@ -35,9 +35,9 @@ RUN pip install -U pip wheel setuptools && pip install -U poetry
 
 FROM base-builder AS base
 
-RUN groupadd -r user && \
-        useradd -r -g user user && \
-        chown -R user:user /app
+RUN addgroup user && \
+        adduser -DHG user user && \
+        chown -R user:user /code
 
 COPY poetry.lock pyproject.toml configs/docker_settings.py /code/
 
