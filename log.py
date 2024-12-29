@@ -37,4 +37,6 @@ class LogFile:
         return cls.logger
 
 
-log = LogFile.getLogger()
+def logger():
+    log = LogFile.getLogger()
+    return log
