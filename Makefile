@@ -1,12 +1,11 @@
 .PHONY: build build-dev up up-no-daemon tests attach shell help list static publish push static pytest bandit
 
 UID := 1000
-GID := 1000
 
 export UID
-export GID
 
 DOCKER_COMPOSE_EXECUTABLE=$$(which docker-compose >/dev/null 2>&1 && echo 'docker-compose' || echo 'docker compose')
+DOCKER_COMPOSE_TEST_ARGS=-f docker-compose.yml -f docker-compose.test.yml
 
 help: ## This help
 	@grep -F "##" $(MAKEFILE_LIST) | grep -vF '@grep -F "##" $$(MAKEFILE_LIST)' | sed -r 's/(:).*##/\1/' | sort
@@ -14,13 +13,13 @@ help: ## This help
 list: ## List all targets
 	@make -qp | awk -F':' '/^[a-zA-Z0-9][^$$#\/\t=]*:([^=]|$$)/ {split($$1,A,/ /);for(i in A)print A[i]}'
 
-build: ## Build prod-like container
+build: touch-history ## Build prod-like container
 	docker build --build-arg UID=${UID} --tag=kyokley/mediawaiter --target=prod .
 
-build-dev: ## Build dev container
+build-dev: touch-history ## Build dev container
 	docker build --build-arg UID=${UID} --tag=kyokley/mediawaiter --target=dev .
 
-build-base: ## Build dev container
+build-base: touch-history ## Build dev container
 	docker build --build-arg UID=${UID} --tag=kyokley/mediawaiter --target=base-builder .
 
 logs: ## Tail container logs
@@ -53,11 +52,13 @@ tests: pytest bandit ## Run tests
 
 pytest: build-dev ## Run pytests
 	docker run --rm -t \
+	    -e MW_IGNORE_MEDIA_DIR_CHECKS=true \
 	    -v $$(pwd):/code \
 	    kyokley/mediawaiter sh -c "/venv/bin/pytest"
 
 bandit: build-dev ## Run bandit
 	docker run --rm -t \
+	    -e MW_IGNORE_MEDIA_DIR_CHECKS=true \
 	    -v $$(pwd):/code \
 	    kyokley/mediawaiter sh -c "/venv/bin/bandit -x '**/tests/test_*.py,./.venv' -r ."
 
@@ -71,3 +72,8 @@ publish: push ## Alias for push
 
 autoformat: build-dev
 	docker run --rm -t -v $$(pwd):/code kyokley/mediawaiter /venv/bin/black /code
+
+touch-history:
+	@touch .mw.history
+	@mkdir -p logs
+	@chmod -R 777 logs

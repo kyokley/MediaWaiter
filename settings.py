@@ -37,7 +37,9 @@ except (IOError, FileNotFoundError):
 BASE_PATH = Path(os.getenv("MW_BASE_PATH")) if os.getenv("MW_BASE_PATH") else Path("/path/to/base/folder")
 
 # Directories for server status checking. Should be relative to the BASE_PATH.
-MEDIA_DIRS = os.environ["MW_MEDIA_DIRS"].split(',')
+IGNORE_MEDIA_DIR_CHECKS = strtobool(os.getenv('MW_IGNORE_MEDIA_DIR_CHECKS', 'false').lower())
+
+MEDIA_DIRS = os.environ["MW_MEDIA_DIRS"].split(',') if not IGNORE_MEDIA_DIR_CHECKS else []
 
 APP_NAME = "/waiter"
 
@@ -76,6 +78,9 @@ JITSI_JWT_SUB = os.environ.get("JITSI_JWT_SUB", "")
 try:
     from local_settings import *  # noqa
 except:  # nosec # noqa
+    pass
+
+if not IGNORE_MEDIA_DIR_CHECKS:
     if not MEDIA_DIRS:
         raise Exception(f'Got improperly configured MEDIA_DIRS: {MEDIA_DIRS}')
 
@@ -83,4 +88,3 @@ except:  # nosec # noqa
         dir = BASE_PATH / dir_name
         if not dir.exists():
             raise Exception(f'{dir} does not exist')
-
