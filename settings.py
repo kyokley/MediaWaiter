@@ -1,10 +1,11 @@
 import os
+from pathlib import Path
 from distutils.util import strtobool
 
 DEBUG = strtobool(os.getenv("FLASK_DEBUG", "false").lower())
 HOST = "127.0.0.1"
 PORT = 5000
-USE_NGINX = True
+USE_NGINX = strtobool(os.getenv("MW_USE_NGINX", "true").lower())
 
 MINIMUM_FILE_SIZE = 20_000_000
 
@@ -33,17 +34,19 @@ except (IOError, FileNotFoundError):
 
 # The system expects the Movie and tv show folders to exist in a
 # BASE_PATH folder. The path to that folder is defined below
-BASE_PATH = "/path/to/base/folder"
+BASE_PATH = Path(os.getenv("MW_BASE_PATH")) if os.getenv("MW_BASE_PATH") else Path("/path/to/base/folder")
 
 # Directories for server status checking. Should be relative to the BASE_PATH.
 MEDIA_DIRS = ["Movies", "tv_shows"]
 
 APP_NAME = "/waiter"
 
-LOG_PATH = "/path/to/log/folder"
+LOG_PATH = Path(os.getenv("MW_LOG_DIR")) if os.getenv("MW_LOG_DIR") else Path("/path/to/log/folder")
 LOG_FILE_NAME = "waiterLog"
 
-EXTERNAL_MEDIAVIEWER_BASE_URL = MEDIAVIEWER_BASE_URL = "http://127.0.0.1/mediaviewer"
+EXTERNAL_MEDIAVIEWER_BASE_URL = os.getenv('MW_EXTERNAL_MEDIAVIEWER_BASE_URL', 'http://localhost:8000/mediaviewer')
+MEDIAVIEWER_BASE_URL = os.getenv('MW_MEDIAVIEWER_BASE_URL', 'http://mediaviewer:8000/mediaviewer')
+
 MEDIAVIEWER_GUID_URL = MEDIAVIEWER_BASE_URL + "/api/downloadtoken/%(guid)s/"
 MEDIAVIEWER_GUID_OFFSET_URL = (
     MEDIAVIEWER_BASE_URL + "/ajaxvideoprogress/%(guid)s/%(filename)s/"
@@ -53,14 +56,14 @@ MEDIAVIEWER_VIEWED_URL = MEDIAVIEWER_BASE_URL + "/ajaxsuperviewed/"
 WAITER_VIEWED_URL = "/waiter/viewed/"
 WAITER_OFFSET_URL = "/waiter/offset/"
 
-MEDIAVIEWER_SUFFIX = "mv-encoded"
+MEDIAVIEWER_SUFFIX = os.getenv('MEDIAVIEWER_SUFFIX', 'mv-encoded')
 
-WAITER_USERNAME = "username"
-WAITER_PASSWORD = "password"  # nosec
+WAITER_USERNAME = os.getenv('WAITER_USERNAME')
+WAITER_PASSWORD = os.getenv('WAITER_PASSWORD')
 VERIFY_REQUESTS = True
 
 GOOGLE_CAST_APP_ID = "insert cast SDK ID here"
-MEDIAWAITER_PROTOCOL = "https://"
+MEDIAWAITER_PROTOCOL = os.getenv('MW_MEDIAWAITER_PROTOCOL', "https://")
 
 REQUESTS_TIMEOUT = 3  # in secs
 
