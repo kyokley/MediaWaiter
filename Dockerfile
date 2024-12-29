@@ -35,6 +35,7 @@ ENV PYTHONPATH=/code
 RUN pip install -U pip wheel setuptools && pip install -U poetry
 
 FROM base-builder AS base
+WORKDIR /code
 ARG UID=1000
 
 RUN addgroup -g ${UID} user && \
