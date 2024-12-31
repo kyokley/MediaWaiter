@@ -74,6 +74,5 @@ autoformat: build-dev
 	docker run --rm -t -v $$(pwd):/code kyokley/mediawaiter /venv/bin/black /code
 
 touch-history:
-	@touch .mw.history
 	@mkdir -p logs
 	@chmod -R 777 logs
