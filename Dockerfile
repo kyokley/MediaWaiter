@@ -39,9 +39,9 @@ WORKDIR /code
 ARG UID=1000
 
 RUN addgroup -g ${UID} user && \
-        adduser -u ${UID} -DHG user user && \
-        chown -R user:user /code /www && \
-        chmod 777 -R /www
+        adduser -u ${UID} -DHG user user
+RUN chown -R user:user /code /www && \
+        chmod 555 -R /www /code
 
 COPY poetry.lock pyproject.toml /code/
 
