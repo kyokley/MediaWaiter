@@ -3,11 +3,11 @@ from pathlib import Path
 from distutils.util import strtobool
 
 DEBUG = strtobool(os.getenv("FLASK_DEBUG", "false").lower())
-HOST = "127.0.0.1"
-PORT = 5000
+HOST = os.getenv('MW_HOST', "127.0.0.1")
+PORT = int(os.getenv('MW_PORT', 5000))
 USE_NGINX = strtobool(os.getenv("MW_USE_NGINX", "true").lower())
 
-MINIMUM_FILE_SIZE = 20_000_000
+MINIMUM_FILE_SIZE = int(os.getenv('MW_MINIMUM_FILE_SIZE', 20_000_000))
 
 REPO_DIR = os.path.dirname(os.path.abspath(__file__))
 # Generate a secret key
@@ -64,7 +64,7 @@ WAITER_USERNAME = os.getenv('WAITER_USERNAME')
 WAITER_PASSWORD = os.getenv('WAITER_PASSWORD')
 VERIFY_REQUESTS = True
 
-GOOGLE_CAST_APP_ID = "insert cast SDK ID here"
+GOOGLE_CAST_APP_ID = os.getenv('MW_GOOGLE_CAST_APP_ID', "insert cast SDK ID here")
 MEDIAWAITER_PROTOCOL = os.getenv('MW_MEDIAWAITER_PROTOCOL', "https://")
 
 REQUESTS_TIMEOUT = 3  # in secs
