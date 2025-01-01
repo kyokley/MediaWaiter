@@ -9,10 +9,10 @@ USE_NGINX = strtobool(os.getenv("MW_USE_NGINX", "true").lower())
 
 MINIMUM_FILE_SIZE = int(os.getenv('MW_MINIMUM_FILE_SIZE', 20_000_000))
 
-REPO_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 # Generate a secret key
 # Borrowed from https://gist.github.com/ndarville/3452907
-SECRET_FILE = os.path.join(REPO_DIR, "secret.txt")
+SECRET_FILE = Path(os.getenv('MW_SECRET_FILE')) if os.getenv('MW_SECRET_FILE') else REPO_DIR / "secret.txt"
 try:
     with open(SECRET_FILE, "r") as secret_file:
         SECRET_KEY = secret_file.read().strip()
