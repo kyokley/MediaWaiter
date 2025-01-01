@@ -51,16 +51,10 @@ shell-base: build-base ## Run shell in builder-base container
 tests: pytest bandit ## Run tests
 
 pytest: build-dev ## Run pytests
-	docker run --rm -t \
-	    -e MW_IGNORE_MEDIA_DIR_CHECKS=true \
-	    -v $$(pwd):/code \
-	    kyokley/mediawaiter sh -c "/venv/bin/pytest"
+	${DOCKER_COMPOSE_EXECUTABLE} ${DOCKER_COMPOSE_TEST_ARGS} run mediawaiter sh -c "/venv/bin/pytest"
 
 bandit: build-dev ## Run bandit
-	docker run --rm -t \
-	    -e MW_IGNORE_MEDIA_DIR_CHECKS=true \
-	    -v $$(pwd):/code \
-	    kyokley/mediawaiter sh -c "/venv/bin/bandit -x '**/tests/test_*.py,./.venv' -r ."
+	${DOCKER_COMPOSE_EXECUTABLE} ${DOCKER_COMPOSE_TEST_ARG} run mediawaiter sh -c "/venv/bin/bandit -x '**/tests/test_*.py,./.venv' -r ."
 
 down: ## Bring all containers down
 	${DOCKER_COMPOSE_EXECUTABLE} down

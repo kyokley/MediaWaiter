@@ -39,7 +39,7 @@ WORKDIR /code
 ARG UID=1000
 
 RUN addgroup -g ${UID} user && \
-        adduser -u ${UID} -DHG user user
+        adduser -u ${UID} -DG user user
 RUN chown -R user:user /code /www && \
         chmod 555 -R /www /code
 
