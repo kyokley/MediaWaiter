@@ -400,7 +400,6 @@ class TestGetFile:
             "waiter.EXTERNAL_MEDIAVIEWER_BASE_URL", "BASE_URL"
         )
         self.WAITER_OFFSET_URL = mocker.patch("waiter.WAITER_OFFSET_URL", "OFFSET_URL")
-        self.mock_log = mocker.patch("waiter.log")
         self.STREAMABLE_FILE_TYPES_patcher = mocker.patch(
             "waiter.STREAMABLE_FILE_TYPES", (".mp4",)
         )
@@ -563,7 +562,6 @@ class TestGetStatus:
             media_dir.mkdir()
             self.media_dirs.append(media_dir)
 
-        self.mock_log = mocker.patch("waiter.log")
         self.mock_jsonify = mocker.patch("waiter.jsonify")
 
     def test_good(self, mocker):

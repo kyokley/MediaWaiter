@@ -1,7 +1,7 @@
 import time
 import requests
 
-from log import log
+from log import logger
 from settings import (
     APP_NAME,
     MEDIAVIEWER_BASE_URL,
@@ -16,6 +16,7 @@ from settings import (
     REQUESTS_TIMEOUT,
 )
 import hashlib
+
 
 ONE_MB = 1000000
 
@@ -33,27 +34,27 @@ def humansize(nbytes):
     return f"{val} {suffixes[i]}"
 
 
-class delayedRetry(object):
+class delayedRetry:
     def __init__(self, attempts=5, interval=1):
         self.attempts = attempts
         self.interval = interval
 
     def __call__(self, func):
         def wrap(*args, **kwargs):
-            log.debug(f"Attempting {func.__name__}")
+            logger().debug(f"Attempting {func.__name__}")
             last_exc = None
             for i in range(self.attempts):
                 try:
-                    log.debug(f"Attempt {i}")
+                    logger().debug(f"Attempt {i}")
                     res = func(*args, **kwargs)
-                    log.debug("Success")
+                    logger().debug("Success")
                     return res
                 except Exception as e:
-                    log.error(e)
+                    logger().error(e)
                     last_exc = e
                 time.sleep(self.interval)
             else:
-                log.error(f"Failure after {self.attempts} attempts")
+                logger().error(f"Failure after {self.attempts} attempts")
                 raise last_exc
 
         return wrap
@@ -61,10 +62,10 @@ class delayedRetry(object):
 
 def checkForValidToken(token, guid):
     if not token:
-        log.warn(f"Token is invalid GUID: {guid}")
+        logger().warn(f"Token is invalid GUID: {guid}")
         return "This token is invalid! Return to Movie or TV Show tab to generate a new one."
     if not token["isvalid"]:
-        log.warn(f"Token Expired GUID: {guid}")
+        logger().warn(f"Token Expired GUID: {guid}")
         return "This token has expired! Return to Movie or TV Show tab to generate a new one."
 
 
@@ -97,7 +98,7 @@ def getVideoOffset(filename, guid):
         if "date_edited" in resp:
             data["date_edited"] = resp["date_edited"]
     except Exception as e:
-        log.error(e)
+        logger().error(e)
         raise
     return data
 
@@ -114,7 +115,7 @@ def setVideoOffset(filename, guid, offset):
         )
         resp.raise_for_status()
     except Exception as e:
-        log.error(e)
+        logger().error(e)
         raise
 
 
@@ -128,7 +129,7 @@ def deleteVideoOffset(filename, guid):
         )
         resp.raise_for_status()
     except Exception as e:
-        log.error(e)
+        logger().error(e)
         raise
 
 
@@ -139,7 +140,7 @@ def getMediaGenres(guid):
         resp = requests.get(genre_url, timeout=REQUESTS_TIMEOUT)
         resp.raise_for_status()
     except Exception as e:
-        log.error(e)
+        logger().error(e)
         raise
 
     data = resp.json()
@@ -160,7 +161,7 @@ def get_collections(guid):
         resp = requests.get(genre_url, timeout=REQUESTS_TIMEOUT)
         resp.raise_for_status()
     except Exception as e:
-        log.error(e)
+        logger().error(e)
         raise
 
     data = resp.json()

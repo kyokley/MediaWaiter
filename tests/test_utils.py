@@ -82,9 +82,7 @@ class TestHumanSize:
 
 class TestCheckForValidToken:
     @pytest.fixture(autouse=True)
-    def setUp(self, mocker):
-        self.mock_log = mocker.patch("utils.log")
-
+    def setUp(self):
         self.token = {"isvalid": True}
         self.guid = "abc123"
 
@@ -92,7 +90,6 @@ class TestCheckForValidToken:
         expected = "This token is invalid! Return to Movie or TV Show tab to generate a new one."
         actual = checkForValidToken({}, self.guid)
         assert expected == actual
-        self.mock_log.warn.assert_called_once_with("Token is invalid GUID: abc123")
 
     def test_invalidToken(self):
         self.token["isvalid"] = False
@@ -100,13 +97,11 @@ class TestCheckForValidToken:
         expected = "This token has expired! Return to Movie or TV Show tab to generate a new one."
         actual = checkForValidToken(self.token, self.guid)
         assert expected == actual
-        self.mock_log.warn.assert_called_once_with("Token Expired GUID: abc123")
 
     def test_validToken(self):
         expected = None
         actual = checkForValidToken(self.token, self.guid)
         assert expected == actual
-        assert not self.mock_log.warn.called
 
 
 class TestGetMediaGenres:

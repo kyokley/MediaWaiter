@@ -13,7 +13,8 @@ FROM ${BASE_IMAGE} AS base-builder
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-WORKDIR /code
+WORKDIR /www/media
+WORKDIR /code/logs
 
 # Install required packages and remove the apt packages cache when done.
 RUN apk update && apk add \
@@ -34,17 +35,29 @@ ENV PYTHONPATH=/code
 RUN pip install -U pip wheel setuptools && pip install -U poetry
 
 FROM base-builder AS base
-COPY poetry.lock pyproject.toml configs/docker_settings.py /code/
+WORKDIR /code
+ARG UID=1000
 
-RUN poetry install --without dev && mkdir /root/logs /root/media
+RUN addgroup -g ${UID} user && \
+        adduser -u ${UID} -DG user user
+RUN chown -R user:user /code /www && \
+        chmod 555 -R /www /code
+
+COPY poetry.lock pyproject.toml /code/
+
+RUN poetry install --without dev
 
 
 FROM base AS prod
+USER user
 COPY . /code
 COPY --from=static-builder /code/node_modules /var/static
 COPY ./static/assets /var/static/assets
 CMD gunicorn waiter:gunicorn_app
 
-FROM base AS dev
+FROM base AS dev-root
 COPY --from=static-builder /code/node_modules /var/static
 RUN poetry install
+
+FROM dev-root AS dev
+USER user

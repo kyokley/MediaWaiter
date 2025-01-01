@@ -1,18 +1,19 @@
-import logging, os
+import logging
+
 from logging.handlers import RotatingFileHandler
 from settings import LOG_FILE_NAME, LOG_PATH
 
-fullLogPath = os.path.join(LOG_PATH, LOG_FILE_NAME)
+fullLogPath = LOG_PATH / LOG_FILE_NAME
 
 
-class LogFile(object):
+class LogFile:
     logger = None
 
     _instance = None
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance = super(LogFile, cls).__new__(cls, *args, **kwargs)
+            cls._instance = super().__new__(cls, *args, **kwargs)
         return cls._instance
 
     @classmethod
@@ -36,4 +37,6 @@ class LogFile(object):
         return cls.logger
 
 
-log = LogFile.getLogger()
+def logger():
+    log = LogFile.getLogger()
+    return log

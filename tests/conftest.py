@@ -21,3 +21,9 @@ def temp_directory(tmp_path, counter):
 
     if dir.exists():
         shutil.rmtree(dir)
+
+
+@pytest.fixture(autouse=True)
+def patch_logger(mocker):
+    mocker.patch("utils.logger")
+    mocker.patch("waiter.logger")
