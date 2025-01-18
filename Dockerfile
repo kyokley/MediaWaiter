@@ -45,7 +45,7 @@ RUN chown -R user:user /code /www && \
 
 COPY poetry.lock pyproject.toml /code/
 
-RUN poetry install --without dev
+RUN poetry install --no-root --without dev
 
 
 FROM base AS prod
@@ -57,7 +57,7 @@ CMD gunicorn waiter:gunicorn_app
 
 FROM base AS dev-root
 COPY --from=static-builder /code/node_modules /var/static
-RUN poetry install
+RUN poetry install --no-root
 
 FROM dev-root AS dev
 USER user
