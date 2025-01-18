@@ -4,7 +4,10 @@ UID := 1000
 
 export UID
 
-DOCKER_COMPOSE_EXECUTABLE=$$(which docker-compose >/dev/null 2>&1 && echo 'docker-compose' || echo 'docker compose')
+NO_CACHE ?= 0
+USE_HOST_NET ?= 0
+
+DOCKER_COMPOSE_EXECUTABLE=$$(command -v docker-compose >/dev/null 2>&1 && echo 'docker-compose' || echo 'docker compose')
 DOCKER_COMPOSE_TEST_ARGS=-f docker-compose.yml -f docker-compose.test.yml
 
 help: ## This help
@@ -14,13 +17,31 @@ list: ## List all targets
 	@make -qp | awk -F':' '/^[a-zA-Z0-9][^$$#\/\t=]*:([^=]|$$)/ {split($$1,A,/ /);for(i in A)print A[i]}'
 
 build: touch-history ## Build prod-like container
-	docker build --build-arg UID=${UID} --tag=kyokley/mediawaiter --target=prod .
+	docker build \
+		$$(test ${USE_HOST_NET} -ne 0 && echo "--network=host" || echo "") \
+		$$(test ${NO_CACHE} -ne 0 && echo "--no-cache" || echo "") \
+		--build-arg UID=${UID} \
+		--tag=kyokley/mediawaiter \
+		--target=prod \
+		.
 
 build-dev: touch-history ## Build dev container
-	docker build --build-arg UID=${UID} --tag=kyokley/mediawaiter --target=dev .
+	docker build \
+		$$(test ${USE_HOST_NET} -ne 0 && echo "--network=host" || echo "") \
+		$$(test ${NO_CACHE} -ne 0 && echo "--no-cache" || echo "") \
+		--build-arg UID=${UID} \
+		--tag=kyokley/mediawaiter \
+		--target=dev \
+		.
 
 build-base: touch-history ## Build dev container
-	docker build --build-arg UID=${UID} --tag=kyokley/mediawaiter --target=base-builder .
+	docker build \
+		$$(test ${USE_HOST_NET} -ne 0 && echo "--network=host" || echo "") \
+		$$(test ${NO_CACHE} -ne 0 && echo "--no-cache" || echo "") \
+		--build-arg UID=${UID} \
+		--tag=kyokley/mediawaiter \
+		--target=base-builder \
+		.
 
 logs: ## Tail container logs
 	${DOCKER_COMPOSE_EXECUTABLE} logs -f mediawaiter
