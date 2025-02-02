@@ -20,6 +20,7 @@ dependencies = [
     "platformdirs<3.0.0,>=2.5.2",
     "gunicorn<24.0.0,>=23.0.0",
     "pyjwt<3.0.0,>=2.9.0",
+    "setuptools>=75.8.0",
 ]
 name = "mediawaiter"
 version = "0.1.0"
