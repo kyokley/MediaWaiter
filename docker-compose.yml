@@ -1,32 +1,29 @@
 services:
-    mediawaiter:
-        image: kyokley/mediawaiter
-        environment:
-          - FLASK_APP=waiter
-          - FLASK_DEBUG=1
-          - MW_USE_NGINX=false
-          - MW_BASE_PATH=/www/media
-          - MW_LOG_DIR=/logs
-          - MW_MEDIAWAITER_PROTOCOL=http://
-        build:
-            context: .
-            target: dev
-        command:
-            sh -c "python waiter.py"
-        hostname: mediawaiter
-        ports:
-          - "127.0.0.1:5000:5000"
-        tty: true
-        stdin_open: true
-        networks:
-          - mediawaiter-backend
-        volumes:
-          - ./:/code
-          - ./static/assets:/var/static/assets
-
+  mediawaiter:
+    image: kyokley/mediawaiter
+    environment:
+      - FLASK_APP=waiter
+      - FLASK_DEBUG=1
+      - MW_USE_NGINX=false
+      - MW_BASE_PATH=/www/media
+      - MW_LOG_DIR=/logs
+      - MW_MEDIAWAITER_PROTOCOL=http://
+    build:
+      context: .
+      target: dev
+    command: sh -c "python waiter.py"
+    hostname: mediawaiter
+    ports:
+      - "127.0.0.1:5000:5000"
+    tty: true
+    stdin_open: true
+    networks:
+      - mediawaiter-backend
+    volumes:
+      - ./:/code
+      - ./static/assets:/var/static/assets
 # Persistent Volumes
 volumes:
   mediawaiter-data:
-
 networks:
-    mediawaiter-backend:
+  mediawaiter-backend:

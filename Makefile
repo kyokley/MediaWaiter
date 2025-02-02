@@ -1,4 +1,4 @@
-.PHONY: build build-dev up up-no-daemon tests attach shell help list static publish push static pytest bandit
+.PHONY: build build-dev up up-no-daemon tests attach shell help list static publish push static pytest bandit all clean test
 
 UID := 1000
 
@@ -16,7 +16,7 @@ help: ## This help
 list: ## List all targets
 	@make -qp | awk -F':' '/^[a-zA-Z0-9][^$$#\/\t=]*:([^=]|$$)/ {split($$1,A,/ /);for(i in A)print A[i]}'
 
-build: touch-history ## Build prod-like container
+_build: touch-history
 	docker build \
 		$$(test ${USE_HOST_NET} -ne 0 && echo "--network=host" || echo "") \
 		$$(test ${NO_CACHE} -ne 0 && echo "--no-cache" || echo "") \
@@ -24,6 +24,8 @@ build: touch-history ## Build prod-like container
 		--tag=kyokley/mediawaiter \
 		--target=prod \
 		.
+
+build: _build ## Build prod-like container
 
 build-dev: touch-history ## Build dev container
 	docker build \
@@ -40,7 +42,7 @@ build-base: touch-history ## Build dev container
 		$$(test ${NO_CACHE} -ne 0 && echo "--no-cache" || echo "") \
 		--build-arg UID=${UID} \
 		--tag=kyokley/mediawaiter \
-		--target=base-builder \
+		--target=base \
 		.
 
 logs: ## Tail container logs
@@ -72,13 +74,13 @@ shell-base: build-base ## Run shell in builder-base container
 tests: pytest bandit ## Run tests
 
 pytest: build-dev ## Run pytests
-	${DOCKER_COMPOSE_EXECUTABLE} ${DOCKER_COMPOSE_TEST_ARGS} run mediawaiter sh -c "/venv/bin/pytest"
+	${DOCKER_COMPOSE_EXECUTABLE} ${DOCKER_COMPOSE_TEST_ARGS} run --rm mediawaiter pytest
 
 bandit: build-dev ## Run bandit
-	${DOCKER_COMPOSE_EXECUTABLE} ${DOCKER_COMPOSE_TEST_ARG} run mediawaiter sh -c "/venv/bin/bandit -x '**/tests/test_*.py,./.venv' -r ."
+	${DOCKER_COMPOSE_EXECUTABLE} ${DOCKER_COMPOSE_TEST_ARG} run --rm mediawaiter sh -c "bandit -x '**/tests/test_*.py,./.venv' -r ."
 
 down: ## Bring all containers down
-	${DOCKER_COMPOSE_EXECUTABLE} down
+	${DOCKER_COMPOSE_EXECUTABLE} down --remove-orphans
 
 push: build ## Push image to docker hub
 	docker push kyokley/mediawaiter
@@ -86,7 +88,7 @@ push: build ## Push image to docker hub
 publish: push ## Alias for push
 
 autoformat: build-dev
-	docker run --rm -t -v $$(pwd):/code kyokley/mediawaiter /venv/bin/black /code
+	docker run --rm -t -v $$(pwd):/code kyokley/mediawaiter black /code
 
 touch-history:
 	@mkdir -p logs

@@ -1,9 +1,7 @@
 ARG BASE_IMAGE=python:3.12-alpine
 
-FROM ${BASE_IMAGE} AS static-builder
+FROM node:alpine3.20 AS static-builder
 WORKDIR /code
-
-RUN apk update && apk add npm git openssh
 
 COPY package.json package-lock.json /code/
 RUN npm install
@@ -12,6 +10,10 @@ FROM ${BASE_IMAGE} AS base-builder
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=.
+ENV UV_PROJECT_DIR=/mw
+ENV VIRTUAL_ENV=${UV_PROJECT_DIR}/.venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /www/media
 WORKDIR /code/logs
@@ -25,27 +27,24 @@ RUN apk update && apk add \
         libffi-dev \
         cargo \
         openssl-dev \
-        make
+        make && \
+        pip install --upgrade --no-cache-dir pip uv && \
+        uv venv --seed ${VIRTUAL_ENV}
 
-ENV VIRTUAL_ENV=/venv
-RUN python3 -m venv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-ENV PYTHONPATH=/code
-
-RUN pip install -U pip wheel setuptools && pip install -U poetry
 
 FROM base-builder AS base
-WORKDIR /code
 ARG UID=1000
+
+WORKDIR /code
 
 RUN addgroup -g ${UID} user && \
         adduser -u ${UID} -DG user user
 RUN chown -R user:user /code /www && \
         chmod 555 -R /www /code
 
-COPY poetry.lock pyproject.toml /code/
+COPY uv.lock pyproject.toml ${UV_PROJECT_DIR}/
 
-RUN poetry install --no-root --without dev
+RUN uv sync --no-dev --project ${VIRTUAL_ENV}
 
 
 FROM base AS prod
@@ -53,11 +52,11 @@ USER user
 COPY . /code
 COPY --from=static-builder /code/node_modules /var/static
 COPY ./static/assets /var/static/assets
-CMD gunicorn waiter:gunicorn_app
+CMD ["gunicorn", "waiter:gunicorn_app"]
 
 FROM base AS dev-root
 COPY --from=static-builder /code/node_modules /var/static
-RUN poetry install --no-root
+RUN uv sync --project "${VIRTUAL_ENV}"
 
 FROM dev-root AS dev
 USER user

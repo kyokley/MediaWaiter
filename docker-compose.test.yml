@@ -1,7 +1,6 @@
 services:
-    mediawaiter:
-        image: kyokley/mediawaiter
-        environment:
-          - MW_IGNORE_MEDIA_DIR_CHECKS=true
-          - MW_SECRET_FILE=/home/user/key
-
+  mediawaiter:
+    image: kyokley/mediawaiter
+    environment:
+      - MW_IGNORE_MEDIA_DIR_CHECKS=true
+      - MW_SECRET_FILE=/home/user/key

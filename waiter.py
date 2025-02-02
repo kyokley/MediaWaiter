@@ -59,6 +59,7 @@ app = Flask(__name__, static_url_path="/static", static_folder="/var/static")
 
 secure_headers = secure.Secure()
 
+
 @app.after_request
 def set_secure_headers(response):
     secure_headers.framework.flask(response)
@@ -359,9 +360,9 @@ def autoplay(guid):
     collections = get_collections(guid)
     token = _extract_donation_info(token)
 
-    watch_party_url = get_watch_party_url(guid,
-                                          file_entry['hashedWaiterPath'],
-                                          token['username'])
+    watch_party_url = get_watch_party_url(
+        guid, file_entry["hashedWaiterPath"], token["username"]
+    )
 
     return render_template(
         "video.html",
@@ -406,11 +407,11 @@ def autoplay(guid):
 
 
 def get_watch_party_url(guid, hashPath, username):
-    return (f'{APP_NAME}/watch-party/{guid}/{hashPath}'
-                if JITSI_JWT_APP_ID and
-                JITSI_JWT_APP_SECRET and
-                JITSI_JWT_SUB
-                else "")
+    return (
+        f"{APP_NAME}/watch-party/{guid}/{hashPath}"
+        if JITSI_JWT_APP_ID and JITSI_JWT_APP_SECRET and JITSI_JWT_SUB
+        else ""
+    )
 
 
 def _cli_links(guid):
@@ -525,9 +526,7 @@ def video(guid, hashPath):
 
     token = _extract_donation_info(token)
 
-    watch_party_url = get_watch_party_url(guid,
-                                          hashPath,
-                                          token['username'])
+    watch_party_url = get_watch_party_url(guid, hashPath, token["username"])
 
     return render_template(
         "video.html",
@@ -572,9 +571,8 @@ def video(guid, hashPath):
 
 
 def get_jitsi_room_name():
-    chars = [rand.choice(ROOM_NAME_CHARS)
-             for x in range(ROOM_NAME_LENGTH)]
-    return ''.join(chars)
+    chars = [rand.choice(ROOM_NAME_CHARS) for x in range(ROOM_NAME_LENGTH)]
+    return "".join(chars)
 
 
 @app.route(APP_NAME + "/watch-party/<guid>/<path:hashPath>")
@@ -600,25 +598,21 @@ def watch_party(guid, hashPath):
     token = _extract_donation_info(token)
 
     jitsi_payload = {
-            "context": {
-                "user": {
-                    "name": token["username"],
-                    "email": token["username"]
-                    }
-                },
-            "aud": JITSI_JWT_APP_ID,
-            "iss": JITSI_JWT_APP_ID,
-            "sub": JITSI_JWT_SUB,
-            "room": "*"
-            }
-    encoded_jwt = jwt.encode(jitsi_payload,
-                             JITSI_JWT_APP_SECRET,
-                             )
+        "context": {"user": {"name": token["username"], "email": token["username"]}},
+        "aud": JITSI_JWT_APP_ID,
+        "iss": JITSI_JWT_APP_ID,
+        "sub": JITSI_JWT_SUB,
+        "room": "*",
+    }
+    encoded_jwt = jwt.encode(
+        jitsi_payload,
+        JITSI_JWT_APP_SECRET,
+    )
     watch_party_room_name = get_jitsi_room_name()
     if token["ismovie"]:
-        video_stream_url = f'{APP_NAME}/dir/{guid}/'
+        video_stream_url = f"{APP_NAME}/dir/{guid}/"
     else:
-        video_stream_url = f'{APP_NAME}/file/{guid}/'
+        video_stream_url = f"{APP_NAME}/file/{guid}/"
     return render_template(
         "watch_party.html",
         title=token["displayname"],
