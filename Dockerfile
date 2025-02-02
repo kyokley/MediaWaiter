@@ -44,7 +44,7 @@ RUN chown -R user:user /code /www && \
 
 COPY uv.lock pyproject.toml ${UV_PROJECT_DIR}/
 
-# RUN uv sync --no-dev --project ${VIRTUAL_ENV}
+RUN uv sync --no-dev --project ${VIRTUAL_ENV}
 
 
 FROM base AS prod

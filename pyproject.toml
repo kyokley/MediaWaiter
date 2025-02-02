@@ -4,7 +4,7 @@ includes = []
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
-[tool.ruff]
+[tool.ruff.lint]
 select = ["E", "F"]
 ignore = ["E501"]
 
@@ -24,6 +24,7 @@ dependencies = [
 name = "mediawaiter"
 version = "0.1.0"
 description = ""
+package-mode = false
 
 [dependency-groups]
 dev = [
