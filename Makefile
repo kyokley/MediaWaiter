@@ -40,7 +40,7 @@ build-base: touch-history ## Build dev container
 		$$(test ${NO_CACHE} -ne 0 && echo "--no-cache" || echo "") \
 		--build-arg UID=${UID} \
 		--tag=kyokley/mediawaiter \
-		--target=base-builder \
+		--target=base \
 		.
 
 logs: ## Tail container logs
