@@ -2,27 +2,25 @@
 
 {
   # https://devenv.sh/basics/
-  env.GREET = "devenv";
+  # env.GREET = "MV";
 
   # https://devenv.sh/packages/
-  packages = [
-    pkgs.git
-    pkgs.gnumake
-  ];
+  # packages = [
+  #   pkgs.git
+  # ];
 
   # https://devenv.sh/scripts/
-  scripts.hello.exec = "echo hello from $GREET";
+  # scripts.hello.exec = "echo hello from $GREET";
 
-  enterShell = ''
-    hello
-    git --version
-  '';
+  # enterShell = ''
+  #   # hello
+  # '';
 
   # https://devenv.sh/tests/
-  enterTest = ''
-    echo "Running tests"
-    make tests
-  '';
+  # enterTest = ''
+  #   # echo "Running tests"
+  #   # git --version | grep "2.42.0"
+  # '';
 
   # https://devenv.sh/services/
   # services.postgres.enable = true;
@@ -32,19 +30,30 @@
   languages.python = {
     enable = true;
     version = "3.12";
-    poetry = {
+    uv = {
       enable = true;
-      install.enable = true;
-      activate.enable = true;
     };
   };
 
   # https://devenv.sh/pre-commit-hooks/
-  # pre-commit.hooks.shellcheck.enable = true;
+  pre-commit.hooks = {
+    hadolint.enable = false;
+    check-merge-conflicts.enable = true;
+    check-added-large-files.enable = true;
+    check-toml.enable = true;
+    check-yaml.enable = true;
+    checkmake.enable = true;
+    detect-private-keys.enable = true;
+    ripsecrets.enable = true;
+    ruff.enable = true;
+    ruff-format.enable = true;
+    trim-trailing-whitespace.enable = true;
+    yamlfmt.enable = true;
+    yamllint.enable = false;
+  };
 
   # https://devenv.sh/processes/
-  processes.mw.exec = "make build-dev && make up";
-  containers.mw.name = "mediawaiter";
+  # processes.ping.exec = "ping example.com";
 
   # See full reference at https://devenv.sh/reference/options/
 }
