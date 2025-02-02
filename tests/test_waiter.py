@@ -81,9 +81,7 @@ class TestGetDirPath:
         self.mock_getMediaGenres.return_value = ("tv_genres", "movie_genres")
 
         self.mock_get_collections = mocker.patch("waiter.get_collections")
-        self.mock_get_collections.return_value = (
-                (1, "Test Name"),
-                )
+        self.mock_get_collections.return_value = ((1, "Test Name"),)
 
         self.mock_buildWaiterPath = mocker.patch("waiter.buildWaiterPath")
 
@@ -157,7 +155,7 @@ class TestGetDirPath:
             previous_link=None,
             tv_genres="tv_genres",
             movie_genres="movie_genres",
-            collections=((1, 'Test Name'),),
+            collections=((1, "Test Name"),),
             binge_mode=False,
             donation_site_name="",
             donation_site_url="",
@@ -417,9 +415,7 @@ class TestGetFile:
         self.mock_getMediaGenres.return_value = ("tv_genres", "movie_genres")
 
         self.mock_get_collections = mocker.patch("waiter.get_collections")
-        self.mock_get_collections.return_value = (
-                (1, "Test Name"),
-                )
+        self.mock_get_collections.return_value = ((1, "Test Name"),)
 
         self.token = {
             "ismovie": False,
@@ -483,7 +479,7 @@ class TestGetFile:
             previous_link=None,
             tv_genres="tv_genres",
             movie_genres="movie_genres",
-            collections=((1, 'Test Name'),),
+            collections=((1, "Test Name"),),
             binge_mode=True,
             donation_site_name="",
             donation_site_url="",
@@ -513,7 +509,7 @@ class TestGetFile:
             previous_link="BASE_URL/autoplaydownloadlink/234/",
             tv_genres="tv_genres",
             movie_genres="movie_genres",
-            collections=((1, 'Test Name'),),
+            collections=((1, "Test Name"),),
             binge_mode=True,
             donation_site_name="",
             donation_site_url="",
@@ -542,7 +538,7 @@ class TestGetFile:
             previous_link=None,
             tv_genres="tv_genres",
             movie_genres="movie_genres",
-            collections=((1, 'Test Name'),),
+            collections=((1, "Test Name"),),
             binge_mode=False,
             donation_site_name="",
             donation_site_url="",

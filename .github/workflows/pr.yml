@@ -1,18 +1,14 @@
 name: Test
 on:
   pull_request:
-
 jobs:
   test:
     name: Run test suite
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Run pytest
-      run: make pytest
-
-    - name: Run bandit
-      run: make bandit
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run pytest
+        run: make pytest
+      - name: Run bandit
+        run: make bandit

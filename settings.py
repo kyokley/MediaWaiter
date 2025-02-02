@@ -3,16 +3,20 @@ from pathlib import Path
 from distutils.util import strtobool
 
 DEBUG = strtobool(os.getenv("FLASK_DEBUG", "false").lower())
-HOST = os.getenv('MW_HOST', "127.0.0.1")
-PORT = int(os.getenv('MW_PORT', 5000))
+HOST = os.getenv("MW_HOST", "127.0.0.1")
+PORT = int(os.getenv("MW_PORT", 5000))
 USE_NGINX = strtobool(os.getenv("MW_USE_NGINX", "true").lower())
 
-MINIMUM_FILE_SIZE = int(os.getenv('MW_MINIMUM_FILE_SIZE', 20_000_000))
+MINIMUM_FILE_SIZE = int(os.getenv("MW_MINIMUM_FILE_SIZE", 20_000_000))
 
 REPO_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 # Generate a secret key
 # Borrowed from https://gist.github.com/ndarville/3452907
-SECRET_FILE = Path(os.getenv('MW_SECRET_FILE')) if os.getenv('MW_SECRET_FILE') else REPO_DIR / "secret.txt"
+SECRET_FILE = (
+    Path(os.getenv("MW_SECRET_FILE"))
+    if os.getenv("MW_SECRET_FILE")
+    else REPO_DIR / "secret.txt"
+)
 try:
     with open(SECRET_FILE, "r") as secret_file:
         SECRET_KEY = secret_file.read().strip()
@@ -34,20 +38,36 @@ except (IOError, FileNotFoundError):
 
 # The system expects the Movie and tv show folders to exist in a
 # BASE_PATH folder. The path to that folder is defined below
-BASE_PATH = Path(os.getenv("MW_BASE_PATH")) if os.getenv("MW_BASE_PATH") else Path("/path/to/base/folder")
+BASE_PATH = (
+    Path(os.getenv("MW_BASE_PATH"))
+    if os.getenv("MW_BASE_PATH")
+    else Path("/path/to/base/folder")
+)
 
 # Directories for server status checking. Should be relative to the BASE_PATH.
-IGNORE_MEDIA_DIR_CHECKS = strtobool(os.getenv('MW_IGNORE_MEDIA_DIR_CHECKS', 'false').lower())
+IGNORE_MEDIA_DIR_CHECKS = strtobool(
+    os.getenv("MW_IGNORE_MEDIA_DIR_CHECKS", "false").lower()
+)
 
-MEDIA_DIRS = os.environ["MW_MEDIA_DIRS"].split(',') if not IGNORE_MEDIA_DIR_CHECKS else []
+MEDIA_DIRS = (
+    os.environ["MW_MEDIA_DIRS"].split(",") if not IGNORE_MEDIA_DIR_CHECKS else []
+)
 
 APP_NAME = "/waiter"
 
-LOG_PATH = Path(os.getenv("MW_LOG_DIR")) if os.getenv("MW_LOG_DIR") else Path("/path/to/log/folder")
+LOG_PATH = (
+    Path(os.getenv("MW_LOG_DIR"))
+    if os.getenv("MW_LOG_DIR")
+    else Path("/path/to/log/folder")
+)
 LOG_FILE_NAME = "waiterLog"
 
-EXTERNAL_MEDIAVIEWER_BASE_URL = os.getenv('MW_EXTERNAL_MEDIAVIEWER_BASE_URL', 'http://localhost:8000/mediaviewer')
-MEDIAVIEWER_BASE_URL = os.getenv('MW_MEDIAVIEWER_BASE_URL', 'http://mediaviewer:8000/mediaviewer')
+EXTERNAL_MEDIAVIEWER_BASE_URL = os.getenv(
+    "MW_EXTERNAL_MEDIAVIEWER_BASE_URL", "http://localhost:8000/mediaviewer"
+)
+MEDIAVIEWER_BASE_URL = os.getenv(
+    "MW_MEDIAVIEWER_BASE_URL", "http://mediaviewer:8000/mediaviewer"
+)
 
 MEDIAVIEWER_GUID_URL = MEDIAVIEWER_BASE_URL + "/api/downloadtoken/%(guid)s/"
 MEDIAVIEWER_GUID_OFFSET_URL = (
@@ -58,14 +78,14 @@ MEDIAVIEWER_VIEWED_URL = MEDIAVIEWER_BASE_URL + "/ajaxsuperviewed/"
 WAITER_VIEWED_URL = "/waiter/viewed/"
 WAITER_OFFSET_URL = "/waiter/offset/"
 
-MEDIAVIEWER_SUFFIX = os.getenv('MEDIAVIEWER_SUFFIX', 'mv-encoded')
+MEDIAVIEWER_SUFFIX = os.getenv("MEDIAVIEWER_SUFFIX", "mv-encoded")
 
-WAITER_USERNAME = os.getenv('WAITER_USERNAME')
-WAITER_PASSWORD = os.getenv('WAITER_PASSWORD')
+WAITER_USERNAME = os.getenv("WAITER_USERNAME")
+WAITER_PASSWORD = os.getenv("WAITER_PASSWORD")
 VERIFY_REQUESTS = True
 
-GOOGLE_CAST_APP_ID = os.getenv('MW_GOOGLE_CAST_APP_ID', "insert cast SDK ID here")
-MEDIAWAITER_PROTOCOL = os.getenv('MW_MEDIAWAITER_PROTOCOL', "https://")
+GOOGLE_CAST_APP_ID = os.getenv("MW_GOOGLE_CAST_APP_ID", "insert cast SDK ID here")
+MEDIAWAITER_PROTOCOL = os.getenv("MW_MEDIAWAITER_PROTOCOL", "https://")
 
 REQUESTS_TIMEOUT = 3  # in secs
 
@@ -82,9 +102,9 @@ except:  # nosec # noqa
 
 if not IGNORE_MEDIA_DIR_CHECKS:
     if not MEDIA_DIRS:
-        raise Exception(f'Got improperly configured MEDIA_DIRS: {MEDIA_DIRS}')
+        raise Exception(f"Got improperly configured MEDIA_DIRS: {MEDIA_DIRS}")
 
     for dir_name in MEDIA_DIRS:
         dir = BASE_PATH / dir_name
         if not dir.exists():
-            raise Exception(f'{dir} does not exist')
+            raise Exception(f"{dir} does not exist")
