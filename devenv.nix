@@ -2,7 +2,7 @@
 
 {
   # https://devenv.sh/basics/
-  # env.GREET = "MV";
+  env.MW_IGNORE_MEDIA_DIR_CHECKS = if config.containers.prod.isBuilding then "false" else "true";
 
   # https://devenv.sh/packages/
   # packages = [
@@ -32,7 +32,10 @@
     version = "3.12";
     uv = {
       enable = true;
-      sync.enable = true;
+      sync = {
+        enable = true;
+        extras = [] ++ lib.optionals (config.containers.dev.isBuilding) [ "dev" ];
+      };
     };
   };
 
@@ -54,9 +57,12 @@
   };
 
   # https://devenv.sh/processes/
-  processes.serve.exec = "uv run gunicorn waiter:gunicorn_app";
-  containers.serve.name = "kyokley/mediawaiter";
-  containers.serve.startupCommand = config.processes.serve.exec;
+  processes.dev.exec = "uv run python waiter.py";
+  containers.dev.name = "kyokley/mediawaiter";
+  containers.dev.startupCommand = config.processes.dev.exec;
+
+  containers.prod.name = "kyokley/mediawaiter";
+  containers.prod.startupCommand = "uv run gunicorn waiter:gunicorn_app";
 
   # See full reference at https://devenv.sh/reference/options/
 }
