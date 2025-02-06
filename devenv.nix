@@ -39,6 +39,13 @@
     };
   };
 
+  languages.javascript = {
+    npm = {
+      enable = true;
+      install.enable = true;
+    };
+  };
+
   # https://devenv.sh/pre-commit-hooks/
   pre-commit.hooks = {
     hadolint.enable = false;
