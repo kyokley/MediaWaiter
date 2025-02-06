@@ -32,6 +32,7 @@
     version = "3.12";
     uv = {
       enable = true;
+      sync.enable = true;
     };
   };
 
@@ -53,7 +54,9 @@
   };
 
   # https://devenv.sh/processes/
-  # processes.ping.exec = "ping example.com";
+  processes.serve.exec = "uv run gunicorn waiter:gunicorn_app";
+  containers.serve.name = "kyokley/mediawaiter";
+  containers.serve.startupCommand = config.processes.serve.exec;
 
   # See full reference at https://devenv.sh/reference/options/
 }
