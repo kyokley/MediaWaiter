@@ -27,22 +27,25 @@
 
   # https://devenv.sh/languages/
   # languages.nix.enable = true;
-  languages.python = {
-    enable = true;
-    version = "3.12";
-    uv = {
+  languages = {
+    python = {
       enable = true;
-      sync = {
+      version = "3.12";
+      uv = {
         enable = true;
-        extras = [] ++ lib.optionals (config.containers.dev.isBuilding) [ "dev" ];
+        sync = {
+          enable = true;
+          extras = [] ++ lib.optionals (config.containers.dev.isBuilding) ["dev"];
+        };
       };
     };
-  };
 
-  languages.javascript = {
-    npm = {
+    javascript = {
       enable = true;
-      install.enable = true;
+      npm = {
+        enable = true;
+        install.enable = true;
+      };
     };
   };
 
