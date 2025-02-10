@@ -54,7 +54,7 @@ ROOM_NAME_LENGTH = 20
 Subtitle = namedtuple("Subtitle", "path,hashed_filename,waiter_path")
 STREAMABLE_FILE_TYPES = (".mp4",)
 
-app = Flask(__name__, static_url_path="/static", static_folder="/var/static")
+app = Flask(__name__, static_url_path="/static", static_folder="static")
 
 
 secure_headers = secure.Secure()

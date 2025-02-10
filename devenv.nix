@@ -42,6 +42,7 @@
 
     javascript = {
       enable = true;
+      directory = "${config.devenv.root}/static";
       npm = {
         enable = true;
         install.enable = true;

@@ -4,16 +4,16 @@
         {% block head %}
             <link rel="shortcut icon" type="image/png" href="/static/assets/favicon.ico"/>
 
-            <link href="/static/video.js/dist/video-js.min.css" rel="stylesheet">
-            <link href="/static/@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.css" rel="stylesheet">
-            <link href="/static/videojs-seek-buttons/dist/videojs-seek-buttons.css" rel="stylesheet">
-            <link href="/static/videojs-mobile-ui/dist/videojs-mobile-ui.css" rel="stylesheet">
-            <link href="/static/@silvermine/videojs-airplay/dist/silvermine-videojs-airplay.css" rel="stylesheet">
+            <link href="/static/node_modules/video.js/dist/video-js.min.css" rel="stylesheet">
+            <link href="/static/node_modules/@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.css" rel="stylesheet">
+            <link href="/static/node_modules/videojs-seek-buttons/dist/videojs-seek-buttons.css" rel="stylesheet">
+            <link href="/static/node_modules/videojs-mobile-ui/dist/videojs-mobile-ui.css" rel="stylesheet">
+            <link href="/static/node_modules/@silvermine/videojs-airplay/dist/silvermine-videojs-airplay.css" rel="stylesheet">
 
-            <link href="/static/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-            <link href="/static/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+            <link href="/static/node_modules/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+            <link href="/static/node_modules/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
-            <link href="/static/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+            <link href="/static/node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
             <link href="/static/assets/waiter.css" rel="stylesheet">
 
             <title>MediaViewer - {{title}}</title>
@@ -218,16 +218,16 @@
 
 
         {% block javascript_includes %}
-            <script src="/static/jquery/dist/jquery.min.js"></script>
-            <script src="/static/@popperjs/core/dist/umd/popper.min.js"></script>
-            <script src="/static/bootstrap/dist/js/bootstrap.min.js"></script>
-            <script src="/static/datatables.net/js/dataTables.min.js"></script>
-            <script src="/static/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
-            <script src="/static/video.js/dist/video.js"></script>
-            <script src="/static/@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.js"></script>
-            <script src="/static/videojs-seek-buttons/dist/videojs-seek-buttons.min.js"></script>
-            <script src="/static/videojs-mobile-ui/dist/videojs-mobile-ui.min.js"></script>
-            <script src="/static/@silvermine/videojs-airplay/dist/silvermine-videojs-airplay.min.js"></script>
+            <script src="/static/node_modules/jquery/dist/jquery.min.js"></script>
+            <script src="/static/node_modules/@popperjs/core/dist/umd/popper.min.js"></script>
+            <script src="/static/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+            <script src="/static/node_modules/datatables.net/js/dataTables.min.js"></script>
+            <script src="/static/node_modules/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+            <script src="/static/node_modules/video.js/dist/video.js"></script>
+            <script src="/static/node_modules/@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.js"></script>
+            <script src="/static/node_modules/videojs-seek-buttons/dist/videojs-seek-buttons.min.js"></script>
+            <script src="/static/node_modules/videojs-mobile-ui/dist/videojs-mobile-ui.min.js"></script>
+            <script src="/static/node_modules/@silvermine/videojs-airplay/dist/silvermine-videojs-airplay.min.js"></script>
             <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
             <script src="/static/assets/waiter_v2.js"></script>
         {% endblock %}
