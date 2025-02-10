@@ -1,9 +1,9 @@
 ARG BASE_IMAGE=python:3.12-alpine
 
 FROM node:alpine3.20 AS static-builder
-WORKDIR /code
+WORKDIR /code/static
 
-COPY package.json package-lock.json /code/
+COPY package.json package-lock.json /code/static/
 RUN npm install
 
 FROM ${BASE_IMAGE} AS base-builder
@@ -50,12 +50,11 @@ RUN uv sync --no-dev --project ${VIRTUAL_ENV}
 FROM base AS prod
 USER user
 COPY . /code
-COPY --from=static-builder /code/node_modules /var/static
-COPY ./static/assets /var/static/assets
+COPY --from=static-builder /code/static/node_modules /code/static/
 CMD ["gunicorn", "waiter:gunicorn_app"]
 
 FROM base AS dev-root
-COPY --from=static-builder /code/node_modules /var/static
+COPY --from=static-builder /code/static/node_modules /code/static/
 RUN uv sync --project "${VIRTUAL_ENV}"
 
 FROM dev-root AS dev
