@@ -24,6 +24,7 @@
 
   # https://devenv.sh/services/
   # services.postgres.enable = true;
+  starship.enable = false;
 
   # https://devenv.sh/languages/
   # languages.nix.enable = true;
