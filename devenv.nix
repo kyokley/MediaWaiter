@@ -71,7 +71,7 @@
   # https://devenv.sh/processes/
   processes.dev.exec = "uv run python waiter.py";
   containers.dev.name = "kyokley/mediawaiter";
-  containers.dev.startupCommand = config.processes.dev.exec;
+  containers.dev.startupCommand = pkgs.writeShellScript "startup.sh" "${config.processes.dev.exec}";
 
   containers.prod.name = "kyokley/mediawaiter";
   containers.prod.startupCommand = "uv run gunicorn waiter:gunicorn_app";
