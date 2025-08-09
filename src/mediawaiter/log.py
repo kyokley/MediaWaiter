@@ -1,7 +1,7 @@
 import logging
 
 from logging.handlers import RotatingFileHandler
-from settings import LOG_FILE_NAME, LOG_PATH
+from .settings import LOG_FILE_NAME, LOG_PATH
 
 fullLogPath = LOG_PATH / LOG_FILE_NAME
 

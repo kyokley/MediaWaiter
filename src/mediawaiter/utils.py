@@ -1,8 +1,8 @@
 import time
 import requests
 
-from log import logger
-from settings import (
+from .log import logger
+from .settings import (
     APP_NAME,
     MEDIAVIEWER_BASE_URL,
     MEDIAVIEWER_GUID_OFFSET_URL,

@@ -9,7 +9,7 @@ from pathlib import Path
 from functools import wraps
 from flask import Flask, request, send_file, render_template, jsonify
 from werkzeug.middleware.proxy_fix import ProxyFix
-from settings import (
+from .settings import (
     BASE_PATH,
     MEDIA_DIRS,
     APP_NAME,
@@ -31,7 +31,7 @@ from settings import (
     JITSI_JWT_APP_SECRET,
     JITSI_JWT_SUB,
 )
-from utils import (
+from .utils import (
     humansize,
     delayedRetry,
     checkForValidToken,
@@ -43,7 +43,7 @@ from utils import (
     getMediaGenres,
     get_collections,
 )
-from log import logger
+from .log import logger
 import requests
 
 rand = random.SystemRandom()

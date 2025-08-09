@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from waiter import (
+from src.mediawaiter.waiter import (
     isAlfredEncoding,
     getTokenByGUID,
     get_dirPath,
@@ -10,14 +10,14 @@ from waiter import (
     get_file,
     get_status,
 )
-from settings import REQUESTS_TIMEOUT, DEFAULT_THEME
-import mock
+from src.mediawaiter.settings import REQUESTS_TIMEOUT, DEFAULT_THEME
+from unittest import mock
 
 
 class TestIsAlfredEncoding:
     @pytest.fixture(autouse=True)
     def setUp(self, mocker):
-        mocker.patch("waiter.MEDIAVIEWER_SUFFIX", "TEST_SUFFIX")
+        mocker.patch("src.mediawaiter.waiter.MEDIAVIEWER_SUFFIX", "TEST_SUFFIX")
 
     def test_not_alfred_encoded(self):
         test_str = "test_str"
@@ -33,12 +33,14 @@ class TestIsAlfredEncoding:
 class TestGetTokenByGUID:
     @pytest.fixture(autouse=True)
     def setUp(self, mocker):
-        mocker.patch("waiter.MEDIAVIEWER_GUID_URL", "TEST_GUID_URL%(guid)s")
-        mocker.patch("waiter.WAITER_USERNAME", "TEST_WAITER_USERNAME")
-        mocker.patch("waiter.WAITER_PASSWORD", "TEST_WAITER_PASSWORD")
-        mocker.patch("waiter.VERIFY_REQUESTS", "TEST_VERIFY_REQUESTS")
+        mocker.patch(
+            "src.mediawaiter.waiter.MEDIAVIEWER_GUID_URL", "TEST_GUID_URL%(guid)s"
+        )
+        mocker.patch("src.mediawaiter.waiter.WAITER_USERNAME", "TEST_WAITER_USERNAME")
+        mocker.patch("src.mediawaiter.waiter.WAITER_PASSWORD", "TEST_WAITER_PASSWORD")
+        mocker.patch("src.mediawaiter.waiter.VERIFY_REQUESTS", "TEST_VERIFY_REQUESTS")
 
-        self.requests_patcher = mock.patch("waiter.requests")
+        self.requests_patcher = mock.patch("src.mediawaiter.waiter.requests")
         self.mock_requests = self.requests_patcher.start()
         self.mock_get_result = mock.MagicMock()
         self.mock_requests.get.return_value = self.mock_get_result
@@ -61,11 +63,13 @@ class TestGetTokenByGUID:
 class TestGetDirPath:
     @pytest.fixture(autouse=True)
     def setUp(self, mocker):
-        mocker.patch("waiter.EXTERNAL_MEDIAVIEWER_BASE_URL", "BASE_URL")
-        mocker.patch("waiter.WAITER_OFFSET_URL", "OFFSET_URL")
-        self.mock_getTokenByGUID = mocker.patch("waiter.getTokenByGUID")
-        self.mock_render_template = mocker.patch("waiter.render_template")
-        self.mock_buildEntries = mocker.patch("waiter.buildEntries")
+        mocker.patch("src.mediawaiter.waiter.EXTERNAL_MEDIAVIEWER_BASE_URL", "BASE_URL")
+        mocker.patch("src.mediawaiter.waiter.WAITER_OFFSET_URL", "OFFSET_URL")
+        self.mock_getTokenByGUID = mocker.patch("src.mediawaiter.waiter.getTokenByGUID")
+        self.mock_render_template = mocker.patch(
+            "src.mediawaiter.waiter.render_template"
+        )
+        self.mock_buildEntries = mocker.patch("src.mediawaiter.waiter.buildEntries")
         self.mock_buildEntries.return_value = [
             {
                 "filename": "qwe",
@@ -77,15 +81,21 @@ class TestGetDirPath:
                 "filename": "zxc",
             },
         ]
-        self.mock_getMediaGenres = mocker.patch("waiter.getMediaGenres")
+        self.mock_getMediaGenres = mocker.patch("src.mediawaiter.waiter.getMediaGenres")
         self.mock_getMediaGenres.return_value = ("tv_genres", "movie_genres")
 
-        self.mock_get_collections = mocker.patch("waiter.get_collections")
+        self.mock_get_collections = mocker.patch(
+            "src.mediawaiter.waiter.get_collections"
+        )
         self.mock_get_collections.return_value = ((1, "Test Name"),)
 
-        self.mock_buildWaiterPath = mocker.patch("waiter.buildWaiterPath")
+        self.mock_buildWaiterPath = mocker.patch(
+            "src.mediawaiter.waiter.buildWaiterPath"
+        )
 
-        self.mock_checkForValidToken = mocker.patch("waiter.checkForValidToken")
+        self.mock_checkForValidToken = mocker.patch(
+            "src.mediawaiter.waiter.checkForValidToken"
+        )
         self.test_guid = "test_guid"
 
     def test_getTokenByGUID_raises_exception(self):
@@ -200,9 +210,11 @@ class TestGetDirPath:
 class TestBuildMovieEntries:
     @pytest.fixture(autouse=True)
     def setUp(self, mocker):
-        self.mock_os = mocker.patch("waiter.os")
-        self.mock_buildFileDictHelper = mocker.patch("waiter._buildFileDictHelper")
-        mocker.patch("waiter.BASE_PATH", "/base/path")
+        self.mock_os = mocker.patch("src.mediawaiter.waiter.os")
+        self.mock_buildFileDictHelper = mocker.patch(
+            "src.mediawaiter.waiter._buildFileDictHelper"
+        )
+        mocker.patch("src.mediawaiter.waiter.BASE_PATH", "/base/path")
 
         self.mock_os.path.join.side_effect = ["path/to/movie", "/base/path/to/movie"]
         self.mock_os.walk.return_value = [
@@ -255,14 +267,20 @@ class TestBuildMovieEntries:
 class TestBuildFileDictHelper:
     @pytest.fixture(autouse=True)
     def setUp(self, mocker):
-        self.mock_getsize = mocker.patch("waiter.os.path.getsize")
+        self.mock_getsize = mocker.patch("src.mediawaiter.waiter.os.path.getsize")
 
-        mocker.patch("waiter.MINIMUM_FILE_SIZE", 10000000)
-        mocker.patch("waiter.STREAMABLE_FILE_TYPES", ".mp4")
-        self.mock_isAlfredEncoding = mocker.patch("waiter.isAlfredEncoding")
-        self.mock_hashed_filename = mocker.patch("waiter.hashed_filename")
-        self.mock_buildWaiterPath = mocker.patch("waiter.buildWaiterPath")
-        self.mock_humansize = mocker.patch("waiter.humansize")
+        mocker.patch("src.mediawaiter.waiter.MINIMUM_FILE_SIZE", 10000000)
+        mocker.patch("src.mediawaiter.waiter.STREAMABLE_FILE_TYPES", ".mp4")
+        self.mock_isAlfredEncoding = mocker.patch(
+            "src.mediawaiter.waiter.isAlfredEncoding"
+        )
+        self.mock_hashed_filename = mocker.patch(
+            "src.mediawaiter.waiter.hashed_filename"
+        )
+        self.mock_buildWaiterPath = mocker.patch(
+            "src.mediawaiter.waiter.buildWaiterPath"
+        )
+        self.mock_humansize = mocker.patch("src.mediawaiter.waiter.humansize")
 
         self.token = {
             "filename": "some.dir",
@@ -296,14 +314,22 @@ class TestBuildFileDictHelper:
 class TestSendFileForDownload:
     @pytest.fixture(autouse=True)
     def setUp(self, mocker):
-        mocker.patch("waiter.EXTERNAL_MEDIAVIEWER_BASE_URL", "BASE_URL")
-        mocker.patch("waiter.BASE_PATH", "BASE_PATH")
-        self.mock_getTokenByGUID = mocker.patch("waiter.getTokenByGUID")
-        self.mock_render_template = mocker.patch("waiter.render_template")
-        self.mock_checkForValidToken = mocker.patch("waiter.checkForValidToken")
-        self.mock_buildEntries = mocker.patch("waiter.buildEntries")
-        self.mock_hashed_filename = mocker.patch("waiter.hashed_filename")
-        self.mock_send_file_partial = mocker.patch("waiter.send_file_partial")
+        mocker.patch("src.mediawaiter.waiter.EXTERNAL_MEDIAVIEWER_BASE_URL", "BASE_URL")
+        mocker.patch("src.mediawaiter.waiter.BASE_PATH", "BASE_PATH")
+        self.mock_getTokenByGUID = mocker.patch("src.mediawaiter.waiter.getTokenByGUID")
+        self.mock_render_template = mocker.patch(
+            "src.mediawaiter.waiter.render_template"
+        )
+        self.mock_checkForValidToken = mocker.patch(
+            "src.mediawaiter.waiter.checkForValidToken"
+        )
+        self.mock_buildEntries = mocker.patch("src.mediawaiter.waiter.buildEntries")
+        self.mock_hashed_filename = mocker.patch(
+            "src.mediawaiter.waiter.hashed_filename"
+        )
+        self.mock_send_file_partial = mocker.patch(
+            "src.mediawaiter.waiter.send_file_partial"
+        )
 
         self.token = {
             "path": "test_path",
@@ -395,26 +421,40 @@ class TestGetFile:
     @pytest.fixture(autouse=True)
     def setUp(self, mocker):
         self.EXTERNAL_MEDIAVIEWER_BASE_URL_patcher = mocker.patch(
-            "waiter.EXTERNAL_MEDIAVIEWER_BASE_URL", "BASE_URL"
+            "src.mediawaiter.waiter.EXTERNAL_MEDIAVIEWER_BASE_URL", "BASE_URL"
         )
-        self.WAITER_OFFSET_URL = mocker.patch("waiter.WAITER_OFFSET_URL", "OFFSET_URL")
+        self.WAITER_OFFSET_URL = mocker.patch(
+            "src.mediawaiter.waiter.WAITER_OFFSET_URL", "OFFSET_URL"
+        )
         self.STREAMABLE_FILE_TYPES_patcher = mocker.patch(
-            "waiter.STREAMABLE_FILE_TYPES", (".mp4",)
+            "src.mediawaiter.waiter.STREAMABLE_FILE_TYPES", (".mp4",)
         )
-        self.mock_getTokenByGUID = mocker.patch("waiter.getTokenByGUID")
-        self.mock_checkForValidToken = mocker.patch("waiter.checkForValidToken")
-        self.mock_render_template = mocker.patch("waiter.render_template")
-        self.mock_buildWaiterPath = mocker.patch("waiter.buildWaiterPath")
-        self.mock_hashed_filename = mocker.patch("waiter.hashed_filename")
-        self.mock_getsize = mocker.patch("waiter.os.path.getsize")
-        self.mock_humansize = mocker.patch("waiter.humansize")
-        self.mock_isAlfredEncoding = mocker.patch("waiter.isAlfredEncoding")
-        self.mock_buildEntries = mocker.patch("waiter.buildEntries")
+        self.mock_getTokenByGUID = mocker.patch("src.mediawaiter.waiter.getTokenByGUID")
+        self.mock_checkForValidToken = mocker.patch(
+            "src.mediawaiter.waiter.checkForValidToken"
+        )
+        self.mock_render_template = mocker.patch(
+            "src.mediawaiter.waiter.render_template"
+        )
+        self.mock_buildWaiterPath = mocker.patch(
+            "src.mediawaiter.waiter.buildWaiterPath"
+        )
+        self.mock_hashed_filename = mocker.patch(
+            "src.mediawaiter.waiter.hashed_filename"
+        )
+        self.mock_getsize = mocker.patch("src.mediawaiter.waiter.os.path.getsize")
+        self.mock_humansize = mocker.patch("src.mediawaiter.waiter.humansize")
+        self.mock_isAlfredEncoding = mocker.patch(
+            "src.mediawaiter.waiter.isAlfredEncoding"
+        )
+        self.mock_buildEntries = mocker.patch("src.mediawaiter.waiter.buildEntries")
 
-        self.mock_getMediaGenres = mocker.patch("waiter.getMediaGenres")
+        self.mock_getMediaGenres = mocker.patch("src.mediawaiter.waiter.getMediaGenres")
         self.mock_getMediaGenres.return_value = ("tv_genres", "movie_genres")
 
-        self.mock_get_collections = mocker.patch("waiter.get_collections")
+        self.mock_get_collections = mocker.patch(
+            "src.mediawaiter.waiter.get_collections"
+        )
         self.mock_get_collections.return_value = ((1, "Test Name"),)
 
         self.token = {
@@ -550,7 +590,7 @@ class TestGetStatus:
     @pytest.fixture(autouse=True)
     def setUp(self, mocker, temp_directory):
         self.dir = temp_directory
-        mocker.patch("waiter.BASE_PATH", str(self.dir))
+        mocker.patch("src.mediawaiter.waiter.BASE_PATH", str(self.dir))
 
         self.media_dirs = []
         for i in range(3):
@@ -558,10 +598,12 @@ class TestGetStatus:
             media_dir.mkdir()
             self.media_dirs.append(media_dir)
 
-        self.mock_jsonify = mocker.patch("waiter.jsonify")
+        self.mock_jsonify = mocker.patch("src.mediawaiter.waiter.jsonify")
 
     def test_good(self, mocker):
-        mocker.patch("waiter.MEDIA_DIRS", [str(x) for x in self.media_dirs])
+        mocker.patch(
+            "src.mediawaiter.waiter.MEDIA_DIRS", [str(x) for x in self.media_dirs]
+        )
 
         expected = ({"status": True}, 200)
         actual = get_status()
@@ -569,7 +611,9 @@ class TestGetStatus:
 
     def test_bad(self, mocker):
         self.media_dirs.append("/does/not/exist")
-        mocker.patch("waiter.MEDIA_DIRS", [str(x) for x in self.media_dirs])
+        mocker.patch(
+            "src.mediawaiter.waiter.MEDIA_DIRS", [str(x) for x in self.media_dirs]
+        )
 
         expected = ({"status": False}, 500)
         actual = get_status()

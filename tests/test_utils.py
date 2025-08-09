@@ -1,11 +1,11 @@
 import pytest
-import mock
-from utils import (
+from unittest import mock
+from src.mediawaiter.utils import (
     humansize,
     checkForValidToken,
     getMediaGenres,
 )
-from settings import REQUESTS_TIMEOUT
+from src.mediawaiter.settings import REQUESTS_TIMEOUT
 
 
 class TestHumanSize:
@@ -107,9 +107,9 @@ class TestCheckForValidToken:
 class TestGetMediaGenres:
     @pytest.fixture(autouse=True)
     def setUp(self, mocker):
-        mocker.patch("utils.MEDIAVIEWER_BASE_URL", "base_url")
+        mocker.patch("src.mediawaiter.utils.MEDIAVIEWER_BASE_URL", "base_url")
 
-        self.mock_get = mocker.patch("utils.requests.get")
+        self.mock_get = mocker.patch("src.mediawaiter.utils.requests.get")
 
         self.mock_resp = mock.MagicMock()
         self.mock_resp.json.return_value = {

@@ -25,5 +25,5 @@ def temp_directory(tmp_path, counter):
 
 @pytest.fixture(autouse=True)
 def patch_logger(mocker):
-    mocker.patch("utils.logger")
-    mocker.patch("waiter.logger")
+    mocker.patch("src.mediawaiter.utils.logger")
+    mocker.patch("src.mediawaiter.waiter.logger")
