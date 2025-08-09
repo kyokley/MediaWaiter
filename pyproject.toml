@@ -1,51 +1,20 @@
-[tool.pdm.build]
-includes = []
-[build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
-
-[tool.ruff.lint]
-select = ["E", "F"]
-ignore = ["E501"]
-
-[tool.pytest.ini_options]
-python_files = [
-    "tests.py",
-    "test_*.py",
-    "*_tests.py"
-]
-filterwarnings = [
-    "ignore::pytest.PytestCacheWarning"
-]
-
 [project]
-authors = [
-    {name = "Kevin Yokley", email = "kyokley2@gmail.com"},
-]
-requires-python = "<4.0,>=3.12"
-dependencies = [
-    "flask<4.0,>=3.0",
-    "requests<3.0,>=2.21",
-    "secure<1.0.0,>=0.3.0",
-    "platformdirs<3.0.0,>=2.5.2",
-    "gunicorn<24.0.0,>=23.0.0",
-    "pyjwt<3.0.0,>=2.9.0",
-    "setuptools>=75.8.0",
-]
 name = "mediawaiter"
 version = "0.1.0"
-description = ""
-package-mode = false
+description = "App to serve HTML5 videos"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.1.0",
+    "gunicorn>=23.0.0",
+    "requests>=2.32.3",
+    "secure>=0.3.0",
+]
 
 [dependency-groups]
 dev = [
-    "bpython<1.0.0,>=0.18.0",
-    "pdbpp<1.0.0,>=0.9.15",
-    "mock<3.0,>=2.0",
-    "bandit<2.0,>=1.5",
-    "coverage<5.0,>=4.5",
-    "diff-cover<3.0,>=2.0",
-    "pytest<8.0.0,>=7.1.1",
-    "pytest-mock<4.0.0,>=3.7.0",
-    "black<25.0.0,>=24.3.0",
+    "bpython>=0.25",
+    "pdbpp>=0.11.7",
+    "pytest>=8.4.1",
+    "pytest-mock>=3.14.1",
 ]
