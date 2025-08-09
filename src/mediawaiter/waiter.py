@@ -149,8 +149,7 @@ def get_dirPath(guid):
         files.extend(buildEntries(token))
     else:
         raise ValueError(
-            f"Only movies are allowed to display contents of directories. "
-            f"GUID = {guid}"
+            f"Only movies are allowed to display contents of directories. GUID = {guid}"
         )
     files.sort(key=lambda x: x["filename"])
 
@@ -468,7 +467,7 @@ def get_status():
         logger().error(e, exc_info=True)
         res["status"] = False
 
-    logger().debug(f'status: {res["status"]}')
+    logger().debug(f"status: {res['status']}")
     return res, 200 if res["status"] else 500
 
 
@@ -489,8 +488,8 @@ def xsendfile(path, filename):
     resp.headers["X-Accel-Redirect"] = redirected_path
     resp.headers["X-Accel-Buffering"] = "no"
 
-    logger().debug(f'X-Accel-Redirect: {resp.headers["X-Accel-Redirect"]}')
-    logger().debug(f'X-Accel-Buffering: {resp.headers["X-Accel-Buffering"]}')
+    logger().debug(f"X-Accel-Redirect: {resp.headers['X-Accel-Redirect']}")
+    logger().debug(f"X-Accel-Buffering: {resp.headers['X-Accel-Buffering']}")
     return resp
 
 
@@ -692,7 +691,7 @@ def videoOffset(guid, hashedFilename):
         return jsonify(data)
     elif request.method == "POST":
         print("POST-ing video offset:")
-        print(f'offset: {request.form["offset"]}')
+        print(f"offset: {request.form['offset']}")
         setVideoOffset(hashedFilename, guid, request.form["offset"])
         return jsonify({"msg": "success"})
     elif request.method == "DELETE":

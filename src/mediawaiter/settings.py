@@ -1,6 +1,12 @@
 import os
 from pathlib import Path
-from distutils.util import strtobool
+
+
+def strtobool(val):
+    if val.lower() in ("true", "t", "yes", "y"):
+        return True
+    return False
+
 
 DEBUG = strtobool(os.getenv("FLASK_DEBUG", "false").lower())
 HOST = os.getenv("MW_HOST", "127.0.0.1")
