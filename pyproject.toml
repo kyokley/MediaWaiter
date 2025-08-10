@@ -1,8 +1,11 @@
 [project]
 name = "mediawaiter"
 version = "0.1.0"
-description = "App to serve HTML5 videos"
+description = "Add your description here"
 readme = "README.md"
+authors = [
+    { name = "Kevin Yokley", email = "kyokley@mars" }
+]
 requires-python = ">=3.12"
 dependencies = [
     "flask>=3.1.0",
@@ -19,3 +22,10 @@ dev = [
     "pytest>=8.4.1",
     "pytest-mock>=3.14.1",
 ]
+
+[project.scripts]
+mediawaiter = "src.mediawaiter.main:main"
+
+[build-system]
+requires = ["uv_build>=0.8.2,<0.9.0"]
+build-backend = "uv_build"

@@ -67,7 +67,10 @@
         # Development Shell
         devShells.default = pkgs.mkShell {
           packages = [ devPythonEnv pkgs.ruff pkgs.uv ];
-          shellHook = '' # Your custom shell hooks */ '';
+          shellHook = ''
+            export PYTHONPATH=.
+            export MW_IGNORE_MEDIA_DIR_CHECKS=true
+          '';
         };
 
         # Nix Package for Your Application
@@ -81,9 +84,9 @@
 
           installPhase = ''
             mkdir -p $out/bin
-            cp waiter.py log.py settings.py utils.py $out/bin/
+            cp -r src $out/bin/
             makeWrapper ${appPythonEnv}/bin/python $out/bin/${thisProjectAsNixPkg.pname} \
-              --add-flags $out/bin/waiter.py
+              --add-flags "-m src.mediawaiter.main $out/bin/src/mediawaiter/waiter.py"
           '';
         };
         packages.${thisProjectAsNixPkg.pname} = self.packages.${system}.default;
