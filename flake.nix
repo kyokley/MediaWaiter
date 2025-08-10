@@ -86,7 +86,8 @@
             mkdir -p $out/bin
             cp -r src $out/bin/
             makeWrapper ${appPythonEnv}/bin/python $out/bin/${thisProjectAsNixPkg.pname} \
-              --add-flags "-m src.mediawaiter.main $out/bin/src/mediawaiter/waiter.py"
+              --add-flags "-m gunicorn 'src.mediawaiter.waiter:gunicorn_app' -c ./src/mediawaiter/gunicorn.conf.py" \
+              --chdir $out/bin
           '';
         };
         packages.${thisProjectAsNixPkg.pname} = self.packages.${system}.default;
@@ -97,6 +98,19 @@
           program = "${self.packages.${system}.default}/bin/${thisProjectAsNixPkg.pname}";
         };
         apps.${thisProjectAsNixPkg.pname} = self.apps.${system}.default;
+
+        packages.docker-image = pkgs.dockerTools.buildImage {
+          name = "kyokley/mediawaiter";
+          tag = "latest";
+          copyToRoot = pkgs.buildEnv {
+            name = "image-root";
+            paths = [ self.packages.${system}.default ];
+            pathsToLink = ["/bin"];
+          };
+          config = {
+            Entrypoint = ["/bin/${thisProjectAsNixPkg.pname}"];
+          };
+        };
       }
     );
 }
