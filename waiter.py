@@ -240,6 +240,7 @@ def _buildFileDictHelper(root, filename, token):
         "streamable": True,
         "filename": filename.split("." + MEDIAVIEWER_SUFFIX)[0],
         "size": humansize(size),
+        "rawSize": size,
         "isAlfredEncoding": True,
         "subtitleFiles": subtitle_files,
         "ismovie": token["ismovie"],
@@ -278,8 +279,9 @@ def send_file_for_download(guid, hashPath):
             theme=token.get("theme", DEFAULT_THEME),
         )
 
-    fullPath = _getFileEntryFromHash(token, hashPath)["unhashedPath"]
-    return send_file_partial(fullPath, fullPath.name)
+    entry = _getFileEntryFromHash(token, hashPath)
+    fullPath = entry["unhashedPath"]
+    return send_file_partial(fullPath, fullPath.name, entry["rawSize"])
 
 
 @app.route(APP_NAME + "/file/<guid>/")
@@ -473,7 +475,7 @@ def after_request(response):
     return response
 
 
-def xsendfile(path, filename):
+def xsendfile(path, filename, size):
     path = str(path)
 
     logger().debug(f"path: {path}")
@@ -493,11 +495,6 @@ def xsendfile(path, filename):
             byte1 = int(g[0])
         if g[1]:
             byte2 = int(g[1])
-
-        if content_length := request.headers.get("content-length"):
-            size = int(content_length)  # Actual size of song
-        else:
-            size = None
 
         if byte2:
             length = byte2 + 1 - byte1
@@ -519,10 +516,10 @@ def xsendfile(path, filename):
     return resp
 
 
-def send_file_partial(path, filename):
+def send_file_partial(path, filename, size):
     if USE_NGINX:
         logger().debug(f"Using NGINX to send {filename}")
-        return xsendfile(path, filename)
+        return xsendfile(path, filename, size)
     else:
         logger().debug(f"Using Flask to send {filename}")
         return send_file(path, conditional=True)
