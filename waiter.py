@@ -483,7 +483,6 @@ def xsendfile(path, filename, size):
     redirected_path = f"/download/{path.split('/', 3)[-1]}"
     logger().debug(f"redirected_path is {redirected_path}")
     # resp = send_file(path, conditional=True)
-    resp = Response(None, 206)
 
     range_header = request.headers.get("Range", None)
     if range_header:  # Client has requested for partial content
@@ -497,22 +496,22 @@ def xsendfile(path, filename, size):
             byte2 = int(g[1])
 
         if byte2:
+            resp = Response(None, 206)
             length = byte2 + 1 - byte1
-        else:
-            length = 1000
 
-        if size is None:
-            size = byte1 + length
+            resp.headers.add(
+                "Content-Range",
+                "bytes {0}-{1}/{2}".format(byte1, byte1 + length - 1, size),
+            )
 
-        resp.headers.add(
-            "Content-Range", "bytes {0}-{1}/{2}".format(byte1, byte1 + length - 1, size)
-        )
+            resp.headers["X-Accel-Redirect"] = redirected_path
+            resp.headers["X-Accel-Buffering"] = "no"
 
-    resp.headers["X-Accel-Redirect"] = redirected_path
-    resp.headers["X-Accel-Buffering"] = "no"
+            logger().debug(f"X-Accel-Redirect: {resp.headers['X-Accel-Redirect']}")
+            logger().debug(f"X-Accel-Buffering: {resp.headers['X-Accel-Buffering']}")
+            return resp
 
-    logger().debug(f"X-Accel-Redirect: {resp.headers['X-Accel-Redirect']}")
-    logger().debug(f"X-Accel-Buffering: {resp.headers['X-Accel-Buffering']}")
+    resp = Response(None, 200)
     return resp
 
 
