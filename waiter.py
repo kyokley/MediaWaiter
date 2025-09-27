@@ -486,7 +486,7 @@ def xsendfile(path, filename):
     logger().debug(f"redirected_path is {redirected_path}")
     resp = send_file(path, conditional=True)
     resp.headers["X-Accel-Redirect"] = redirected_path
-    resp.headers["X-Accel-Buffering"] = "no"
+    resp.headers["X-Accel-Buffering"] = "yes"
 
     logger().debug(f"X-Accel-Redirect: {resp.headers['X-Accel-Redirect']}")
     logger().debug(f"X-Accel-Buffering: {resp.headers['X-Accel-Buffering']}")
