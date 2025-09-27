@@ -488,7 +488,7 @@ def xsendfile(path, filename):
         size = int(request.headers.get("content-length"))  # Actual size of song
 
         # Look up for ranges
-        m = re.search("(\d+)-(\d*)", range_header)
+        m = re.search(r"(\d+)-(\d*)", range_header)
         g = m.groups()
         byte1, byte2 = 0, None
         if g[0]:
