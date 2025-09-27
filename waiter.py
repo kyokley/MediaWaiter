@@ -240,6 +240,7 @@ def _buildFileDictHelper(root, filename, token):
         "streamable": True,
         "filename": filename.split("." + MEDIAVIEWER_SUFFIX)[0],
         "size": humansize(size),
+        "rawSize": size,
         "isAlfredEncoding": True,
         "subtitleFiles": subtitle_files,
         "ismovie": token["ismovie"],
@@ -278,8 +279,9 @@ def send_file_for_download(guid, hashPath):
             theme=token.get("theme", DEFAULT_THEME),
         )
 
-    fullPath = _getFileEntryFromHash(token, hashPath)["unhashedPath"]
-    return send_file_partial(fullPath, fullPath.name)
+    entry = _getFileEntryFromHash(token, hashPath)
+    fullPath = entry["unhashedPath"]
+    return send_file_partial(fullPath, fullPath.name, entry["rawSize"])
 
 
 @app.route(APP_NAME + "/file/<guid>/")
@@ -473,7 +475,7 @@ def after_request(response):
     return response
 
 
-def xsendfile(path, filename):
+def xsendfile(path, filename, size):
     path = str(path)
 
     logger().debug(f"path: {path}")
@@ -481,7 +483,6 @@ def xsendfile(path, filename):
     redirected_path = f"/download/{path.split('/', 3)[-1]}"
     logger().debug(f"redirected_path is {redirected_path}")
     # resp = send_file(path, conditional=True)
-    resp = Response(None, 206)
 
     range_header = request.headers.get("Range", None)
     if range_header:  # Client has requested for partial content
@@ -494,35 +495,30 @@ def xsendfile(path, filename):
         if g[1]:
             byte2 = int(g[1])
 
-        if content_length := request.headers.get("content-length"):
-            size = int(content_length)  # Actual size of song
-        else:
-            size = None
-
         if byte2:
+            resp = Response(None, 206)
             length = byte2 + 1 - byte1
-        else:
-            length = 1000
 
-        if size is None:
-            size = byte1 + length
+            resp.headers.add(
+                "Content-Range",
+                "bytes {0}-{1}/{2}".format(byte1, byte1 + length - 1, size),
+            )
 
-        resp.headers.add(
-            "Content-Range", "bytes {0}-{1}/{2}".format(byte1, byte1 + length - 1, size)
-        )
+            resp.headers["X-Accel-Redirect"] = redirected_path
+            resp.headers["X-Accel-Buffering"] = "no"
 
-    resp.headers["X-Accel-Redirect"] = redirected_path
-    resp.headers["X-Accel-Buffering"] = "no"
+            logger().debug(f"X-Accel-Redirect: {resp.headers['X-Accel-Redirect']}")
+            logger().debug(f"X-Accel-Buffering: {resp.headers['X-Accel-Buffering']}")
+            return resp
 
-    logger().debug(f"X-Accel-Redirect: {resp.headers['X-Accel-Redirect']}")
-    logger().debug(f"X-Accel-Buffering: {resp.headers['X-Accel-Buffering']}")
+    resp = Response(None, 200)
     return resp
 
 
-def send_file_partial(path, filename):
+def send_file_partial(path, filename, size):
     if USE_NGINX:
         logger().debug(f"Using NGINX to send {filename}")
-        return xsendfile(path, filename)
+        return xsendfile(path, filename, size)
     else:
         logger().debug(f"Using Flask to send {filename}")
         return send_file(path, conditional=True)
