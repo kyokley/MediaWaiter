@@ -62,9 +62,8 @@ attach: ## Attach to a running mediawaiter container
 	docker attach $$(docker ps -qf name=mediawaiter_mediawaiter)
 
 shell: build-dev up-d ## Open a shell in a mediawaiter container
-	docker run --rm -it \
-	    -v $$(pwd):/code \
-	    kyokley/mediawaiter sh
+	${DOCKER_COMPOSE_EXECUTABLE} ${DOCKER_COMPOSE_TEST_ARGS} run --rm \
+	    mediawaiter sh
 
 shell-base: build-base ## Run shell in builder-base container
 	docker run --rm -it \
@@ -77,7 +76,7 @@ pytest: build-dev ## Run pytests
 	${DOCKER_COMPOSE_EXECUTABLE} ${DOCKER_COMPOSE_TEST_ARGS} run --rm mediawaiter pytest
 
 bandit: build-dev ## Run bandit
-	${DOCKER_COMPOSE_EXECUTABLE} ${DOCKER_COMPOSE_TEST_ARG} run --rm mediawaiter sh -c "bandit -x '**/tests/test_*.py,./.venv' -r ."
+	${DOCKER_COMPOSE_EXECUTABLE} ${DOCKER_COMPOSE_TEST_ARGS} run --rm mediawaiter sh -c "bandit -x '**/tests/test_*.py,./.venv' -r ."
 
 down: ## Bring all containers down
 	${DOCKER_COMPOSE_EXECUTABLE} down --remove-orphans

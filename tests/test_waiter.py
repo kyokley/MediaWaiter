@@ -221,7 +221,7 @@ class TestBuildMovieEntries:
             self.mock_buildFileDictHelper.return_value,
             self.mock_buildFileDictHelper.return_value,
         ]
-        actual = buildEntries(self.token)
+        actual = list(buildEntries(self.token))
         assert expected == actual
 
         self.mock_buildFileDictHelper.assert_any_call(
@@ -238,7 +238,7 @@ class TestBuildMovieEntries:
         self.mock_buildFileDictHelper.return_value = None
 
         expected = []
-        actual = buildEntries(self.token)
+        actual = list(buildEntries(self.token))
         assert expected == actual
 
         self.mock_buildFileDictHelper.assert_any_call(
@@ -410,6 +410,7 @@ class TestGetFile:
         self.mock_humansize = mocker.patch("waiter.humansize")
         self.mock_isAlfredEncoding = mocker.patch("waiter.isAlfredEncoding")
         self.mock_buildEntries = mocker.patch("waiter.buildEntries")
+        self.mock_buildEntries.return_value = []
 
         self.mock_getMediaGenres = mocker.patch("waiter.getMediaGenres")
         self.mock_getMediaGenres.return_value = ("tv_genres", "movie_genres")
