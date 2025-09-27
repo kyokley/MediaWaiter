@@ -4,7 +4,7 @@
         <div id="video-container" class="row">
             <video id="video1" class="video-js vjs-default-skin vjs-big-play-centered"
             controls
-            preload="auto">
+            preload="none">
 
             <source src="{{ video_file }}" type="video/mp4" />
             {% for subtitle_file in subtitle_files%}
@@ -125,7 +125,7 @@
                     $('#video-container').append(`
                     <video id="video1" class="video-js vjs-default-skin vjs-big-play-centered vjs-flash-fallback"
                     controls
-                    preload="auto">
+                    preload="none">
 
                     <source src="{{ video_file }}" type="video/mp4" />
                     {% for subtitle_file in subtitle_files%}
