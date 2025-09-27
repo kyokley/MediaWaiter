@@ -485,8 +485,6 @@ def xsendfile(path, filename):
 
     range_header = request.headers.get("Range", None)
     if range_header:  # Client has requested for partial content
-        size = int(request.headers.get("content-length"))  # Actual size of song
-
         # Look up for ranges
         m = re.search(r"(\d+)-(\d*)", range_header)
         g = m.groups()
@@ -495,9 +493,19 @@ def xsendfile(path, filename):
             byte1 = int(g[0])
         if g[1]:
             byte2 = int(g[1])
-        length = size - byte1
+
+        if content_length := request.headers.get("content-length"):
+            size = int(content_length)  # Actual size of song
+        else:
+            size = None
+
         if byte2:
             length = byte2 + 1 - byte1
+        else:
+            length = 1000
+
+        if size is None:
+            size = byte1 + length
 
         resp.headers.add(
             "Content-Range", "bytes {0}-{1}/{2}".format(byte1, byte1 + length - 1, size)
