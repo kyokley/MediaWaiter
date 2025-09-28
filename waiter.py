@@ -508,6 +508,8 @@ def xsendfile(path, filename, size):
         "bytes {0}-{1}/{2}".format(byte1, byte1 + length - 1, size),
     )
 
+    resp.headers["Content-Length"] = str(length)
+    resp.headers["Content-Type"] = "video/mp4"
     resp.headers["X-Accel-Redirect"] = redirected_path
     resp.headers["X-Accel-Buffering"] = "no"
 
