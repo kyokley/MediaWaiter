@@ -27,16 +27,24 @@
 
   # https://devenv.sh/languages/
   # languages.nix.enable = true;
-  languages.python = {
-    enable = true;
-    version = "3.12";
-    uv = {
+  languages = {
+    python = {
       enable = true;
+      version = "3.12";
+      uv = {
+        enable = true;
+      };
+    };
+    javascript = {
+      npm = {
+        enable = true;
+        install.enable = true;
+      };
     };
   };
 
   # https://devenv.sh/pre-commit-hooks/
-  pre-commit.hooks = {
+  git-hooks.hooks = {
     hadolint.enable = false;
     check-merge-conflicts.enable = true;
     check-added-large-files.enable = true;
