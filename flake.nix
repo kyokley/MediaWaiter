@@ -36,7 +36,9 @@
 
         # 3. Placeholder for Your Custom Package Overrides
         myCustomOverrides = final: prev: {
-          # e.g., some-package = prev.some-package.overridePythonAttrs (...); */
+          coverage = prev.coverage.overrideAttrs (old: {
+            buildInputs = (old.buildInputs or []) ++ final.resolveBuildSystem {setuptools = [];};
+          });
         };
 
         # 4. Construct the Final Python Package Set
