@@ -94,6 +94,23 @@
         };
         packages.${thisProjectAsNixPkg.pname} = self.packages.${system}.default;
 
+        packages.dev = pkgs.stdenv.mkDerivation {
+          pname = thisProjectAsNixPkg.pname;
+          version = thisProjectAsNixPkg.version;
+          src = ./.; # Source of your main script
+
+          nativeBuildInputs = [ pkgs.makeWrapper ];
+          buildInputs = [ devPythonEnv ]; # Runtime Python environment
+
+          installPhase = ''
+            mkdir -p $out/bin $out/lib
+
+            cp ./gunicorn.conf.py $out/lib/
+
+            makeWrapper ${devPythonEnv}/bin/flask $out/bin/${thisProjectAsNixPkg.pname}
+          '';
+        };
+
         # App for `nix run`
         apps.default = {
           type = "app";
@@ -101,16 +118,29 @@
         };
         apps.${thisProjectAsNixPkg.pname} = self.apps.${system}.default;
 
-        packages.docker-image = pkgs.dockerTools.buildImage {
+        packages.mv-image = pkgs.dockerTools.buildImage {
           name = "kyokley/mediawaiter";
           tag = "latest";
           copyToRoot = pkgs.buildEnv {
             name = "image-root";
             paths = [ self.packages.${system}.default ];
-            pathsToLink = ["/bin"];
+            pathsToLink = ["/bin" "/lib"];
           };
           config = {
-            Entrypoint = ["/bin/${thisProjectAsNixPkg.pname}"];
+            Cmd = ["/bin/${thisProjectAsNixPkg.pname}"];
+          };
+        };
+
+        packages.dev-image = pkgs.dockerTools.buildImage {
+          name = "kyokley/mediawaiter";
+          tag = "latest";
+          copyToRoot = pkgs.buildEnv {
+            name = "image-root";
+            paths = [ self.packages.${system}.dev ];
+            pathsToLink = ["/bin" "/lib"];
+          };
+          config = {
+            Cmd = ["/bin/${thisProjectAsNixPkg.pname}"];
           };
         };
       }
