@@ -3,11 +3,12 @@ import secure
 import jwt
 import random
 import string
+import re
 
 from collections import namedtuple
 from pathlib import Path
 from functools import wraps
-from flask import Flask, request, send_file, render_template, jsonify
+from flask import Flask, request, send_file, render_template, jsonify, Response
 from werkzeug.middleware.proxy_fix import ProxyFix
 from .settings import (
     BASE_PATH,
@@ -180,7 +181,6 @@ def get_dirPath(guid):
 
 
 def buildEntries(token):
-    files = []
     if token["ismovie"]:
         fullMoviePath = Path(token["path"])
 
@@ -188,17 +188,13 @@ def buildEntries(token):
             for filename in filenames:
                 filesDict = _buildFileDictHelper(Path(root), filename, token)
                 if filesDict:
-                    files.append(filesDict)
+                    yield filesDict
     else:
         fullMoviePath = (
             Path(BASE_PATH).joinpath(*Path(token["path"]).parts[-2:])
             / token["filename"]
         )
-        files.append(
-            _buildFileDictHelper(fullMoviePath.parent, fullMoviePath.parts[-1], token)
-        )
-
-    return files
+        yield _buildFileDictHelper(fullMoviePath.parent, fullMoviePath.parts[-1], token)
 
 
 def _buildFileDictHelper(root, filename, token):
@@ -244,6 +240,7 @@ def _buildFileDictHelper(root, filename, token):
         "streamable": True,
         "filename": filename.split("." + MEDIAVIEWER_SUFFIX)[0],
         "size": humansize(size),
+        "rawSize": size,
         "isAlfredEncoding": True,
         "subtitleFiles": subtitle_files,
         "ismovie": token["ismovie"],
@@ -282,8 +279,9 @@ def send_file_for_download(guid, hashPath):
             theme=token.get("theme", DEFAULT_THEME),
         )
 
-    fullPath = _getFileEntryFromHash(token, hashPath)["unhashedPath"]
-    return send_file_partial(fullPath, fullPath.name)
+    entry = _getFileEntryFromHash(token, hashPath)
+    fullPath = entry["unhashedPath"]
+    return send_file_partial(fullPath, fullPath.name, entry["rawSize"])
 
 
 @app.route(APP_NAME + "/file/<guid>/")
@@ -302,7 +300,7 @@ def get_file(guid):
             theme=token.get("theme", DEFAULT_THEME),
         )
 
-    files = buildEntries(token)
+    files = list(buildEntries(token))
     tv_genres, movie_genres = getMediaGenres(guid)
     collections = get_collections(guid)
     token = _extract_donation_info(token)
@@ -353,7 +351,7 @@ def autoplay(guid):
             theme=token.get("theme", DEFAULT_THEME),
         )
 
-    files = buildEntries(token)
+    files = list(buildEntries(token))
     file_entry = files[0]
     tv_genres, movie_genres = getMediaGenres(guid)
     collections = get_collections(guid)
@@ -420,7 +418,7 @@ def _cli_links(guid):
     if errorStr:
         return jsonify({"error": errorStr})
 
-    files = buildEntries(token)
+    files = list(buildEntries(token))
     file_entry = files[0]
 
     return jsonify(
@@ -477,14 +475,41 @@ def after_request(response):
     return response
 
 
-def xsendfile(path, filename):
+def xsendfile(path, filename, size):
     path = str(path)
 
     logger().debug(f"path: {path}")
     logger().debug(f"filename: {filename}")
     redirected_path = f"/download/{path.split('/', 3)[-1]}"
     logger().debug(f"redirected_path is {redirected_path}")
-    resp = send_file(path, conditional=True)
+    # resp = send_file(path, conditional=True)
+
+    range_header = request.headers.get("Range", "0-")
+
+    # Look up for ranges
+    m = re.search(r"(\d+)-(\d*)", range_header)
+    g = m.groups()
+    byte1, byte2 = 0, None
+    if g[0]:
+        byte1 = int(g[0])
+    if g[1]:
+        byte2 = int(g[1])
+    else:
+        byte2 = size - 1
+
+    if size < byte2:
+        byte2 = size - 1
+
+    length = byte2 - byte1 + 1
+
+    resp = Response(None, 206)
+    resp.headers.add(
+        "Content-Range",
+        "bytes {0}-{1}/{2}".format(byte1, byte1 + length - 1, size),
+    )
+
+    resp.headers["Content-Length"] = str(length)
+    resp.headers["Content-Type"] = "video/mp4"
     resp.headers["X-Accel-Redirect"] = redirected_path
     resp.headers["X-Accel-Buffering"] = "no"
 
@@ -493,10 +518,10 @@ def xsendfile(path, filename):
     return resp
 
 
-def send_file_partial(path, filename):
+def send_file_partial(path, filename, size):
     if USE_NGINX:
         logger().debug(f"Using NGINX to send {filename}")
-        return xsendfile(path, filename)
+        return xsendfile(path, filename, size)
     else:
         logger().debug(f"Using Flask to send {filename}")
         return send_file(path, conditional=True)
@@ -519,7 +544,7 @@ def video(guid, hashPath):
         )
 
     file_entry = _getFileEntryFromHash(token, hashPath)
-    files = buildEntries(token)
+    files = list(buildEntries(token))
     tv_genres, movie_genres = getMediaGenres(guid)
     collections = get_collections(guid)
 
@@ -590,7 +615,7 @@ def watch_party(guid, hashPath):
         )
 
     file_entry = _getFileEntryFromHash(token, hashPath)
-    files = buildEntries(token)
+    files = list(buildEntries(token))
     tv_genres, movie_genres = getMediaGenres(guid)
     collections = get_collections(guid)
 
