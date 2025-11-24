@@ -83,11 +83,13 @@
           buildInputs = [ appPythonEnv ]; # Runtime Python environment
 
           installPhase = ''
-            mkdir -p $out/bin
-            cp -r src $out/bin/
-            makeWrapper ${appPythonEnv}/bin/python $out/bin/${thisProjectAsNixPkg.pname} \
-              --add-flags "-m gunicorn 'src.mediawaiter.waiter:gunicorn_app' -c ./src/mediawaiter/gunicorn.conf.py" \
-              --chdir $out/bin
+            mkdir -p $out/bin $out/lib
+
+            cp ./gunicorn.conf.py $out/lib/
+
+            makeWrapper ${appPythonEnv}/bin/gunicorn $out/bin/${thisProjectAsNixPkg.pname} \
+              --add-flags "--config=$out/lib/gunicorn.conf.py" \
+              --add-flags src.mediawaiter.waiter:gunicorn_app
           '';
         };
         packages.${thisProjectAsNixPkg.pname} = self.packages.${system}.default;
