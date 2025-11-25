@@ -107,9 +107,10 @@
           installPhase = ''
             mkdir -p $out/bin $out/lib
 
-            cp ./gunicorn.conf.py $out/lib/
+            cp -r . $out/lib/
 
-            makeWrapper ${devPythonEnv}/bin/flask $out/bin/${thisProjectAsNixPkg.pname}
+            makeWrapper ${devPythonEnv}/bin/mediawaiter $out/bin/${thisProjectAsNixPkg.pname} \
+              --set PYTHONPATH $out/lib
           '';
         };
 
