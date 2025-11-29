@@ -87,18 +87,18 @@ def _extract_donation_info(token):
 def logErrorsAndContinue(func):
     @wraps(func)
     def func_wrapper(*args, **kwargs):
-        logger().debug(f"Attempting {func.__name__}")
+        logger.debug(f"Attempting {func.__name__}")
         token = None
         try:
             res = func(*args, **kwargs)
             return res
         except Exception as e:
-            logger().error(e, exc_info=True)
+            logger.error(e, exc_info=True)
             errorText = "An error has occurred"
             try:
                 token = getTokenByGUID(kwargs.get("guid"))
             except Exception as e:
-                logger().error(e)
+                logger.error(e)
 
             username = token.get("username") if token else None
             theme = token.get("theme", DEFAULT_THEME) if token else DEFAULT_THEME
@@ -132,7 +132,7 @@ def getTokenByGUID(guid):
         )
         return data.json()
     except Exception as e:
-        logger().error(e)
+        logger.error(e)
         raise
 
 
@@ -454,24 +454,24 @@ def get_status():
     base_path = Path(BASE_PATH)
 
     try:
-        logger().debug("Checking linking")
+        logger.debug("Checking linking")
         linked = True
         for dir in MEDIA_DIRS:
             media_path = base_path / dir
             if media_path.exists():
-                logger().debug(f"{media_path} directory is good")
+                logger.debug(f"{media_path} directory is good")
             else:
-                logger().debug(f"{media_path} directory failed")
+                logger.debug(f"{media_path} directory failed")
                 linked = False
 
-        logger().debug(f"Result is {linked}")
+        logger.debug(f"Result is {linked}")
 
         res["status"] = linked
     except Exception as e:
-        logger().error(e, exc_info=True)
+        logger.error(e, exc_info=True)
         res["status"] = False
 
-    logger().debug(f"status: {res['status']}")
+    logger.debug(f"status: {res['status']}")
     return res, 200 if res["status"] else 500
 
 
@@ -484,10 +484,10 @@ def after_request(response):
 def xsendfile(path, filename, size):
     path = str(path)
 
-    logger().debug(f"path: {path}")
-    logger().debug(f"filename: {filename}")
+    logger.debug(f"path: {path}")
+    logger.debug(f"filename: {filename}")
     redirected_path = f"/download/{path.split('/', 3)[-1]}"
-    logger().debug(f"redirected_path is {redirected_path}")
+    logger.debug(f"redirected_path is {redirected_path}")
     # resp = send_file(path, conditional=True)
 
     range_header = request.headers.get("Range", "0-")
@@ -519,17 +519,17 @@ def xsendfile(path, filename, size):
     resp.headers["X-Accel-Redirect"] = redirected_path
     resp.headers["X-Accel-Buffering"] = "no"
 
-    logger().debug(f"X-Accel-Redirect: {resp.headers['X-Accel-Redirect']}")
-    logger().debug(f"X-Accel-Buffering: {resp.headers['X-Accel-Buffering']}")
+    logger.debug(f"X-Accel-Redirect: {resp.headers['X-Accel-Redirect']}")
+    logger.debug(f"X-Accel-Buffering: {resp.headers['X-Accel-Buffering']}")
     return resp
 
 
 def send_file_partial(path, filename, size):
     if USE_NGINX:
-        logger().debug(f"Using NGINX to send {filename}")
+        logger.debug(f"Using NGINX to send {filename}")
         return xsendfile(path, filename, size)
     else:
-        logger().debug(f"Using Flask to send {filename}")
+        logger.debug(f"Using Flask to send {filename}")
         return send_file(path, conditional=True)
 
 
@@ -705,7 +705,7 @@ def ajaxviewed(guid):
 
         req.raise_for_status()
     except Exception as e:
-        logger().error(e)
+        logger.error(e)
         raise
 
     return jsonify({"msg": "Viewed set successfully"})
