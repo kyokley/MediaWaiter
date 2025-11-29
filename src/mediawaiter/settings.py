@@ -62,13 +62,6 @@ MEDIA_DIRS = (
 
 APP_NAME = "/waiter"
 
-LOG_PATH = (
-    Path(os.getenv("MW_LOG_DIR"))
-    if os.getenv("MW_LOG_DIR")
-    else Path("/path/to/log/folder")
-)
-LOG_FILE_NAME = "waiterLog"
-
 EXTERNAL_MEDIAVIEWER_BASE_URL = os.getenv(
     "MW_EXTERNAL_MEDIAVIEWER_BASE_URL", "http://localhost:8000/mediaviewer"
 )

@@ -6,6 +6,7 @@
     GREET = "MV";
     MW_SECRET_FILE = "secret.txt";
     MW_IGNORE_MEDIA_DIR_CHECKS = "true";
+    PYTHONPATH = ".";
   };
 
   # https://devenv.sh/packages/

@@ -1,7 +1,7 @@
 import time
 import requests
+import logging
 
-from .log import logger
 from .settings import (
     APP_NAME,
     MEDIAVIEWER_BASE_URL,
@@ -17,6 +17,7 @@ from .settings import (
 )
 import hashlib
 
+logger = logging.getLogger(__file__)
 
 ONE_MB = 1000000
 

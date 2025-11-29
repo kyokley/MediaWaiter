@@ -4,6 +4,7 @@ import jwt
 import random
 import string
 import re
+import logging
 
 from collections import namedtuple
 from pathlib import Path
@@ -48,8 +49,9 @@ from .utils import (
     getMediaGenres,
     get_collections,
 )
-from .log import logger
 import requests
+
+logger = logging.getLogger(__file__)
 
 rand = random.SystemRandom()
 

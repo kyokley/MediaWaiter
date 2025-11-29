@@ -449,6 +449,7 @@ class TestGetFile:
             "src.mediawaiter.waiter.isAlfredEncoding"
         )
         self.mock_buildEntries = mocker.patch("src.mediawaiter.waiter.buildEntries")
+        self.mock_buildEntries.return_value = ["file1", "file2"]
 
         self.mock_getMediaGenres = mocker.patch("src.mediawaiter.waiter.getMediaGenres")
         self.mock_getMediaGenres.return_value = ("tv_genres", "movie_genres")
@@ -508,7 +509,7 @@ class TestGetFile:
         self.mock_render_template.assert_called_once_with(
             "display.html",
             title="test_displayname",
-            files=self.mock_buildEntries.return_value,
+            files=["file1", "file2"],
             ismovie=False,
             tv_id=123,
             tv_name="test_pathname",
@@ -538,7 +539,7 @@ class TestGetFile:
         self.mock_render_template.assert_called_once_with(
             "display.html",
             title="test_displayname",
-            files=self.mock_buildEntries.return_value,
+            files=["file1", "file2"],
             ismovie=False,
             tv_id=123,
             tv_name="test_pathname",
@@ -567,7 +568,7 @@ class TestGetFile:
         self.mock_render_template.assert_called_once_with(
             "display.html",
             title="test_displayname",
-            files=self.mock_buildEntries.return_value,
+            files=["file1", "file2"],
             ismovie=False,
             tv_id=123,
             tv_name="test_pathname",
