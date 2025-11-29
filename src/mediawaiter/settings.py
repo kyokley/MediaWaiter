@@ -115,3 +115,5 @@ if not IGNORE_MEDIA_DIR_CHECKS:
         dir = BASE_PATH / dir_name
         if not dir.exists():
             raise Exception(f"{dir} does not exist")
+
+STATIC_FOLDER = os.environ.get("MW_STATIC_FOLDER", "/var/static")

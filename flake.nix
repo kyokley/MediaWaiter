@@ -114,6 +114,7 @@
 
             makeWrapper ${devPythonEnv}/bin/mediawaiter $out/bin/${thisProjectAsNixPkg.pname} \
               --set PYTHONPATH $out/lib/mediawaiter
+              --set MW_STATIC_FOLDER $out/lib/mediawaiter/src/mediawaiter/static
           '';
         };
 

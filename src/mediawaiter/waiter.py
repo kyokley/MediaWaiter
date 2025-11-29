@@ -11,6 +11,9 @@ from functools import wraps
 from flask import Flask, request, send_file, render_template, jsonify, Response
 from werkzeug.middleware.proxy_fix import ProxyFix
 from .settings import (
+    DEBUG,
+    PORT,
+    HOST,
     BASE_PATH,
     MEDIA_DIRS,
     APP_NAME,
@@ -31,6 +34,7 @@ from .settings import (
     JITSI_JWT_APP_ID,
     JITSI_JWT_APP_SECRET,
     JITSI_JWT_SUB,
+    STATIC_FOLDER,
 )
 from .utils import (
     humansize,
@@ -55,7 +59,7 @@ ROOM_NAME_LENGTH = 20
 Subtitle = namedtuple("Subtitle", "path,hashed_filename,waiter_path")
 STREAMABLE_FILE_TYPES = (".mp4",)
 
-app = Flask(__name__, static_url_path="/static", static_folder="/var/static")
+app = Flask(__name__, static_url_path="/static", static_folder=STATIC_FOLDER)
 
 
 secure_headers = secure.Secure()
@@ -729,8 +733,6 @@ def videoOffset(guid, hashedFilename):
 
 app.wsgi_app = ProxyFix(app.wsgi_app)
 if __name__ == "__main__":
-    from settings import DEBUG, PORT, HOST
-
     app.debug = DEBUG
     if not DEBUG:
         app.run(host=HOST, port=PORT)
