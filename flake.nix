@@ -64,6 +64,8 @@
           (thisProjectAsNixPkg.pname + "-env")
           workspace.deps.all; # Uses deps from pyproject.toml [project.dependencies]
 
+        # Node/NPM stuff
+        nodeDependencies = (pkgs.callPackage ./default.nix {}).nodeDependencies;
       in
       {
         # Development Shell
@@ -107,7 +109,8 @@
           installPhase = ''
             mkdir -p $out/bin $out/lib
 
-            cp -r . $out/lib/
+            cp -r . $out/lib/mediawaiter
+            mv ${nodeDependencies}/lib/node_modules/* $out/lib/mediawaiter/static/
 
             makeWrapper ${devPythonEnv}/bin/mediawaiter $out/bin/${thisProjectAsNixPkg.pname} \
               --set PYTHONPATH $out/lib
