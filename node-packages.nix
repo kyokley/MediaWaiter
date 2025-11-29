@@ -3,12 +3,376 @@
 {nodeEnv, fetchurl, fetchgit, nix-gitignore, stdenv, lib, globalBuildInputs ? []}:
 
 let
-  sources = {};
+  sources = {
+    "@babel/runtime-7.28.4" = {
+      name = "_at_babel_slash_runtime";
+      packageName = "@babel/runtime";
+      version = "7.28.4";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/@babel/runtime/-/runtime-7.28.4.tgz";
+        sha512 = "Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==";
+      };
+    };
+    "@popperjs/core-2.11.8" = {
+      name = "_at_popperjs_slash_core";
+      packageName = "@popperjs/core";
+      version = "2.11.8";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/@popperjs/core/-/core-2.11.8.tgz";
+        sha512 = "P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==";
+      };
+    };
+    "@silvermine/videojs-airplay-1.3.0" = {
+      name = "_at_silvermine_slash_videojs-airplay";
+      packageName = "@silvermine/videojs-airplay";
+      version = "1.3.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/@silvermine/videojs-airplay/-/videojs-airplay-1.3.0.tgz";
+        sha512 = "Oxq31DIEuKVt0qLj8/n5aaC9RRAc0hryarPVD9SFxPwCQ3A9Ef7bkRkGJz2i7XQxpIhPQ4SkM9BudUj6oHsPzA==";
+      };
+    };
+    "@silvermine/videojs-chromecast-1.5.0" = {
+      name = "_at_silvermine_slash_videojs-chromecast";
+      packageName = "@silvermine/videojs-chromecast";
+      version = "1.5.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/@silvermine/videojs-chromecast/-/videojs-chromecast-1.5.0.tgz";
+        sha512 = "oDWu0WT6NORWqpUHf5xg+GoLlxA/YV7guNDOGsDV51gOqYiKb2HoPXodDfhdzwHczUmPFmbyPwfSC1E+etAOmQ==";
+      };
+    };
+    "@videojs/http-streaming-2.16.3" = {
+      name = "_at_videojs_slash_http-streaming";
+      packageName = "@videojs/http-streaming";
+      version = "2.16.3";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/@videojs/http-streaming/-/http-streaming-2.16.3.tgz";
+        sha512 = "91CJv5PnFBzNBvyEjt+9cPzTK/xoVixARj2g7ZAvItA+5bx8VKdk5RxCz/PP2kdzz9W+NiDUMPkdmTsosmy69Q==";
+      };
+    };
+    "@videojs/vhs-utils-3.0.5" = {
+      name = "_at_videojs_slash_vhs-utils";
+      packageName = "@videojs/vhs-utils";
+      version = "3.0.5";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/@videojs/vhs-utils/-/vhs-utils-3.0.5.tgz";
+        sha512 = "PKVgdo8/GReqdx512F+ombhS+Bzogiofy1LgAj4tN8PfdBx3HSS7V5WfJotKTqtOWGwVfSWsrYN/t09/DSryrw==";
+      };
+    };
+    "@videojs/xhr-2.6.0" = {
+      name = "_at_videojs_slash_xhr";
+      packageName = "@videojs/xhr";
+      version = "2.6.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/@videojs/xhr/-/xhr-2.6.0.tgz";
+        sha512 = "7J361GiN1tXpm+gd0xz2QWr3xNWBE+rytvo8J3KuggFaLg+U37gZQ2BuPLcnkfGffy2e+ozY70RHC8jt7zjA6Q==";
+      };
+    };
+    "@xmldom/xmldom-0.8.11" = {
+      name = "_at_xmldom_slash_xmldom";
+      packageName = "@xmldom/xmldom";
+      version = "0.8.11";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/@xmldom/xmldom/-/xmldom-0.8.11.tgz";
+        sha512 = "cQzWCtO6C8TQiYl1ruKNn2U6Ao4o4WBBcbL61yJl84x+j5sOWWFU9X7DpND8XZG3daDppSsigMdfAIl2upQBRw==";
+      };
+    };
+    "aes-decrypter-3.1.3" = {
+      name = "aes-decrypter";
+      packageName = "aes-decrypter";
+      version = "3.1.3";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/aes-decrypter/-/aes-decrypter-3.1.3.tgz";
+        sha512 = "VkG9g4BbhMBy+N5/XodDeV6F02chEk9IpgRTq/0bS80y4dzy79VH2Gtms02VXomf3HmyRe3yyJYkJ990ns+d6A==";
+      };
+    };
+    "bootstrap-5.3.8" = {
+      name = "bootstrap";
+      packageName = "bootstrap";
+      version = "5.3.8";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/bootstrap/-/bootstrap-5.3.8.tgz";
+        sha512 = "HP1SZDqaLDPwsNiqRqi5NcP0SSXciX2s9E+RyqJIIqGo+vJeN5AJVM98CXmW/Wux0nQ5L7jeWUdplCEf0Ee+tg==";
+      };
+    };
+    "bootstrap-icons-1.13.1" = {
+      name = "bootstrap-icons";
+      packageName = "bootstrap-icons";
+      version = "1.13.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.1.tgz";
+        sha512 = "ijombt4v6bv5CLeXvRWKy7CuM3TRTuPEuGaGKvTV5cz65rQSY8RQ2JcHt6b90cBBAC7s8fsf2EkQDldzCoXUjw==";
+      };
+    };
+    "datatables.net-2.3.5" = {
+      name = "datatables.net";
+      packageName = "datatables.net";
+      version = "2.3.5";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/datatables.net/-/datatables.net-2.3.5.tgz";
+        sha512 = "Qrwc+vuw8GHo42u1usWTuriNAMW0VvLPSW3j8g3GxvatiD8wS/ZGW32VAYLLfmF4Hz0C/fo2KB3xZBfcpqqVTQ==";
+      };
+    };
+    "datatables.net-bs5-2.3.5" = {
+      name = "datatables.net-bs5";
+      packageName = "datatables.net-bs5";
+      version = "2.3.5";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/datatables.net-bs5/-/datatables.net-bs5-2.3.5.tgz";
+        sha512 = "2JA2WZz1tBxdVpYAspiqI8POdqEoAZZzqp7tISKaof2P5ufBJb+OLaahxwuB0sF9qcQh1azlU+JH1zsLBXVwXg==";
+      };
+    };
+    "datatables.net-scroller-2.4.3" = {
+      name = "datatables.net-scroller";
+      packageName = "datatables.net-scroller";
+      version = "2.4.3";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/datatables.net-scroller/-/datatables.net-scroller-2.4.3.tgz";
+        sha512 = "ce6Qa7ObGQmLJYvm6eMglf54L+01/Omn3N1pw7SiQjGYv8AKRRp1ex+U0NWmx3QaWp0iEeTnBaM4G6ay4juYZg==";
+      };
+    };
+    "datatables.net-scroller-bs5-2.4.3" = {
+      name = "datatables.net-scroller-bs5";
+      packageName = "datatables.net-scroller-bs5";
+      version = "2.4.3";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/datatables.net-scroller-bs5/-/datatables.net-scroller-bs5-2.4.3.tgz";
+        sha512 = "Dcg0dlp6XHw7MvnohbygY3fc2KxBGVPFveAlo2oXXKUTzXbiO3hWBvwnk5wKK9Bz5QP47XqqiImtui5ZprOcSg==";
+      };
+    };
+    "dom-walk-0.1.2" = {
+      name = "dom-walk";
+      packageName = "dom-walk";
+      version = "0.1.2";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/dom-walk/-/dom-walk-0.1.2.tgz";
+        sha512 = "6QvTW9mrGeIegrFXdtQi9pk7O/nSK6lSdXW2eqUspN5LWD7UTji2Fqw5V2YLjBpHEoU9Xl/eUWNpDeZvoyOv2w==";
+      };
+    };
+    "global-4.4.0" = {
+      name = "global";
+      packageName = "global";
+      version = "4.4.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/global/-/global-4.4.0.tgz";
+        sha512 = "wv/LAoHdRE3BeTGz53FAamhGlPLhlssK45usmGFThIi4XqnBmjKQ16u+RNbP7WvigRZDxUsM0J3gcQ5yicaL0w==";
+      };
+    };
+    "individual-2.0.0" = {
+      name = "individual";
+      packageName = "individual";
+      version = "2.0.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/individual/-/individual-2.0.0.tgz";
+        sha512 = "pWt8hBCqJsUWI/HtcfWod7+N9SgAqyPEaF7JQjwzjn5vGrpg6aQ5qeAFQ7dx//UH4J1O+7xqew+gCeeFt6xN/g==";
+      };
+    };
+    "is-function-1.0.2" = {
+      name = "is-function";
+      packageName = "is-function";
+      version = "1.0.2";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/is-function/-/is-function-1.0.2.tgz";
+        sha512 = "lw7DUp0aWXYg+CBCN+JKkcE0Q2RayZnSvnZBlwgxHBQhqt5pZNVy4Ri7H9GmmXkdu7LUthszM+Tor1u/2iBcpQ==";
+      };
+    };
+    "jquery-3.7.1" = {
+      name = "jquery";
+      packageName = "jquery";
+      version = "3.7.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/jquery/-/jquery-3.7.1.tgz";
+        sha512 = "m4avr8yL8kmFN8psrbFFFmB/If14iN5o9nw/NgnnM+kybDJpRsAynV2BsfpTYrTRysYUdADVD7CkUUizgkpLfg==";
+      };
+    };
+    "keycode-2.2.1" = {
+      name = "keycode";
+      packageName = "keycode";
+      version = "2.2.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/keycode/-/keycode-2.2.1.tgz";
+        sha512 = "Rdgz9Hl9Iv4QKi8b0OlCRQEzp4AgVxyCtz5S/+VIHezDmrDhkp2N2TqBWOLz0/gbeREXOOiI9/4b8BY9uw2vFg==";
+      };
+    };
+    "m3u8-parser-4.8.0" = {
+      name = "m3u8-parser";
+      packageName = "m3u8-parser";
+      version = "4.8.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/m3u8-parser/-/m3u8-parser-4.8.0.tgz";
+        sha512 = "UqA2a/Pw3liR6Df3gwxrqghCP17OpPlQj6RBPLYygf/ZSQ4MoSgvdvhvt35qV+3NaaA0FSZx93Ix+2brT1U7cA==";
+      };
+    };
+    "min-document-2.19.2" = {
+      name = "min-document";
+      packageName = "min-document";
+      version = "2.19.2";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/min-document/-/min-document-2.19.2.tgz";
+        sha512 = "8S5I8db/uZN8r9HSLFVWPdJCvYOejMcEC82VIzNUc6Zkklf/d1gg2psfE79/vyhWOj4+J8MtwmoOz3TmvaGu5A==";
+      };
+    };
+    "mpd-parser-0.22.1" = {
+      name = "mpd-parser";
+      packageName = "mpd-parser";
+      version = "0.22.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/mpd-parser/-/mpd-parser-0.22.1.tgz";
+        sha512 = "fwBebvpyPUU8bOzvhX0VQZgSohncbgYwUyJJoTSNpmy7ccD2ryiCvM7oRkn/xQH5cv73/xU7rJSNCLjdGFor0Q==";
+      };
+    };
+    "mux.js-6.0.1" = {
+      name = "mux.js";
+      packageName = "mux.js";
+      version = "6.0.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/mux.js/-/mux.js-6.0.1.tgz";
+        sha512 = "22CHb59rH8pWGcPGW5Og7JngJ9s+z4XuSlYvnxhLuc58cA1WqGDQPzuG8I+sPm1/p0CdgpzVTaKW408k5DNn8w==";
+      };
+    };
+    "pkcs7-1.0.4" = {
+      name = "pkcs7";
+      packageName = "pkcs7";
+      version = "1.0.4";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/pkcs7/-/pkcs7-1.0.4.tgz";
+        sha512 = "afRERtHn54AlwaF2/+LFszyAANTCggGilmcmILUzEjvs3XgFZT+xE6+QWQcAGmu4xajy+Xtj7acLOPdx5/eXWQ==";
+      };
+    };
+    "process-0.11.10" = {
+      name = "process";
+      packageName = "process";
+      version = "0.11.10";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/process/-/process-0.11.10.tgz";
+        sha512 = "cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==";
+      };
+    };
+    "rust-result-1.0.0" = {
+      name = "rust-result";
+      packageName = "rust-result";
+      version = "1.0.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/rust-result/-/rust-result-1.0.0.tgz";
+        sha512 = "6cJzSBU+J/RJCF063onnQf0cDUOHs9uZI1oroSGnHOph+CQTIJ5Pp2hK5kEQq1+7yE/EEWfulSNXAQ2jikPthA==";
+      };
+    };
+    "safe-json-parse-4.0.0" = {
+      name = "safe-json-parse";
+      packageName = "safe-json-parse";
+      version = "4.0.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/safe-json-parse/-/safe-json-parse-4.0.0.tgz";
+        sha512 = "RjZPPHugjK0TOzFrLZ8inw44s9bKox99/0AZW9o/BEQVrJfhI+fIHMErnPyRa89/yRXUUr93q+tiN6zhoVV4wQ==";
+      };
+    };
+    "url-toolkit-2.2.5" = {
+      name = "url-toolkit";
+      packageName = "url-toolkit";
+      version = "2.2.5";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/url-toolkit/-/url-toolkit-2.2.5.tgz";
+        sha512 = "mtN6xk+Nac+oyJ/PrI7tzfmomRVNFIWKUbG8jdYFt52hxbiReFAXIjYskvu64/dvuW71IcB7lV8l0HvZMac6Jg==";
+      };
+    };
+    "video.js-7.21.7" = {
+      name = "video.js";
+      packageName = "video.js";
+      version = "7.21.7";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/video.js/-/video.js-7.21.7.tgz";
+        sha512 = "T2s3WFAht7Zjr2OSJamND9x9Dn2O+Z5WuHGdh8jI5SYh5mkMdVTQ7vSRmA5PYpjXJ2ycch6jpMjkJEIEU2xxqw==";
+      };
+    };
+    "videojs-font-3.2.0" = {
+      name = "videojs-font";
+      packageName = "videojs-font";
+      version = "3.2.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/videojs-font/-/videojs-font-3.2.0.tgz";
+        sha512 = "g8vHMKK2/JGorSfqAZQUmYYNnXmfec4MLhwtEFS+mMs2IDY398GLysy6BH6K+aS1KMNu/xWZ8Sue/X/mdQPliA==";
+      };
+    };
+    "videojs-mobile-ui-0.7.0" = {
+      name = "videojs-mobile-ui";
+      packageName = "videojs-mobile-ui";
+      version = "0.7.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/videojs-mobile-ui/-/videojs-mobile-ui-0.7.0.tgz";
+        sha512 = "cfctMUsu+EJ8IYPfAHR6ZTr2fbJWL3Af9QpvTS7JFvEkrGSMLLpuH62uatQ3pxUs4MISs8kgb8/PUqROpfh7MQ==";
+      };
+    };
+    "videojs-seek-buttons-3.0.1" = {
+      name = "videojs-seek-buttons";
+      packageName = "videojs-seek-buttons";
+      version = "3.0.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/videojs-seek-buttons/-/videojs-seek-buttons-3.0.1.tgz";
+        sha512 = "scVWOqCMqHajlbwYZIzJ5nBYkDXTAhEpWjfcdCu8ykksA1barrKnEKdQvS84TtDWOx6UXDD/e/x0acYEZCDMEQ==";
+      };
+    };
+    "videojs-vtt.js-0.15.5" = {
+      name = "videojs-vtt.js";
+      packageName = "videojs-vtt.js";
+      version = "0.15.5";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/videojs-vtt.js/-/videojs-vtt.js-0.15.5.tgz";
+        sha512 = "yZbBxvA7QMYn15Lr/ZfhhLPrNpI/RmCSCqgIff57GC2gIrV5YfyzLfLyZMj0NnZSAz8syB4N0nHXpZg9MyrMOQ==";
+      };
+    };
+    "webcomponents.js-git+https://git@github.com/webcomponents/webcomponentsjs.git#v0.7.24" = {
+      name = "webcomponents.js";
+      packageName = "webcomponents.js";
+      version = "0.7.24";
+      src = fetchgit {
+        url = "https://git@github.com/webcomponents/webcomponentsjs.git";
+        rev = "8a2e40557b177e2cca0def2553f84c8269c8f93e";
+        sha256 = "087b1a73d6d064cfb5ff50b1be1147e6d4b2bc4f85d619523d83950cd5bb55a7";
+      };
+    };
+  };
   args = {
     name = "mediawaiter";
     packageName = "mediawaiter";
     version = "1.0.0";
     src = ./.;
+    dependencies = [
+      sources."@babel/runtime-7.28.4"
+      sources."@popperjs/core-2.11.8"
+      sources."@silvermine/videojs-airplay-1.3.0"
+      sources."@silvermine/videojs-chromecast-1.5.0"
+      sources."@videojs/http-streaming-2.16.3"
+      sources."@videojs/vhs-utils-3.0.5"
+      sources."@videojs/xhr-2.6.0"
+      sources."@xmldom/xmldom-0.8.11"
+      sources."aes-decrypter-3.1.3"
+      sources."bootstrap-5.3.8"
+      sources."bootstrap-icons-1.13.1"
+      sources."datatables.net-2.3.5"
+      sources."datatables.net-bs5-2.3.5"
+      sources."datatables.net-scroller-2.4.3"
+      sources."datatables.net-scroller-bs5-2.4.3"
+      sources."dom-walk-0.1.2"
+      sources."global-4.4.0"
+      sources."individual-2.0.0"
+      sources."is-function-1.0.2"
+      sources."jquery-3.7.1"
+      sources."keycode-2.2.1"
+      sources."m3u8-parser-4.8.0"
+      sources."min-document-2.19.2"
+      sources."mpd-parser-0.22.1"
+      sources."mux.js-6.0.1"
+      sources."pkcs7-1.0.4"
+      sources."process-0.11.10"
+      sources."rust-result-1.0.0"
+      sources."safe-json-parse-4.0.0"
+      sources."url-toolkit-2.2.5"
+      sources."video.js-7.21.7"
+      sources."videojs-font-3.2.0"
+      sources."videojs-mobile-ui-0.7.0"
+      sources."videojs-seek-buttons-3.0.1"
+      sources."videojs-vtt.js-0.15.5"
+      sources."webcomponents.js-git+https://git@github.com/webcomponents/webcomponentsjs.git#v0.7.24"
+    ];
     buildInputs = globalBuildInputs;
     meta = {
       description = "Serve media files";
@@ -17,7 +381,7 @@ let
     };
     production = true;
     bypassCache = true;
-    reconstructLock = false;
+    reconstructLock = true;
   };
 in
 {
