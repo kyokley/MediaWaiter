@@ -2,7 +2,11 @@
 
 {
   # https://devenv.sh/basics/
-  # env.GREET = "MV";
+  env = {
+    GREET = "MV";
+    MW_SECRET_FILE = "secret.txt";
+    MW_IGNORE_MEDIA_DIR_CHECKS = "true";
+  };
 
   # https://devenv.sh/packages/
   packages = [

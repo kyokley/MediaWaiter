@@ -110,10 +110,10 @@
             mkdir -p $out/bin $out/lib
 
             cp -r . $out/lib/mediawaiter
-            mv ${nodeDependencies}/lib/node_modules/* $out/lib/mediawaiter/static/
+            cp -r ${nodeDependencies}/lib/node_modules/* $out/lib/mediawaiter/src/mediawaiter/static/
 
             makeWrapper ${devPythonEnv}/bin/mediawaiter $out/bin/${thisProjectAsNixPkg.pname} \
-              --set PYTHONPATH $out/lib
+              --set PYTHONPATH $out/lib/mediawaiter
           '';
         };
 

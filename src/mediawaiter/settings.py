@@ -15,7 +15,8 @@ USE_NGINX = strtobool(os.getenv("MW_USE_NGINX", "true").lower())
 
 MINIMUM_FILE_SIZE = int(os.getenv("MW_MINIMUM_FILE_SIZE", 20_000_000))
 
-REPO_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+REPO_DIR = Path(__file__).parent
+
 # Generate a secret key
 # Borrowed from https://gist.github.com/ndarville/3452907
 SECRET_FILE = (
