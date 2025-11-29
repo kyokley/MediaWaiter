@@ -124,6 +124,10 @@
           program = "${self.packages.${system}.default}/bin/${thisProjectAsNixPkg.pname}";
         };
         apps.${thisProjectAsNixPkg.pname} = self.apps.${system}.default;
+        apps.dev = {
+          type = "app";
+          program = "${self.packages.${system}.dev}/bin/${thisProjectAsNixPkg.pname}";
+        };
 
         packages.mv-image = pkgs.dockerTools.buildImage {
           name = "kyokley/mediawaiter";
