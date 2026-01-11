@@ -199,7 +199,7 @@ def buildEntries(token):
 
 def _buildFileDictHelper(root, filename, token):
     path = Path(root) / filename
-    size = os.path.getsize(path)
+    size = path.stat().st_size
     ext = path.suffix.lower()
 
     # Files smaller than 10MB probably aren't video files
@@ -258,7 +258,9 @@ def _getFileEntryFromHash(token, hashPath):
 
         for subtitle in entry["subtitleFiles"]:
             if subtitle.hashed_filename == hashPath:
-                return {"unhashedPath": subtitle.path}
+                unhashed_path = Path(subtitle.path)
+                size = unhashed_path.stat().st_size
+                return {"unhashedPath": subtitle.path, "rawSize": size}
     else:
         raise Exception("Unable to find matching path")
 
