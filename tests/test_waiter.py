@@ -206,7 +206,7 @@ class TestBuildMovieEntries:
 
         self.mock_os.path.join.side_effect = ["path/to/movie", "/base/path/to/movie"]
         self.mock_os.walk.return_value = [
-            ("/root/path", [], ["file1", "file2", "file3"])
+            ("some_dir/path", [], ["file1", "file2", "file3"])
         ]
 
         self.token = {
@@ -225,13 +225,13 @@ class TestBuildMovieEntries:
         assert expected == actual
 
         self.mock_buildFileDictHelper.assert_any_call(
-            Path("/root/path"), "file1", self.token
+            Path("some_dir/path"), "file1", self.token
         )
         self.mock_buildFileDictHelper.assert_any_call(
-            Path("/root/path"), "file2", self.token
+            Path("some_dir/path"), "file2", self.token
         )
         self.mock_buildFileDictHelper.assert_any_call(
-            Path("/root/path"), "file3", self.token
+            Path("some_dir/path"), "file3", self.token
         )
 
     def test_no_valid_files(self):
@@ -242,13 +242,13 @@ class TestBuildMovieEntries:
         assert expected == actual
 
         self.mock_buildFileDictHelper.assert_any_call(
-            Path("/root/path"), "file1", self.token
+            Path("some_dir/path"), "file1", self.token
         )
         self.mock_buildFileDictHelper.assert_any_call(
-            Path("/root/path"), "file2", self.token
+            Path("some_dir/path"), "file2", self.token
         )
         self.mock_buildFileDictHelper.assert_any_call(
-            Path("/root/path"), "file3", self.token
+            Path("some_dir/path"), "file3", self.token
         )
 
 
@@ -276,7 +276,7 @@ class TestBuildFileDictHelper:
         self.mock_getsize.return_value = 1000000
 
         expected = None
-        actual = _buildFileDictHelper("/root", "filename.mp4", self.token)
+        actual = _buildFileDictHelper("some_dir", "filename.mp4", self.token)
         assert expected == actual
         assert not self.mock_buildWaiterPath.called
         assert not self.mock_hashed_filename.called
@@ -286,7 +286,7 @@ class TestBuildFileDictHelper:
         self.mock_getsize.return_value = 100000000
 
         expected = None
-        actual = _buildFileDictHelper("/root", "filename.mkv", self.token)
+        actual = _buildFileDictHelper("some_dir", "filename.mkv", self.token)
         assert expected == actual
         assert not self.mock_buildWaiterPath.called
         assert not self.mock_hashed_filename.called
