@@ -258,7 +258,9 @@ def _getFileEntryFromHash(token, hashPath):
 
         for subtitle in entry["subtitleFiles"]:
             if subtitle.hashed_filename == hashPath:
-                return {"unhashedPath": subtitle.path}
+                unhashed_path = Path(subtitle.path)
+                size = unhashed_path.stat().st_size
+                return {"unhashedPath": subtitle.path, "rawSize": size}
     else:
         raise Exception("Unable to find matching path")
 
