@@ -6,22 +6,42 @@
     flake-utils.url = "github:numtide/flake-utils";
 
     # Core pyproject-nix ecosystem tools
-    pyproject-nix.url = "github:pyproject-nix/pyproject.nix";
-    uv2nix.url = "github:pyproject-nix/uv2nix";
-    pyproject-build-systems.url = "github:pyproject-nix/build-system-pkgs";
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
+      # Ensure consistent dependencies between these tools
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-    # Ensure consistent dependencies between these tools
-    pyproject-nix.inputs.nixpkgs.follows = "nixpkgs";
-    uv2nix.inputs.nixpkgs.follows = "nixpkgs";
-    pyproject-build-systems.inputs.nixpkgs.follows = "nixpkgs";
-    uv2nix.inputs.pyproject-nix.follows = "pyproject-nix";
-    pyproject-build-systems.inputs.pyproject-nix.follows = "pyproject-nix";
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        pyproject-nix.follows = "pyproject-nix";
+      };
+    };
+
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        pyproject-nix.follows = "pyproject-nix";
+      };
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, uv2nix, pyproject-nix, pyproject-build-systems, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+    uv2nix,
+    pyproject-nix,
+    pyproject-build-systems,
+    ...
+  }:
+    flake-utils.lib.eachDefaultSystem (
+      system: let
+        pkgs = import nixpkgs {inherit system;};
         python = pkgs.python3; # Your desired Python version
 
         # 1. Load Project Workspace (parses pyproject.toml, uv.lock)
@@ -42,13 +62,12 @@
         };
 
         # 4. Construct the Final Python Package Set
-        pythonSet =
-          (pkgs.callPackage pyproject-nix.build.packages { inherit python; })
+        pythonSet = (pkgs.callPackage pyproject-nix.build.packages {inherit python;})
           .overrideScope (nixpkgs.lib.composeManyExtensions [
-            pyproject-build-systems.overlays.default # For build tools
-            uvLockedOverlay                          # Your locked dependencies
-            myCustomOverrides                        # Your fixes
-          ]);
+          pyproject-build-systems.overlays.default # For build tools
+          uvLockedOverlay # Your locked dependencies
+          myCustomOverrides # Your fixes
+        ]);
 
         # --- This is where your project's metadata is accessed ---
         projectNameInToml = "mediawaiter"; # MUST match [project.name] in pyproject.toml!
@@ -56,21 +75,22 @@
         # ---
 
         # 5. Create the Python Runtime Environment
-        appPythonEnv = pythonSet.mkVirtualEnv
+        appPythonEnv =
+          pythonSet.mkVirtualEnv
           (thisProjectAsNixPkg.pname + "-env")
           workspace.deps.default; # Uses deps from pyproject.toml [project.dependencies]
 
-        devPythonEnv = pythonSet.mkVirtualEnv
+        devPythonEnv =
+          pythonSet.mkVirtualEnv
           (thisProjectAsNixPkg.pname + "-env")
           workspace.deps.all; # Uses deps from pyproject.toml [project.dependencies]
 
         # Node/NPM stuff
-        nodeDependencies = (pkgs.callPackage ./default.nix {}).nodeDependencies;
-      in
-      {
+        inherit ((pkgs.callPackage ./default.nix {})) nodeDependencies;
+      in {
         # Development Shell
         devShells.default = pkgs.mkShell {
-          packages = [ devPythonEnv pkgs.ruff pkgs.uv ];
+          packages = [devPythonEnv pkgs.ruff pkgs.uv];
           shellHook = ''
             export PYTHONPATH=.
             export MW_IGNORE_MEDIA_DIR_CHECKS=true
@@ -78,80 +98,84 @@
         };
 
         # Nix Package for Your Application
-        packages.default = pkgs.stdenv.mkDerivation {
-          pname = thisProjectAsNixPkg.pname;
-          version = thisProjectAsNixPkg.version;
-          src = ./.; # Source of your main script
+        packages = {
+          default = pkgs.stdenv.mkDerivation {
+            inherit (thisProjectAsNixPkg) pname;
+            inherit (thisProjectAsNixPkg) version;
+            src = ./.; # Source of your main script
 
-          nativeBuildInputs = [ pkgs.makeWrapper ];
-          buildInputs = [ appPythonEnv ]; # Runtime Python environment
+            nativeBuildInputs = [pkgs.makeWrapper];
+            buildInputs = [appPythonEnv]; # Runtime Python environment
 
-          installPhase = ''
-            mkdir -p $out/bin $out/lib
+            installPhase = ''
+              mkdir -p $out/bin $out/lib
 
-            cp ./gunicorn.conf.py $out/lib/
+              cp ./gunicorn.conf.py $out/lib/
 
-            makeWrapper ${appPythonEnv}/bin/gunicorn $out/bin/${thisProjectAsNixPkg.pname} \
-              --add-flags "--config=$out/lib/gunicorn.conf.py" \
-              --add-flags src.mediawaiter.waiter:gunicorn_app
-          '';
-        };
-        packages.${thisProjectAsNixPkg.pname} = self.packages.${system}.default;
+              makeWrapper ${appPythonEnv}/bin/gunicorn $out/bin/${thisProjectAsNixPkg.pname} \
+                --add-flags "--config=$out/lib/gunicorn.conf.py" \
+                --add-flags src.mediawaiter.waiter:gunicorn_app
+            '';
+          };
+          ${thisProjectAsNixPkg.pname} = self.packages.${system}.default;
 
-        packages.dev = pkgs.stdenv.mkDerivation {
-          pname = thisProjectAsNixPkg.pname;
-          version = thisProjectAsNixPkg.version;
-          src = ./.; # Source of your main script
+          dev = pkgs.stdenv.mkDerivation {
+            inherit (thisProjectAsNixPkg) pname;
+            inherit (thisProjectAsNixPkg) version;
+            src = ./.; # Source of your main script
 
-          nativeBuildInputs = [ pkgs.makeWrapper ];
-          buildInputs = [ devPythonEnv ]; # Runtime Python environment
+            nativeBuildInputs = [pkgs.makeWrapper];
+            buildInputs = [devPythonEnv]; # Runtime Python environment
 
-          installPhase = ''
-            mkdir -p $out/bin $out/lib
+            installPhase = ''
+              mkdir -p $out/bin $out/lib
 
-            cp -r . $out/lib/mediawaiter
-            cp -r ${nodeDependencies}/lib/node_modules/* $out/lib/mediawaiter/src/mediawaiter/static/
+              cp -r . $out/lib/mediawaiter
+              cp -r ${nodeDependencies}/lib/node_modules/* $out/lib/mediawaiter/src/mediawaiter/static/
 
-            makeWrapper ${devPythonEnv}/bin/mediawaiter $out/bin/${thisProjectAsNixPkg.pname} \
-              --set PYTHONPATH $out/lib/mediawaiter \
-              --set MW_STATIC_FOLDER $out/lib/mediawaiter/src/mediawaiter/static
-          '';
+              makeWrapper ${devPythonEnv}/bin/mediawaiter $out/bin/${thisProjectAsNixPkg.pname} \
+                --set PYTHONPATH $out/lib/mediawaiter \
+                --set MW_STATIC_FOLDER $out/lib/mediawaiter/src/mediawaiter/static
+            '';
+          };
+
+          mv-image = pkgs.dockerTools.buildImage {
+            name = "kyokley/mediawaiter";
+            tag = "latest";
+            copyToRoot = pkgs.buildEnv {
+              name = "image-root";
+              paths = [self.packages.${system}.default];
+              pathsToLink = ["/bin" "/lib"];
+            };
+            config = {
+              Cmd = ["/bin/${thisProjectAsNixPkg.pname}"];
+            };
+          };
+
+          dev-image = pkgs.dockerTools.buildImage {
+            name = "kyokley/mediawaiter";
+            tag = "latest";
+            copyToRoot = pkgs.buildEnv {
+              name = "image-root";
+              paths = [self.packages.${system}.dev];
+              pathsToLink = ["/bin" "/lib"];
+            };
+            config = {
+              Cmd = ["/bin/${thisProjectAsNixPkg.pname}"];
+            };
+          };
         };
 
         # App for `nix run`
-        apps.default = {
-          type = "app";
-          program = "${self.packages.${system}.default}/bin/${thisProjectAsNixPkg.pname}";
-        };
-        apps.${thisProjectAsNixPkg.pname} = self.apps.${system}.default;
-        apps.dev = {
-          type = "app";
-          program = "${self.packages.${system}.dev}/bin/${thisProjectAsNixPkg.pname}";
-        };
-
-        packages.mv-image = pkgs.dockerTools.buildImage {
-          name = "kyokley/mediawaiter";
-          tag = "latest";
-          copyToRoot = pkgs.buildEnv {
-            name = "image-root";
-            paths = [ self.packages.${system}.default ];
-            pathsToLink = ["/bin" "/lib"];
+        apps = {
+          default = {
+            type = "app";
+            program = "${self.packages.${system}.default}/bin/${thisProjectAsNixPkg.pname}";
           };
-          config = {
-            Cmd = ["/bin/${thisProjectAsNixPkg.pname}"];
-          };
-        };
-
-        packages.dev-image = pkgs.dockerTools.buildImage {
-          name = "kyokley/mediawaiter";
-          tag = "latest";
-          copyToRoot = pkgs.buildEnv {
-            name = "image-root";
-            paths = [ self.packages.${system}.dev ];
-            pathsToLink = ["/bin" "/lib"];
-          };
-          config = {
-            Cmd = ["/bin/${thisProjectAsNixPkg.pname}"];
+          ${thisProjectAsNixPkg.pname} = self.apps.${system}.default;
+          dev = {
+            type = "app";
+            program = "${self.packages.${system}.dev}/bin/${thisProjectAsNixPkg.pname}";
           };
         };
       }
