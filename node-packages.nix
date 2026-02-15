@@ -4,13 +4,13 @@
 
 let
   sources = {
-    "@babel/runtime-7.28.4" = {
+    "@babel/runtime-7.28.6" = {
       name = "_at_babel_slash_runtime";
       packageName = "@babel/runtime";
-      version = "7.28.4";
+      version = "7.28.6";
       src = fetchurl {
-        url = "https://registry.npmjs.org/@babel/runtime/-/runtime-7.28.4.tgz";
-        sha512 = "Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==";
+        url = "https://registry.npmjs.org/@babel/runtime/-/runtime-7.28.6.tgz";
+        sha512 = "05WQkdpL9COIMz4LjTxGpPNCdlpyimKppYNoJ5Di5EUObifl8t4tuLuUBBZEpoLYOmfvIWrsp9fCl0HoPRVTdA==";
       };
     };
     "@popperjs/core-2.11.8" = {
@@ -103,22 +103,22 @@ let
         sha512 = "ijombt4v6bv5CLeXvRWKy7CuM3TRTuPEuGaGKvTV5cz65rQSY8RQ2JcHt6b90cBBAC7s8fsf2EkQDldzCoXUjw==";
       };
     };
-    "datatables.net-2.3.5" = {
+    "datatables.net-2.3.7" = {
       name = "datatables.net";
       packageName = "datatables.net";
-      version = "2.3.5";
+      version = "2.3.7";
       src = fetchurl {
-        url = "https://registry.npmjs.org/datatables.net/-/datatables.net-2.3.5.tgz";
-        sha512 = "Qrwc+vuw8GHo42u1usWTuriNAMW0VvLPSW3j8g3GxvatiD8wS/ZGW32VAYLLfmF4Hz0C/fo2KB3xZBfcpqqVTQ==";
+        url = "https://registry.npmjs.org/datatables.net/-/datatables.net-2.3.7.tgz";
+        sha512 = "AvsjG/Nkp6OxeyBKYZauemuzQCPogE1kOtKwG4sYjvdqGCSLiGaJagQwXv4YxG+ts5vaJr6qKGG9ec3g6vTo3w==";
       };
     };
-    "datatables.net-bs5-2.3.5" = {
+    "datatables.net-bs5-2.3.7" = {
       name = "datatables.net-bs5";
       packageName = "datatables.net-bs5";
-      version = "2.3.5";
+      version = "2.3.7";
       src = fetchurl {
-        url = "https://registry.npmjs.org/datatables.net-bs5/-/datatables.net-bs5-2.3.5.tgz";
-        sha512 = "2JA2WZz1tBxdVpYAspiqI8POdqEoAZZzqp7tISKaof2P5ufBJb+OLaahxwuB0sF9qcQh1azlU+JH1zsLBXVwXg==";
+        url = "https://registry.npmjs.org/datatables.net-bs5/-/datatables.net-bs5-2.3.7.tgz";
+        sha512 = "RiCEMpMXDBeMDwjSrMpmcXDU6mibRMuOn7Wk7k3SlOfLEY3FQHO7S2m+K7teXYeaNlCLyjJMU+6BUUwlBCpLFw==";
       };
     };
     "datatables.net-scroller-2.4.3" = {
@@ -336,7 +336,7 @@ let
     version = "1.0.0";
     src = ./.;
     dependencies = [
-      sources."@babel/runtime-7.28.4"
+      sources."@babel/runtime-7.28.6"
       sources."@popperjs/core-2.11.8"
       sources."@silvermine/videojs-airplay-1.3.0"
       sources."@silvermine/videojs-chromecast-1.5.0"
@@ -347,8 +347,8 @@ let
       sources."aes-decrypter-3.1.3"
       sources."bootstrap-5.3.8"
       sources."bootstrap-icons-1.13.1"
-      sources."datatables.net-2.3.5"
-      sources."datatables.net-bs5-2.3.5"
+      sources."datatables.net-2.3.7"
+      sources."datatables.net-bs5-2.3.7"
       sources."datatables.net-scroller-2.4.3"
       sources."datatables.net-scroller-bs5-2.4.3"
       sources."dom-walk-0.1.2"
