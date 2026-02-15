@@ -139,7 +139,7 @@
             '';
           };
 
-          mv-image = pkgs.dockerTools.buildImage {
+          mw-image = pkgs.dockerTools.buildImage {
             name = "kyokley/mediawaiter";
             tag = "latest";
             copyToRoot = pkgs.buildEnv {
