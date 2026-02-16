@@ -11,11 +11,18 @@
 
   # https://devenv.sh/packages/
   packages = [
-    pkgs.node2nix
+    pkgs.docker
   ];
 
   # https://devenv.sh/scripts/
-  # scripts.hello.exec = "echo hello from $GREET";
+  scripts = {
+    touch-history.exec = ''
+        mkdir -p logs
+        chmod -R 777 logs
+    '';
+    build.exec = ''
+    '';
+  };
 
   # enterShell = ''
   #   # hello
