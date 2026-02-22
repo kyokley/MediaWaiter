@@ -70,6 +70,11 @@ secure_headers = secure.Secure()
 @app.after_request
 def set_secure_headers(response):
     secure_headers.framework.flask(response)
+    # Allow CORS for video streaming to work from browser
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Range"
+    response.headers["Access-Control-Expose-Headers"] = "Content-Range, Content-Length"
     return response
 
 
@@ -307,7 +312,9 @@ def _getFileEntryFromHash(token, hashPath):
 
         for subtitle in entry["subtitleFiles"]:
             if subtitle["hashed_filename"] == hashPath:
-                return {"unhashedPath": subtitle["path"]}
+                subtitle_path = subtitle["path"]
+                subtitle_size = os.path.getsize(subtitle_path)
+                return {"unhashedPath": subtitle_path, "rawSize": subtitle_size}
     else:
         raise Exception("Unable to find matching path")
 
