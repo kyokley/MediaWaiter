@@ -7,6 +7,13 @@
     MW_SECRET_FILE = "secret.txt";
     MW_IGNORE_MEDIA_DIR_CHECKS = "true";
     PYTHONPATH = ".";
+    MW_BASE_PATH = "/home/yokley/workspace/MV/media";
+    MW_MEDIA_DIRS = "tv,movies";
+    MW_WAITER_USERNAME = "waiter";
+    MW_WAITER_PASSWORD = "waiter123";
+    MW_MEDIAVIEWER_BASE_URL = "http://127.0.0.1:8000/mediaviewer";
+    MW_EXTERNAL_MEDIAVIEWER_BASE_URL = "http://localhost:8000/mediaviewer";
+    MW_MEDIAVIEWER_SUFFIX = "ALFRED-ENCODED";
   };
 
   # https://devenv.sh/packages/
@@ -21,6 +28,11 @@
         chmod -R 777 logs
     '';
     build.exec = ''
+      nix build .#dev-image
+      docker load < result
+    '';
+    up.exec = ''
+      uv run flask --app src/mediawaiter/waiter.py run
     '';
   };
 

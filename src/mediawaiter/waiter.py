@@ -117,6 +117,25 @@ def logErrorsAndContinue(func):
     return func_wrapper
 
 
+def logErrorsAndContinueJSON(func):
+    """Decorator for JSON endpoints - returns JSON errors instead of HTML"""
+
+    @wraps(func)
+    def func_wrapper(*args, **kwargs):
+        logger.debug(f"Attempting {func.__name__}")
+        try:
+            res = func(*args, **kwargs)
+            return res
+        except Exception as e:
+            logger.error(e, exc_info=True)
+            return (
+                jsonify({"error": "An error has occurred", "details": str(e)}),
+                400,
+            )
+
+    return func_wrapper
+
+
 def isAlfredEncoding(filename):
     return MEDIAVIEWER_SUFFIX.lower() in filename.lower()
 
@@ -136,54 +155,71 @@ def getTokenByGUID(guid):
         raise
 
 
-@app.route(APP_NAME + "/dir/<guid>/")
-@logErrorsAndContinue
-def get_dirPath(guid):
-    """Display a page that lists all media files in a given directory"""
+def _get_dirPath_data(guid):
+    """Get data for movie directory listing"""
     token = getTokenByGUID(guid)
     errorStr = checkForValidToken(token, guid)
     if errorStr:
-        return render_template(
-            "error.html",
-            title="Error",
-            errorText=errorStr,
-            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
-            theme=token.get("theme", DEFAULT_THEME),
-        )
+        return {"error": errorStr}, 400
 
     files = []
     if token["ismovie"]:
         files.extend(buildEntries(token))
     else:
-        raise ValueError(
-            f"Only movies are allowed to display contents of directories. GUID = {guid}"
-        )
+        return {
+            "error": "Only movies are allowed to display contents of directories"
+        }, 400
     files.sort(key=lambda x: x["filename"])
 
     tv_genres, movie_genres = getMediaGenres(guid)
     collections = get_collections(guid)
     token = _extract_donation_info(token)
-    return render_template(
-        "display.html",
-        title=token["displayname"],
-        files=files,
-        username=token["username"],
-        mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
-        ismovie=token["ismovie"],
-        tv_id=token["tv_id"],
-        tv_name=token["tv_name"],
-        guid=guid,
-        offsetUrl=WAITER_OFFSET_URL,
-        next_link=None,
-        previous_link=None,
-        tv_genres=tv_genres,
-        movie_genres=movie_genres,
-        collections=collections,
-        binge_mode=False,
-        donation_site_name=token.get("donation_site_name"),
-        donation_site_url=token.get("donation_site_url"),
-        theme=token.get("theme", DEFAULT_THEME),
-    )
+
+    return {
+        "title": token["displayname"],
+        "files": files,
+        "username": token["username"],
+        "mediaviewer_base_url": EXTERNAL_MEDIAVIEWER_BASE_URL,
+        "ismovie": token["ismovie"],
+        "tv_id": token["tv_id"],
+        "tv_name": token["tv_name"],
+        "guid": guid,
+        "offsetUrl": WAITER_OFFSET_URL,
+        "next_link": None,
+        "previous_link": None,
+        "tv_genres": tv_genres,
+        "movie_genres": movie_genres,
+        "collections": collections,
+        "binge_mode": False,
+        "donation_site_name": token.get("donation_site_name"),
+        "donation_site_url": token.get("donation_site_url"),
+        "theme": token.get("theme", DEFAULT_THEME),
+    }, 200
+
+
+@app.route(APP_NAME + "/dir/<guid>/")
+@logErrorsAndContinue
+def get_dirPath(guid):
+    """Display a page that lists all media files in a given directory"""
+    data, status_code = _get_dirPath_data(guid)
+    if status_code != 200:
+        return render_template(
+            "error.html",
+            title="Error",
+            errorText=data.get("error"),
+            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=DEFAULT_THEME,
+        )
+    return render_template("display.html", **data)
+
+
+@app.route(APP_NAME + "/dir/<guid>/json")
+@app.route(APP_NAME + "/dir/<guid>/json/")
+@logErrorsAndContinueJSON
+def get_dirPath_json(guid):
+    """Return JSON data for movie directory listing"""
+    data, status_code = _get_dirPath_data(guid)
+    return jsonify(data), status_code
 
 
 def buildEntries(token):
@@ -242,13 +278,20 @@ def _buildFileDictHelper(root, filename, token):
         ),
         "streamingPath": streamingPath,
         "hashedWaiterPath": hashedWaiterPath,
-        "unhashedPath": path,
+        "unhashedPath": str(path),
         "streamable": True,
         "filename": filename.split("." + MEDIAVIEWER_SUFFIX)[0],
         "size": humansize(size),
         "rawSize": size,
         "isAlfredEncoding": True,
-        "subtitleFiles": subtitle_files,
+        "subtitleFiles": [
+            {
+                "path": str(s.path),
+                "hashed_filename": s.hashed_filename,
+                "waiter_path": s.waiter_path,
+            }
+            for s in subtitle_files
+        ],
         "ismovie": token["ismovie"],
         "displayName": token["displayname"],
         "hasProgress": hashedWaiterPath in token["videoprogresses"],
@@ -263,10 +306,176 @@ def _getFileEntryFromHash(token, hashPath):
             return entry
 
         for subtitle in entry["subtitleFiles"]:
-            if subtitle.hashed_filename == hashPath:
-                return {"unhashedPath": subtitle.path}
+            if subtitle["hashed_filename"] == hashPath:
+                return {"unhashedPath": subtitle["path"]}
     else:
         raise Exception("Unable to find matching path")
+
+
+def _get_file_data(guid):
+    """Get data for TV show episode file listing"""
+    token = getTokenByGUID(guid)
+
+    errorStr = checkForValidToken(token, guid)
+    if errorStr or token["ismovie"]:
+        return {
+            "error": "Invalid URL for movie type" if token["ismovie"] else errorStr
+        }, 400
+
+    files = list(buildEntries(token))
+    tv_genres, movie_genres = getMediaGenres(guid)
+    collections = get_collections(guid)
+    token = _extract_donation_info(token)
+
+    return {
+        "title": token["displayname"],
+        "files": files,
+        "username": token["username"],
+        "mediaviewer_base_url": EXTERNAL_MEDIAVIEWER_BASE_URL,
+        "ismovie": token["ismovie"],
+        "tv_id": token["tv_id"],
+        "tv_name": token["tv_name"],
+        "guid": guid,
+        "offsetUrl": WAITER_OFFSET_URL,
+        "next_link": (
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/autoplaydownloadlink/{token.get('next_id')}/"
+            if token.get("next_id")
+            else None
+        ),
+        "previous_link": (
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/autoplaydownloadlink/{token.get('previous_id')}/"
+            if token.get("previous_id")
+            else None
+        ),
+        "tv_genres": tv_genres,
+        "movie_genres": movie_genres,
+        "collections": collections,
+        "binge_mode": token["binge_mode"],
+        "donation_site_name": token.get("donation_site_name"),
+        "donation_site_url": token.get("donation_site_url"),
+        "theme": token.get("theme", DEFAULT_THEME),
+    }, 200
+
+
+@app.route(APP_NAME + "/file/<guid>/")
+@logErrorsAndContinue
+def get_file(guid):
+    """Display a page that lists a single file"""
+    data, status_code = _get_file_data(guid)
+    if status_code != 200:
+        return render_template(
+            "error.html",
+            title="Error",
+            errorText=data.get("error"),
+            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=DEFAULT_THEME,
+        )
+    return render_template("display.html", **data)
+
+
+@app.route(APP_NAME + "/file/<guid>/json")
+@app.route(APP_NAME + "/file/<guid>/json/")
+@logErrorsAndContinueJSON
+def get_file_json(guid):
+    """Return JSON data for TV show episode file listing"""
+    data, status_code = _get_file_data(guid)
+    return jsonify(data), status_code
+
+
+def _autoplay_data(guid):
+    """Get data for autoplay template"""
+    token = getTokenByGUID(guid)
+
+    errorStr = checkForValidToken(token, guid)
+    if errorStr or token["ismovie"]:
+        return {
+            "error": ("Invalid URL for movie type" if token["ismovie"] else errorStr)
+        }, 400
+
+    try:
+        files = [f for f in buildEntries(token) if f is not None]
+        if not files:
+            return {
+                "error": "No video files found",
+                "debug_token_filename": token.get("filename"),
+                "debug_token_path": token.get("path"),
+            }, 400
+        file_entry = files[0]
+    except Exception as e:
+        return {
+            "error": f"Error building file entries: {str(e)}",
+            "debug_token_keys": list(token.keys()) if token else None,
+        }, 400
+    tv_genres, movie_genres = getMediaGenres(guid)
+    collections = get_collections(guid)
+    token = _extract_donation_info(token)
+
+    watch_party_url = get_watch_party_url(
+        guid, file_entry["hashedWaiterPath"], token["username"]
+    )
+
+    return {
+        "title": token["displayname"],
+        "filename": token["filename"],
+        "hashPath": file_entry["hashedWaiterPath"],
+        "video_file": str(file_entry["path"]),
+        "subtitle_files": [s["waiter_path"] for s in file_entry["subtitleFiles"]],
+        "viewedUrl": WAITER_VIEWED_URL,
+        "offsetUrl": WAITER_OFFSET_URL,
+        "guid": guid,
+        "username": token["username"],
+        "files": [{**f, "unhashedPath": str(f.get("unhashedPath", ""))} for f in files],
+        "mediaviewer_base_url": EXTERNAL_MEDIAVIEWER_BASE_URL,
+        "ismovie": token["ismovie"],
+        "tv_id": token["tv_id"],
+        "tv_name": token["tv_name"],
+        "next_link": (
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
+            f"/autoplaydownloadlink/{token.get('next_id')}/"
+            if token.get("next_id")
+            else None
+        ),
+        "previous_link": (
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
+            f"/autoplaydownloadlink/{token.get('previous_id')}/"
+            if token.get("previous_id")
+            else None
+        ),
+        "tv_genres": tv_genres,
+        "movie_genres": movie_genres,
+        "collections": collections,
+        "binge_mode": token["binge_mode"],
+        "CAST_ID": GOOGLE_CAST_APP_ID,
+        "donation_site_name": token.get("donation_site_name"),
+        "donation_site_url": token.get("donation_site_url"),
+        "theme": token.get("theme", DEFAULT_THEME),
+        "watch_party_url": watch_party_url,
+    }, 200
+
+
+@app.route(APP_NAME + "/file/<guid>/autoplay")
+@logErrorsAndContinue
+def autoplay(guid):
+    """Autoplay a single file"""
+    data, status_code = _autoplay_data(guid)
+    if status_code != 200:
+        return render_template(
+            "error.html",
+            title="Error",
+            errorText=data.get("error"),
+            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=DEFAULT_THEME,
+        )
+    return render_template("video.html", **data)
+
+
+@app.route(APP_NAME + "/file/<guid>/autoplay/json")
+@app.route(APP_NAME + "/file/<guid>/autoplay/json/")
+@logErrorsAndContinueJSON
+def autoplay_json(guid):
+    """Return JSON data for autoplay"""
+    data, status_code = _autoplay_data(guid)
+    return jsonify(data), status_code
 
 
 @app.route(APP_NAME + "/file/<guid>/<path:hashPath>")
@@ -288,125 +497,6 @@ def send_file_for_download(guid, hashPath):
     entry = _getFileEntryFromHash(token, hashPath)
     fullPath = entry["unhashedPath"]
     return send_file_partial(fullPath, fullPath.name, entry["rawSize"])
-
-
-@app.route(APP_NAME + "/file/<guid>/")
-@logErrorsAndContinue
-def get_file(guid):
-    """Display a page that lists a single file"""
-    token = getTokenByGUID(guid)
-
-    errorStr = checkForValidToken(token, guid)
-    if errorStr or token["ismovie"]:
-        return render_template(
-            "error.html",
-            title="Error",
-            errorText=("Invalid URL for movie type" if token["ismovie"] else errorStr),
-            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
-            theme=token.get("theme", DEFAULT_THEME),
-        )
-
-    files = list(buildEntries(token))
-    tv_genres, movie_genres = getMediaGenres(guid)
-    collections = get_collections(guid)
-    token = _extract_donation_info(token)
-    return render_template(
-        "display.html",
-        title=token["displayname"],
-        files=files,
-        username=token["username"],
-        mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
-        ismovie=token["ismovie"],
-        tv_id=token["tv_id"],
-        tv_name=token["tv_name"],
-        guid=guid,
-        offsetUrl=WAITER_OFFSET_URL,
-        next_link=(
-            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/autoplaydownloadlink/{token.get('next_id')}/"
-            if token.get("next_id")
-            else None
-        ),
-        previous_link=(
-            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/autoplaydownloadlink/{token.get('previous_id')}/"
-            if token.get("previous_id")
-            else None
-        ),
-        tv_genres=tv_genres,
-        movie_genres=movie_genres,
-        collections=collections,
-        binge_mode=token["binge_mode"],
-        donation_site_name=token.get("donation_site_name"),
-        donation_site_url=token.get("donation_site_url"),
-        theme=token.get("theme", DEFAULT_THEME),
-    )
-
-
-@app.route(APP_NAME + "/file/<guid>/autoplay")
-@logErrorsAndContinue
-def autoplay(guid):
-    """Autoplay a single file"""
-    token = getTokenByGUID(guid)
-
-    errorStr = checkForValidToken(token, guid)
-    if errorStr or token["ismovie"]:
-        return render_template(
-            "error.html",
-            title="Error",
-            errorText=("Invalid URL for movie type" if token["ismovie"] else errorStr),
-            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
-            theme=token.get("theme", DEFAULT_THEME),
-        )
-
-    files = list(buildEntries(token))
-    file_entry = files[0]
-    tv_genres, movie_genres = getMediaGenres(guid)
-    collections = get_collections(guid)
-    token = _extract_donation_info(token)
-
-    watch_party_url = get_watch_party_url(
-        guid, file_entry["hashedWaiterPath"], token["username"]
-    )
-
-    return render_template(
-        "video.html",
-        title=token["displayname"],
-        filename=token["filename"],
-        hashPath=file_entry["hashedWaiterPath"],
-        video_file=file_entry["path"],
-        subtitle_files=[
-            subtitle.waiter_path for subtitle in file_entry["subtitleFiles"]
-        ],
-        viewedUrl=WAITER_VIEWED_URL,
-        offsetUrl=WAITER_OFFSET_URL,
-        guid=guid,
-        username=token["username"],
-        files=files,
-        mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
-        ismovie=token["ismovie"],
-        tv_id=token["tv_id"],
-        tv_name=token["tv_name"],
-        next_link=(
-            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
-            f"/autoplaydownloadlink/{token.get('next_id')}/"
-            if token.get("next_id")
-            else None
-        ),
-        previous_link=(
-            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
-            f"/autoplaydownloadlink/{token.get('previous_id')}"
-            if token.get("previous_id")
-            else None
-        ),
-        tv_genres=tv_genres,
-        movie_genres=movie_genres,
-        collections=collections,
-        binge_mode=token["binge_mode"],
-        CAST_ID=GOOGLE_CAST_APP_ID,
-        donation_site_name=token.get("donation_site_name"),
-        donation_site_url=token.get("donation_site_url"),
-        theme=token.get("theme", DEFAULT_THEME),
-        watch_party_url=watch_party_url,
-    )
 
 
 def get_watch_party_url(guid, hashPath, username):
@@ -533,21 +623,13 @@ def send_file_partial(path, filename, size):
         return send_file(path, conditional=True)
 
 
-@app.route(APP_NAME + "/stream/<guid>/<path:hashPath>")
-@logErrorsAndContinue
-def video(guid, hashPath):
-    """Display streaming page"""
+def _video_data(guid, hashPath):
+    """Get data for video streaming"""
     token = getTokenByGUID(guid)
 
     errorStr = checkForValidToken(token, guid)
     if errorStr:
-        return render_template(
-            "error.html",
-            title="Error",
-            errorText=errorStr,
-            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
-            theme=token.get("theme", DEFAULT_THEME),
-        )
+        return {"error": errorStr}, 400
 
     file_entry = _getFileEntryFromHash(token, hashPath)
     files = list(buildEntries(token))
@@ -558,46 +640,68 @@ def video(guid, hashPath):
 
     watch_party_url = get_watch_party_url(guid, hashPath, token["username"])
 
-    return render_template(
-        "video.html",
-        title=token["displayname"],
-        filename=token["filename"],
-        hashPath=hashPath,
-        video_file=file_entry["path"],
-        subtitle_files=[
-            subtitle.waiter_path for subtitle in file_entry["subtitleFiles"]
-        ],
-        viewedUrl=WAITER_VIEWED_URL,
-        offsetUrl=WAITER_OFFSET_URL,
-        guid=guid,
-        username=token["username"],
-        files=files,
-        mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
-        ismovie=token["ismovie"],
-        tv_id=token["tv_id"],
-        tv_name=token["tv_name"],
-        next_link=(
+    return {
+        "title": token["displayname"],
+        "filename": token["filename"],
+        "hashPath": hashPath,
+        "video_file": file_entry["path"],
+        "subtitle_files": [s["waiter_path"] for s in file_entry["subtitleFiles"]],
+        "viewedUrl": WAITER_VIEWED_URL,
+        "offsetUrl": WAITER_OFFSET_URL,
+        "guid": guid,
+        "username": token["username"],
+        "files": files,
+        "mediaviewer_base_url": EXTERNAL_MEDIAVIEWER_BASE_URL,
+        "ismovie": token["ismovie"],
+        "tv_id": token["tv_id"],
+        "tv_name": token["tv_name"],
+        "next_link": (
             f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
             f"/autoplaydownloadlink/{token.get('next_id')}/"
             if token.get("next_id")
             else None
         ),
-        previous_link=(
+        "previous_link": (
             f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
             f"/autoplaydownloadlink/{token.get('previous_id')}/"
             if token.get("previous_id")
             else None
         ),
-        tv_genres=tv_genres,
-        movie_genres=movie_genres,
-        collections=collections,
-        binge_mode=token["binge_mode"],
-        CAST_ID=GOOGLE_CAST_APP_ID,
-        donation_site_name=token.get("donation_site_name"),
-        donation_site_url=token.get("donation_site_url"),
-        theme=token.get("theme", DEFAULT_THEME),
-        watch_party_url=watch_party_url,
-    )
+        "tv_genres": tv_genres,
+        "movie_genres": movie_genres,
+        "collections": collections,
+        "binge_mode": token["binge_mode"],
+        "CAST_ID": GOOGLE_CAST_APP_ID,
+        "donation_site_name": token.get("donation_site_name"),
+        "donation_site_url": token.get("donation_site_url"),
+        "theme": token.get("theme", DEFAULT_THEME),
+        "watch_party_url": watch_party_url,
+    }, 200
+
+
+@app.route(APP_NAME + "/stream/<guid>/<path:hashPath>")
+@logErrorsAndContinue
+def video(guid, hashPath):
+    """Display streaming page"""
+    data, status_code = _video_data(guid, hashPath)
+    if status_code != 200:
+        return render_template(
+            "error.html",
+            title="Error",
+            errorText=data.get("error"),
+            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=DEFAULT_THEME,
+        )
+    return render_template("video.html", **data)
+
+
+@app.route(APP_NAME + "/stream/<guid>/<path:hashPath>/json")
+@app.route(APP_NAME + "/stream/<guid>/<path:hashPath>/json/")
+@logErrorsAndContinueJSON
+def video_json(guid, hashPath):
+    """Return JSON data for video streaming"""
+    data, status_code = _video_data(guid, hashPath)
+    return jsonify(data), status_code
 
 
 def get_jitsi_room_name():
@@ -605,20 +709,13 @@ def get_jitsi_room_name():
     return "".join(chars)
 
 
-@app.route(APP_NAME + "/watch-party/<guid>/<path:hashPath>")
-@logErrorsAndContinue
-def watch_party(guid, hashPath):
+def _watch_party_data(guid, hashPath):
+    """Get data for watch party template"""
     token = getTokenByGUID(guid)
 
     errorStr = checkForValidToken(token, guid)
     if errorStr:
-        return render_template(
-            "error.html",
-            title="Error",
-            errorText=errorStr,
-            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
-            theme=token.get("theme", DEFAULT_THEME),
-        )
+        return {"error": errorStr}, 400
 
     file_entry = _getFileEntryFromHash(token, hashPath)
     files = list(buildEntries(token))
@@ -643,48 +740,71 @@ def watch_party(guid, hashPath):
         video_stream_url = f"{APP_NAME}/dir/{guid}/"
     else:
         video_stream_url = f"{APP_NAME}/file/{guid}/"
-    return render_template(
-        "watch_party.html",
-        title=token["displayname"],
-        filename=token["filename"],
-        hashPath=hashPath,
-        video_file=file_entry["path"],
-        subtitle_files=[
-            subtitle.waiter_path for subtitle in file_entry["subtitleFiles"]
-        ],
-        viewedUrl=WAITER_VIEWED_URL,
-        offsetUrl=WAITER_OFFSET_URL,
-        guid=guid,
-        username=token["username"],
-        files=files,
-        mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
-        ismovie=token["ismovie"],
-        tv_id=token["tv_id"],
-        tv_name=token["tv_name"],
-        next_link=(
+
+    return {
+        "title": token["displayname"],
+        "filename": token["filename"],
+        "hashPath": hashPath,
+        "video_file": file_entry["path"],
+        "subtitle_files": [s["waiter_path"] for s in file_entry["subtitleFiles"]],
+        "viewedUrl": WAITER_VIEWED_URL,
+        "offsetUrl": WAITER_OFFSET_URL,
+        "guid": guid,
+        "username": token["username"],
+        "files": files,
+        "mediaviewer_base_url": EXTERNAL_MEDIAVIEWER_BASE_URL,
+        "ismovie": token["ismovie"],
+        "tv_id": token["tv_id"],
+        "tv_name": token["tv_name"],
+        "next_link": (
             f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
             f"/autoplaydownloadlink/{token.get('next_id')}/"
             if token.get("next_id")
             else None
         ),
-        previous_link=(
+        "previous_link": (
             f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
             f"/autoplaydownloadlink/{token.get('previous_id')}/"
             if token.get("previous_id")
             else None
         ),
-        tv_genres=tv_genres,
-        movie_genres=movie_genres,
-        collections=collections,
-        binge_mode=token["binge_mode"],
-        CAST_ID=GOOGLE_CAST_APP_ID,
-        donation_site_name=token.get("donation_site_name"),
-        donation_site_url=token.get("donation_site_url"),
-        theme=token.get("theme", DEFAULT_THEME),
-        jitsi_jwt=encoded_jwt,
-        watch_party_room_name=watch_party_room_name,
-        video_stream_url=video_stream_url,
-    )
+        "tv_genres": tv_genres,
+        "movie_genres": movie_genres,
+        "collections": collections,
+        "binge_mode": token["binge_mode"],
+        "CAST_ID": GOOGLE_CAST_APP_ID,
+        "donation_site_name": token.get("donation_site_name"),
+        "donation_site_url": token.get("donation_site_url"),
+        "theme": token.get("theme", DEFAULT_THEME),
+        "jitsi_jwt": encoded_jwt,
+        "watch_party_room_name": watch_party_room_name,
+        "video_stream_url": video_stream_url,
+    }, 200
+
+
+@app.route(APP_NAME + "/watch-party/<guid>/<path:hashPath>")
+@logErrorsAndContinue
+def watch_party(guid, hashPath):
+    """Display watch party page"""
+    data, status_code = _watch_party_data(guid, hashPath)
+    if status_code != 200:
+        return render_template(
+            "error.html",
+            title="Error",
+            errorText=data.get("error"),
+            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=DEFAULT_THEME,
+        )
+    return render_template("watch_party.html", **data)
+
+
+@app.route(APP_NAME + "/watch-party/<guid>/<path:hashPath>/json")
+@app.route(APP_NAME + "/watch-party/<guid>/<path:hashPath>/json/")
+@logErrorsAndContinueJSON
+def watch_party_json(guid, hashPath):
+    """Return JSON data for watch party"""
+    data, status_code = _watch_party_data(guid, hashPath)
+    return jsonify(data), status_code
 
 
 @app.route(APP_NAME + "/viewed/<guid>", methods=["POST"])
