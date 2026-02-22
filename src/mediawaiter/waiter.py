@@ -582,6 +582,14 @@ def after_request(response):
 def xsendfile(path, filename, size):
     path = str(path)
 
+    # Verify the actual file size matches what we have
+    actual_size = os.path.getsize(path)
+    if actual_size != size:
+        logger.warning(
+            f"Size mismatch for {path}: expected {size}, actual {actual_size}"
+        )
+        size = actual_size
+
     logger.debug(f"path: {path}")
     logger.debug(f"filename: {filename}")
     redirected_path = f"/download/{path.split('/', 3)[-1]}"
@@ -601,7 +609,7 @@ def xsendfile(path, filename, size):
     else:
         byte2 = size - 1
 
-    if size < byte2:
+    if size <= byte2:
         byte2 = size - 1
 
     length = byte2 - byte1 + 1
@@ -609,7 +617,7 @@ def xsendfile(path, filename, size):
     resp = Response(None, 206)
     resp.headers.add(
         "Content-Range",
-        "bytes {0}-{1}/{2}".format(byte1, byte1 + length - 1, size),
+        "bytes {0}-{1}/{2}".format(byte1, byte2, size),
     )
 
     resp.headers["Content-Length"] = str(length)
