@@ -2,7 +2,7 @@
 
 {
   # https://devenv.sh/basics/
-  env = {
+   env = {
     GREET = "MV";
     MW_SECRET_FILE = "secret.txt";
     MW_IGNORE_MEDIA_DIR_CHECKS = "true";
@@ -15,6 +15,7 @@
     MW_EXTERNAL_MEDIAVIEWER_BASE_URL = "http://localhost:8000/mediaviewer";
     MW_MEDIAVIEWER_SUFFIX = "ALFRED-ENCODED";
     MW_MEDIAWAITER_PROTOCOL = "http://";
+    MW_USE_NGINX = "false";
   };
 
   # https://devenv.sh/packages/
