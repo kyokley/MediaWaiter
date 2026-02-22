@@ -496,7 +496,8 @@ def send_file_for_download(guid, hashPath):
 
     entry = _getFileEntryFromHash(token, hashPath)
     fullPath = entry["unhashedPath"]
-    return send_file_partial(fullPath, fullPath.name, entry["rawSize"])
+    filename = Path(fullPath).name if isinstance(fullPath, str) else fullPath.name
+    return send_file_partial(fullPath, filename, entry["rawSize"])
 
 
 def get_watch_party_url(guid, hashPath, username):
