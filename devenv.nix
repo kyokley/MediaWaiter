@@ -12,10 +12,11 @@
     MW_WAITER_USERNAME = "waiter";
     MW_WAITER_PASSWORD = "waiter123";
     MW_MEDIAVIEWER_BASE_URL = "http://127.0.0.1:8000/mediaviewer";
-    MW_EXTERNAL_MEDIAVIEWER_BASE_URL = "http://localhost:8000/mediaviewer";
+    MW_EXTERNAL_MEDIAVIEWER_BASE_URL = "http://127.0.0.1:8000/mediaviewer";
     MW_MEDIAVIEWER_SUFFIX = "ALFRED-ENCODED";
     MW_MEDIAWAITER_PROTOCOL = "http://";
     MW_USE_NGINX = "false";
+    FLASK_DEBUG = "true";
   };
 
   # https://devenv.sh/packages/

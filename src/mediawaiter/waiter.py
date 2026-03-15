@@ -12,7 +12,6 @@ from functools import wraps
 from flask import Flask, request, send_file, render_template, jsonify, Response
 from werkzeug.middleware.proxy_fix import ProxyFix
 from .settings import (
-    DEBUG,
     PORT,
     HOST,
     BASE_PATH,
@@ -871,10 +870,6 @@ def videoOffset(guid, hashedFilename):
 
 app.wsgi_app = ProxyFix(app.wsgi_app)
 if __name__ == "__main__":
-    app.debug = DEBUG
-    if not DEBUG:
-        app.run(host=HOST, port=PORT)
-    else:
-        app.run(host=HOST, port=PORT, threaded=True)
+    app.run(host=HOST, port=PORT, debug=False, use_reloader=False)
 else:
     gunicorn_app = app
