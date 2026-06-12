@@ -177,6 +177,7 @@ def get_dirPath(guid):
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
         theme=token.get("theme", DEFAULT_THEME),
+        is_mcp=token.get("is_mcp", False),
     )
 
 
@@ -402,6 +403,7 @@ def autoplay(guid):
         donation_site_url=token.get("donation_site_url"),
         theme=token.get("theme", DEFAULT_THEME),
         watch_party_url=watch_party_url,
+        is_mcp=token.get("is_mcp", False),
     )
 
 
@@ -593,6 +595,7 @@ def video(guid, hashPath):
         donation_site_url=token.get("donation_site_url"),
         theme=token.get("theme", DEFAULT_THEME),
         watch_party_url=watch_party_url,
+        is_mcp=token.get("is_mcp", False),
     )
 
 
@@ -680,6 +683,7 @@ def watch_party(guid, hashPath):
         jitsi_jwt=encoded_jwt,
         watch_party_room_name=watch_party_room_name,
         video_stream_url=video_stream_url,
+        is_mcp=token.get("is_mcp", False),
     )
 
 

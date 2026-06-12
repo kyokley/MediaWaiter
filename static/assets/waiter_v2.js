@@ -14,6 +14,7 @@ var didScroll;
 var lastScrollTop = 0;
 var delta = 10;
 var binge_mode;
+var is_mcp;
 var has_next_link;
 var should_redirect = true;
 var username;
@@ -53,6 +54,10 @@ function prepareDataTable($){
 }
 
 function storeVideoPosition(filename, video){
+    if(is_mcp){
+        return;
+    }
+
     var offset = Math.max(video.currentTime, 0);
     console.log("Attempting to store video position");
     jQuery.ajax({url: offsetUrl + guid + '/' + filename + '/',
@@ -65,6 +70,10 @@ function storeVideoPosition(filename, video){
 }
 
 function getVideoPosition(filename, guid, video){
+    if(is_mcp){
+        return;
+    }
+
     console.log("Attempting to get video position");
     if(localStorage.getItem(filename)){
         video.currentTime(localStorage.getItem(filename));
@@ -88,6 +97,10 @@ function getVideoPosition(filename, guid, video){
 }
 
 function clearVideoPosition(filename){
+    if(is_mcp){
+        return;
+    }
+
     console.log("Attempting to clear video position");
     jQuery.ajax({url: offsetUrl + guid + '/' + filename + '/',
                  type: 'DELETE',
@@ -102,6 +115,10 @@ function clearVideoPosition(filename){
 }
 
 function markViewed(guid){
+    if(is_mcp){
+        return;
+    }
+
     if(!viewed){
         viewed = true;
         jQuery.ajax({url: viewedUrl + guid + '/',
