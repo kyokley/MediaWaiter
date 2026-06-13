@@ -71,6 +71,13 @@
             {% else %}
                 has_next_link = false;
             {% endif %}
+
+            {% if is_mcp %}
+                is_mcp = true;
+            {% else %}
+                is_mcp = false;
+            {% endif %}
+
               var options = {
                           techOrder: ['chromecast', 'html5'],
                           chromecast: {

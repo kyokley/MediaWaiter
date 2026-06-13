@@ -162,6 +162,7 @@ class TestGetDirPath:
             theme=DEFAULT_THEME,
             tv_id=None,
             tv_name=None,
+            is_mcp=False,
         )
 
     def test_not_a_movie(self):
