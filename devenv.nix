@@ -2,7 +2,13 @@
 
 {
   # https://devenv.sh/basics/
-  # env.GREET = "MV";
+  env = {
+    GREET = "MW";
+    DOCKER_COMPOSE_TEST_ARGS = "-f docker-compose.yml -f docker-compose.test.yml";
+    USE_HOST_NET = "0";
+    NO_CACHE = "0";
+    UID = "1000";
+  };
 
   # https://devenv.sh/packages/
   # packages = [
@@ -10,7 +16,22 @@
   # ];
 
   # https://devenv.sh/scripts/
-  # scripts.hello.exec = "echo hello from $GREET";
+  scripts = {
+    hello.exec = "echo hello from $GREET";
+    build-dev.exec = ''
+      docker build \
+        $(test ${config.env.USE_HOST_NET} -ne 0 && echo "--network=host" || echo "") \
+        $(test ${config.env.NO_CACHE} -ne 0 && echo "--no-cache" || echo "") \
+        --build-arg UID=${config.env.UID} \
+        --tag=kyokley/mediawaiter \
+        --target=dev \
+        .
+    '';
+    pytest.exec = ''
+      build-dev
+      ${pkgs.docker}/bin/docker compose ${config.env.DOCKER_COMPOSE_TEST_ARGS} run --rm mediawaiter pytest
+    '';
+  };
 
   # enterShell = ''
   #   # hello
