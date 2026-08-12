@@ -31,6 +31,10 @@
       build-dev
       ${pkgs.docker}/bin/docker compose ${config.env.DOCKER_COMPOSE_TEST_ARGS} run --rm mediawaiter pytest
     '';
+    shell.exec = ''
+      build-dev
+      ${pkgs.docker}/bin/docker compose ${config.env.DOCKER_COMPOSE_TEST_ARGS} run --rm mediawaiter sh
+    '';
   };
 
   # enterShell = ''
