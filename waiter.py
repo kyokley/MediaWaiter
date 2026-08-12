@@ -118,13 +118,16 @@ def isAlfredEncoding(filename):
 @delayedRetry(attempts=5, interval=1)
 def getTokenByGUID(guid):
     try:
-        data = requests.get(
+        resp = requests.get(
             MEDIAVIEWER_GUID_URL % {"guid": guid},
             auth=(WAITER_USERNAME, WAITER_PASSWORD),
             verify=VERIFY_REQUESTS,
             timeout=REQUESTS_TIMEOUT,
         )
-        return data.json()
+        data = resp.json()
+        logger().debug(data)
+        print(data)
+        return data
     except Exception as e:
         logger().error(e)
         raise
