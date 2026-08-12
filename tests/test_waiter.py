@@ -163,6 +163,10 @@ class TestGetDirPath:
             tv_id=None,
             tv_name=None,
             is_mcp=False,
+            og_title="",
+            og_type="",
+            og_url="",
+            og_image="",
         )
 
     def test_not_a_movie(self):
@@ -487,6 +491,11 @@ class TestGetFile:
             donation_site_name="",
             donation_site_url="",
             theme=DEFAULT_THEME,
+            is_mcp=False,
+            og_title="",
+            og_type="",
+            og_url="",
+            og_image="",
         )
 
     def test_valid_with_next_and_previous(self):
@@ -517,6 +526,11 @@ class TestGetFile:
             donation_site_name="",
             donation_site_url="",
             theme=DEFAULT_THEME,
+            is_mcp=False,
+            og_title="",
+            og_type="",
+            og_url="",
+            og_image="",
         )
 
     def test_valid_no_binge_mode(self):
@@ -546,6 +560,11 @@ class TestGetFile:
             donation_site_name="",
             donation_site_url="",
             theme=DEFAULT_THEME,
+            is_mcp=False,
+            og_title="",
+            og_type="",
+            og_url="",
+            og_image="",
         )
 
 

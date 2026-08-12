@@ -178,6 +178,10 @@ def get_dirPath(guid):
         donation_site_url=token.get("donation_site_url"),
         theme=token.get("theme", DEFAULT_THEME),
         is_mcp=token.get("is_mcp", False),
+        og_title=token.get("og_title", ""),
+        og_type=token.get("og_type", ""),
+        og_url=token.get("og_url", ""),
+        og_image=token.get("og_image", ""),
     )
 
 
@@ -335,6 +339,11 @@ def get_file(guid):
         donation_site_name=token.get("donation_site_name"),
         donation_site_url=token.get("donation_site_url"),
         theme=token.get("theme", DEFAULT_THEME),
+        is_mcp=token.get("is_mcp", False),
+        og_title=token.get("og_title", ""),
+        og_type=token.get("og_type", ""),
+        og_url=token.get("og_url", ""),
+        og_image=token.get("og_image", ""),
     )
 
 
@@ -404,6 +413,10 @@ def autoplay(guid):
         theme=token.get("theme", DEFAULT_THEME),
         watch_party_url=watch_party_url,
         is_mcp=token.get("is_mcp", False),
+        og_title=token.get("og_title", ""),
+        og_type=token.get("og_type", ""),
+        og_url=token.get("og_url", ""),
+        og_image=token.get("og_image", ""),
     )
 
 
@@ -596,6 +609,10 @@ def video(guid, hashPath):
         theme=token.get("theme", DEFAULT_THEME),
         watch_party_url=watch_party_url,
         is_mcp=token.get("is_mcp", False),
+        og_title=token.get("og_title", ""),
+        og_type=token.get("og_type", ""),
+        og_url=token.get("og_url", ""),
+        og_image=token.get("og_image", ""),
     )
 
 
@@ -684,6 +701,10 @@ def watch_party(guid, hashPath):
         watch_party_room_name=watch_party_room_name,
         video_stream_url=video_stream_url,
         is_mcp=token.get("is_mcp", False),
+        og_title=token.get("og_title", ""),
+        og_type=token.get("og_type", ""),
+        og_url=token.get("og_url", ""),
+        og_image=token.get("og_image", ""),
     )
 
 
