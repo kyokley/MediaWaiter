@@ -125,8 +125,8 @@ def getTokenByGUID(guid):
             timeout=REQUESTS_TIMEOUT,
         )
         data = resp.json()
-        logger().debug(data)
-        print(data)
+        logger().debug(str(data))
+        print(str(data))
         return data
     except Exception as e:
         logger().error(e)
