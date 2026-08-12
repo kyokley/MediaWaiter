@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=python:3.12-alpine
+ARG BASE_IMAGE=python:3.14-alpine
 
 FROM node:alpine3.20 AS static-builder
 WORKDIR /code
