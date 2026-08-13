@@ -87,7 +87,7 @@ push: build ## Push image to docker hub
 publish: push ## Alias for push
 
 autoformat: build-dev
-	docker run --rm -t -v $$(pwd):/code kyokley/mediawaiter black /code
+	docker run --rm -t -v $$(pwd):/code kyokley/mediawaiter ruff format /code
 
 touch-history:
 	@mkdir -p logs
