@@ -418,7 +418,8 @@ def autoplay(guid):
         is_mcp=token.get("is_mcp", False),
         og_title=token.get("og_title", ""),
         og_type=token.get("og_type", ""),
-        og_url=token.get("og_url", ""),
+        # og_url=token.get("og_url", ""),
+        og_url=file_entry["path"],
         og_image=token.get("og_image", ""),
     )
 
