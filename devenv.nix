@@ -5,7 +5,6 @@
    env = {
     MW_SECRET_FILE = "secret.txt";
     MW_IGNORE_MEDIA_DIR_CHECKS = "true";
-    PYTHONPATH = ".";
     MW_BASE_PATH = "/home/yokley/workspace/MV/media";
     MW_MEDIA_DIRS = "tv,movies";
     MW_WAITER_USERNAME = "waiter";
