@@ -3,7 +3,6 @@
 {
   # https://devenv.sh/basics/
    env = {
-    GREET = "MV";
     MW_SECRET_FILE = "secret.txt";
     MW_IGNORE_MEDIA_DIR_CHECKS = "true";
     PYTHONPATH = ".";
@@ -17,6 +16,11 @@
     MW_MEDIAWAITER_PROTOCOL = "http://";
     MW_USE_NGINX = "false";
     FLASK_DEBUG = "true";
+    GREET = "MW";
+    DOCKER_COMPOSE_TEST_ARGS = "-f docker-compose.yml -f docker-compose.test.yml";
+    USE_HOST_NET = "0";
+    NO_CACHE = "0";
+    UID = "1000";
   };
 
   # https://devenv.sh/packages/
@@ -36,6 +40,24 @@
     '';
     up.exec = ''
       uv run flask --app src/mediawaiter/waiter.py run
+    '';
+    hello.exec = "echo hello from $GREET";
+    build-dev.exec = ''
+      docker build \
+        $(test ${config.env.USE_HOST_NET} -ne 0 && echo "--network=host" || echo "") \
+        $(test ${config.env.NO_CACHE} -ne 0 && echo "--no-cache" || echo "") \
+        --build-arg UID=${config.env.UID} \
+        --tag=kyokley/mediawaiter \
+        --target=dev \
+        .
+    '';
+    pytest.exec = ''
+      build-dev
+      ${pkgs.docker}/bin/docker compose ${config.env.DOCKER_COMPOSE_TEST_ARGS} run --rm mediawaiter pytest
+    '';
+    shell.exec = ''
+      build-dev
+      ${pkgs.docker}/bin/docker compose ${config.env.DOCKER_COMPOSE_TEST_ARGS} run --rm mediawaiter sh
     '';
   };
 
@@ -57,7 +79,7 @@
   languages = {
     python = {
       enable = true;
-      version = "3.13";
+      version = "3.14";
       uv = {
         enable = true;
       };
@@ -78,7 +100,6 @@
     check-added-large-files.enable = true;
     check-toml.enable = true;
     check-yaml.enable = true;
-    checkmake.enable = true;
     detect-private-keys.enable = true;
     ripsecrets.enable = true;
     ruff.enable = true;

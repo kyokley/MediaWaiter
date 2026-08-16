@@ -17,6 +17,12 @@ dev = [
     "bpython>=0.25",
     "pytest>=8.4.1",
     "pytest-mock>=3.14.1",
+    "pdbpp<1.0.0,>=0.9.15",
+    "mock<3.0,>=2.0",
+    "bandit<2.0,>=1.5",
+    "coverage<5.0,>=4.5",
+    "diff-cover<3.0,>=2.0",
+    "ruff>=0.16.2",
 ]
 
 [project.scripts]

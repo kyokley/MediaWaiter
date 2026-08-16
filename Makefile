@@ -76,7 +76,7 @@ pytest: build-dev ## Run pytests
 	${DOCKER_COMPOSE_EXECUTABLE} ${DOCKER_COMPOSE_TEST_ARGS} run --rm mediawaiter pytest
 
 bandit: build-dev ## Run bandit
-	${DOCKER_COMPOSE_EXECUTABLE} ${DOCKER_COMPOSE_TEST_ARGS} run --rm mediawaiter sh -c "bandit -x '**/tests/test_*.py,./.venv' -r ."
+	${DOCKER_COMPOSE_EXECUTABLE} ${DOCKER_COMPOSE_TEST_ARGS} run --rm mediawaiter sh -c "bandit -x '**/tests/test_*.py,./.venv,./.devenv' -r ."
 
 down: ## Bring all containers down
 	${DOCKER_COMPOSE_EXECUTABLE} down --remove-orphans
@@ -87,7 +87,7 @@ push: build ## Push image to docker hub
 publish: push ## Alias for push
 
 autoformat: build-dev
-	docker run --rm -t -v $$(pwd):/code kyokley/mediawaiter black /code
+	docker run --rm -t -v $$(pwd):/code kyokley/mediawaiter ruff format /code
 
 touch-history:
 	@mkdir -p logs

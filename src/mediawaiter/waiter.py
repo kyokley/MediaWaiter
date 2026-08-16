@@ -1,56 +1,57 @@
-import os
-import secure
-import jwt
-import random
-import string
-import re
 import logging
-
+import os
+import random
+import re
+import string
 from collections import namedtuple
-from pathlib import Path
 from functools import wraps
-from flask import Flask, request, send_file, render_template, jsonify, Response
+from pathlib import Path
+
+import jwt
+import requests
+import secure
+from flask import Flask, Response, jsonify, render_template, request, send_file
 from werkzeug.middleware.proxy_fix import ProxyFix
+
 from .settings import (
-    PORT,
-    HOST,
-    BASE_PATH,
-    MEDIA_DIRS,
     APP_NAME,
-    MEDIAVIEWER_GUID_URL,
-    MEDIAVIEWER_VIEWED_URL,
-    USE_NGINX,
-    WAITER_USERNAME,
-    WAITER_PASSWORD,
-    MEDIAVIEWER_SUFFIX,
-    WAITER_VIEWED_URL,
-    WAITER_OFFSET_URL,
-    VERIFY_REQUESTS,
-    MINIMUM_FILE_SIZE,
+    BASE_PATH,
+    DEFAULT_THEME,
     EXTERNAL_MEDIAVIEWER_BASE_URL,
     GOOGLE_CAST_APP_ID,
-    REQUESTS_TIMEOUT,
-    DEFAULT_THEME,
+    HOST,
     JITSI_JWT_APP_ID,
     JITSI_JWT_APP_SECRET,
     JITSI_JWT_SUB,
+    MEDIA_DIRS,
+    MEDIAVIEWER_GUID_URL,
+    MEDIAVIEWER_SUFFIX,
+    MEDIAVIEWER_VIEWED_URL,
+    MINIMUM_FILE_SIZE,
+    PORT,
+    REQUESTS_TIMEOUT,
     STATIC_FOLDER,
+    USE_NGINX,
+    VERIFY_REQUESTS,
+    WAITER_OFFSET_URL,
+    WAITER_PASSWORD,
+    WAITER_USERNAME,
+    WAITER_VIEWED_URL,
 )
 from .utils import (
-    humansize,
-    delayedRetry,
-    checkForValidToken,
     buildWaiterPath,
-    getVideoOffset,
-    setVideoOffset,
+    checkForValidToken,
+    delayedRetry,
     deleteVideoOffset,
-    hashed_filename,
-    getMediaGenres,
     get_collections,
+    getMediaGenres,
+    getVideoOffset,
+    hashed_filename,
+    humansize,
+    setVideoOffset,
 )
-import requests
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 rand = random.SystemRandom()
 
@@ -61,6 +62,14 @@ Subtitle = namedtuple("Subtitle", "path,hashed_filename,waiter_path")
 STREAMABLE_FILE_TYPES = (".mp4",)
 
 app = Flask(__name__, static_url_path="/static", static_folder=STATIC_FOLDER)
+
+
+class InvalidMethod(Exception):
+    """Exception raised for invalid request method"""
+
+
+class FileEntryNotFoundError(Exception):
+    """Exception raised when a file entry cannot be matched to a hash path"""
 
 
 secure_headers = secure.Secure()
@@ -96,12 +105,12 @@ def logErrorsAndContinue(func):
         try:
             res = func(*args, **kwargs)
             return res
-        except Exception as e:
-            logger.error(e, exc_info=True)
+        except Exception:
+            logger.exception("An error has occurred in %s", func.__name__)
             errorText = "An error has occurred"
             try:
                 token = getTokenByGUID(kwargs.get("guid"))
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - defensive: never mask the original error
                 logger.error(e)
 
             username = token.get("username") if token else None
@@ -131,7 +140,7 @@ def logErrorsAndContinueJSON(func):
             res = func(*args, **kwargs)
             return res
         except Exception as e:
-            logger.error(e, exc_info=True)
+            logger.exception("An error has occurred in %s", func.__name__)
             return (
                 jsonify({"error": "An error has occurred", "details": str(e)}),
                 400,
@@ -147,13 +156,14 @@ def isAlfredEncoding(filename):
 @delayedRetry(attempts=5, interval=1)
 def getTokenByGUID(guid):
     try:
-        data = requests.get(
+        resp = requests.get(
             MEDIAVIEWER_GUID_URL % {"guid": guid},
             auth=(WAITER_USERNAME, WAITER_PASSWORD),
             verify=VERIFY_REQUESTS,
             timeout=REQUESTS_TIMEOUT,
         )
-        return data.json()
+        data = resp.json()
+        return data
     except Exception as e:
         logger.error(e)
         raise
@@ -198,6 +208,11 @@ def _get_dirPath_data(guid):
         "donation_site_name": token.get("donation_site_name"),
         "donation_site_url": token.get("donation_site_url"),
         "theme": token.get("theme", DEFAULT_THEME),
+        "is_mcp": token.get("is_mcp", False),
+        "og_title": token.get("og_title", ""),
+        "og_type": token.get("og_type", ""),
+        "og_url": token.get("og_url", ""),
+        "og_image": token.get("og_image", ""),
     }, 200
 
 
@@ -207,12 +222,15 @@ def get_dirPath(guid):
     """Display a page that lists all media files in a given directory"""
     data, status_code = _get_dirPath_data(guid)
     if status_code != 200:
-        return render_template(
-            "error.html",
-            title="Error",
-            errorText=data.get("error"),
-            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
-            theme=DEFAULT_THEME,
+        return (
+            render_template(
+                "error.html",
+                title="Error",
+                errorText=data.get("error"),
+                mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+                theme=DEFAULT_THEME,
+            ),
+            400,
         )
     return render_template("display.html", **data)
 
@@ -310,12 +328,11 @@ def _getFileEntryFromHash(token, hashPath):
             return entry
 
         for subtitle in entry["subtitleFiles"]:
-            if subtitle["hashed_filename"] == hashPath:
-                subtitle_path = subtitle["path"]
-                subtitle_size = os.path.getsize(subtitle_path)
-                return {"unhashedPath": subtitle_path, "rawSize": subtitle_size}
-    else:
-        raise Exception("Unable to find matching path")
+            if subtitle.hashed_filename == hashPath:
+                unhashed_path = Path(subtitle.path)
+                size = unhashed_path.stat().st_size
+                return {"unhashedPath": subtitle.path, "rawSize": size}
+    raise FileEntryNotFoundError("Unable to find matching path")
 
 
 def _get_file_data(guid):
@@ -363,22 +380,6 @@ def _get_file_data(guid):
     }, 200
 
 
-@app.route(APP_NAME + "/file/<guid>/")
-@logErrorsAndContinue
-def get_file(guid):
-    """Display a page that lists a single file"""
-    data, status_code = _get_file_data(guid)
-    if status_code != 200:
-        return render_template(
-            "error.html",
-            title="Error",
-            errorText=data.get("error"),
-            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
-            theme=DEFAULT_THEME,
-        )
-    return render_template("display.html", **data)
-
-
 @app.route(APP_NAME + "/file/<guid>/json")
 @app.route(APP_NAME + "/file/<guid>/json/")
 @logErrorsAndContinueJSON
@@ -407,9 +408,9 @@ def _autoplay_data(guid):
                 "debug_token_path": token.get("path"),
             }, 400
         file_entry = files[0]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - convert any build failure to a JSON error response
         return {
-            "error": f"Error building file entries: {str(e)}",
+            "error": f"Error building file entries: {e!s}",
             "debug_token_keys": list(token.keys()) if token else None,
         }, 400
     tv_genres, movie_genres = getMediaGenres(guid)
@@ -459,22 +460,6 @@ def _autoplay_data(guid):
     }, 200
 
 
-@app.route(APP_NAME + "/file/<guid>/autoplay")
-@logErrorsAndContinue
-def autoplay(guid):
-    """Autoplay a single file"""
-    data, status_code = _autoplay_data(guid)
-    if status_code != 200:
-        return render_template(
-            "error.html",
-            title="Error",
-            errorText=data.get("error"),
-            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
-            theme=DEFAULT_THEME,
-        )
-    return render_template("video.html", **data)
-
-
 @app.route(APP_NAME + "/file/<guid>/autoplay/json")
 @app.route(APP_NAME + "/file/<guid>/autoplay/json/")
 @logErrorsAndContinueJSON
@@ -504,6 +489,136 @@ def send_file_for_download(guid, hashPath):
     fullPath = entry["unhashedPath"]
     filename = Path(fullPath).name if isinstance(fullPath, str) else fullPath.name
     return send_file_partial(fullPath, filename, entry["rawSize"])
+
+
+@app.route(APP_NAME + "/file/<guid>/")
+@logErrorsAndContinue
+def get_file(guid):
+    """Display a page that lists a single file"""
+    token = getTokenByGUID(guid)
+
+    errorStr = checkForValidToken(token, guid)
+    if errorStr or token["ismovie"]:
+        return render_template(
+            "error.html",
+            title="Error",
+            errorText=("Invalid URL for movie type" if token["ismovie"] else errorStr),
+            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get("theme", DEFAULT_THEME),
+        )
+
+    files = list(buildEntries(token))
+    tv_genres, movie_genres = getMediaGenres(guid)
+    collections = get_collections(guid)
+    token = _extract_donation_info(token)
+    return render_template(
+        "display.html",
+        title=token["displayname"],
+        files=files,
+        username=token["username"],
+        mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+        ismovie=token["ismovie"],
+        tv_id=token["tv_id"],
+        tv_name=token["tv_name"],
+        guid=guid,
+        offsetUrl=WAITER_OFFSET_URL,
+        next_link=(
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/autoplaydownloadlink/{token.get('next_id')}/"
+            if token.get("next_id")
+            else None
+        ),
+        previous_link=(
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}/autoplaydownloadlink/{token.get('previous_id')}/"
+            if token.get("previous_id")
+            else None
+        ),
+        tv_genres=tv_genres,
+        movie_genres=movie_genres,
+        collections=collections,
+        binge_mode=token["binge_mode"],
+        donation_site_name=token.get("donation_site_name"),
+        donation_site_url=token.get("donation_site_url"),
+        theme=token.get("theme", DEFAULT_THEME),
+        is_mcp=token.get("is_mcp", False),
+        og_title=token.get("og_title", ""),
+        og_type=token.get("og_type", ""),
+        og_url=token.get("og_url", ""),
+        og_image=token.get("og_image", ""),
+    )
+
+
+@app.route(APP_NAME + "/file/<guid>/autoplay")
+@logErrorsAndContinue
+def autoplay(guid):
+    """Autoplay a single file"""
+    token = getTokenByGUID(guid)
+
+    errorStr = checkForValidToken(token, guid)
+    if errorStr or token["ismovie"]:
+        return render_template(
+            "error.html",
+            title="Error",
+            errorText=("Invalid URL for movie type" if token["ismovie"] else errorStr),
+            mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+            theme=token.get("theme", DEFAULT_THEME),
+        )
+
+    files = list(buildEntries(token))
+    file_entry = files[0]
+    tv_genres, movie_genres = getMediaGenres(guid)
+    collections = get_collections(guid)
+    token = _extract_donation_info(token)
+
+    watch_party_url = get_watch_party_url(
+        guid, file_entry["hashedWaiterPath"], token["username"]
+    )
+
+    return render_template(
+        "video.html",
+        title=token["displayname"],
+        filename=token["filename"],
+        hashPath=file_entry["hashedWaiterPath"],
+        video_file=file_entry["path"],
+        subtitle_files=[
+            subtitle.waiter_path for subtitle in file_entry["subtitleFiles"]
+        ],
+        viewedUrl=WAITER_VIEWED_URL,
+        offsetUrl=WAITER_OFFSET_URL,
+        guid=guid,
+        username=token["username"],
+        files=files,
+        mediaviewer_base_url=EXTERNAL_MEDIAVIEWER_BASE_URL,
+        ismovie=token["ismovie"],
+        tv_id=token["tv_id"],
+        tv_name=token["tv_name"],
+        next_link=(
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
+            f"/autoplaydownloadlink/{token.get('next_id')}/"
+            if token.get("next_id")
+            else None
+        ),
+        previous_link=(
+            f"{EXTERNAL_MEDIAVIEWER_BASE_URL}"
+            f"/autoplaydownloadlink/{token.get('previous_id')}"
+            if token.get("previous_id")
+            else None
+        ),
+        tv_genres=tv_genres,
+        movie_genres=movie_genres,
+        collections=collections,
+        binge_mode=token["binge_mode"],
+        CAST_ID=GOOGLE_CAST_APP_ID,
+        donation_site_name=token.get("donation_site_name"),
+        donation_site_url=token.get("donation_site_url"),
+        theme=token.get("theme", DEFAULT_THEME),
+        watch_party_url=watch_party_url,
+        is_mcp=token.get("is_mcp", False),
+        og_title=token.get("og_title", ""),
+        og_type=token.get("og_type", ""),
+        # og_url=token.get("og_url", ""),
+        og_url=file_entry["path"],
+        og_image=token.get("og_image", ""),
+    )
 
 
 def get_watch_party_url(guid, hashPath, username):
@@ -547,7 +662,7 @@ def movie_cli_links(guid):
 @app.route(APP_NAME + "/status/", methods=["GET"])
 @app.route(APP_NAME + "/status", methods=["GET"])
 def get_status():
-    res = dict()
+    res = {}
     base_path = Path(BASE_PATH)
 
     try:
@@ -564,8 +679,8 @@ def get_status():
         logger.debug(f"Result is {linked}")
 
         res["status"] = linked
-    except Exception as e:
-        logger.error(e, exc_info=True)
+    except Exception as e:  # noqa: BLE001 - status endpoint must never crash
+        logger.error(e)
         res["status"] = False
 
     logger.debug(f"status: {res['status']}")
@@ -616,7 +731,7 @@ def xsendfile(path, filename, size):
     resp = Response(None, 206)
     resp.headers.add(
         "Content-Range",
-        "bytes {0}-{1}/{2}".format(byte1, byte2, size),
+        f"bytes {byte1}-{byte2}/{size}",
     )
 
     resp.headers["Content-Length"] = str(length)
@@ -691,6 +806,11 @@ def _video_data(guid, hashPath):
         "donation_site_url": token.get("donation_site_url"),
         "theme": token.get("theme", DEFAULT_THEME),
         "watch_party_url": watch_party_url,
+        "is_mcp": token.get("is_mcp", False),
+        "og_title": token.get("og_title", ""),
+        "og_type": token.get("og_type", ""),
+        "og_url": token.get("og_url", ""),
+        "og_image": token.get("og_image", ""),
     }, 200
 
 
@@ -794,6 +914,11 @@ def _watch_party_data(guid, hashPath):
         "jitsi_jwt": encoded_jwt,
         "watch_party_room_name": watch_party_room_name,
         "video_stream_url": video_stream_url,
+        "is_mcp": token.get("is_mcp", False),
+        "og_title": token.get("og_title", ""),
+        "og_type": token.get("og_type", ""),
+        "og_url": token.get("og_url", ""),
+        "og_image": token.get("og_image", ""),
     }, 200
 
 
@@ -865,7 +990,7 @@ def videoOffset(guid, hashedFilename):
         deleteVideoOffset(hashedFilename, guid)
         return jsonify({"msg": "deleted"})
     else:
-        raise Exception("Method not supported")
+        raise InvalidMethod("Method not supported")
 
 
 app.wsgi_app = ProxyFix(app.wsgi_app)

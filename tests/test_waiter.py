@@ -1,17 +1,19 @@
-import pytest
 from pathlib import Path
+from unittest import mock
+
+import pytest
+
+from src.mediawaiter.settings import DEFAULT_THEME, REQUESTS_TIMEOUT
 from src.mediawaiter.waiter import (
-    isAlfredEncoding,
-    getTokenByGUID,
-    get_dirPath,
-    buildEntries,
     _buildFileDictHelper,
-    send_file_for_download,
+    buildEntries,
+    get_dirPath,
     get_file,
     get_status,
+    getTokenByGUID,
+    isAlfredEncoding,
+    send_file_for_download,
 )
-from src.mediawaiter.settings import REQUESTS_TIMEOUT, DEFAULT_THEME
-from unittest import mock
 
 
 class TestIsAlfredEncoding:
@@ -117,7 +119,7 @@ class TestGetDirPath:
     def test_invalidToken(self):
         self.mock_checkForValidToken.return_value = "Got an error"
 
-        expected = self.mock_render_template.return_value
+        expected = self.mock_render_template.return_value, 400
         actual = get_dirPath(self.test_guid)
 
         assert expected == actual
@@ -172,6 +174,11 @@ class TestGetDirPath:
             theme=DEFAULT_THEME,
             tv_id=None,
             tv_name=None,
+            is_mcp=False,
+            og_title="",
+            og_type="",
+            og_url="",
+            og_image="",
         )
 
     def test_not_a_movie(self):
@@ -200,8 +207,7 @@ class TestGetDirPath:
         self.mock_render_template.assert_called_once_with(
             "error.html",
             title="Error",
-            errorText="An error has occurred",
-            username="some.user",
+            errorText="Only movies are allowed to display contents of directories",
             mediaviewer_base_url="BASE_URL",
             theme=DEFAULT_THEME,
         )
@@ -218,7 +224,7 @@ class TestBuildMovieEntries:
 
         self.mock_os.path.join.side_effect = ["path/to/movie", "/base/path/to/movie"]
         self.mock_os.walk.return_value = [
-            ("/root/path", [], ["file1", "file2", "file3"])
+            ("some_dir/path", [], ["file1", "file2", "file3"])
         ]
 
         self.token = {
@@ -237,13 +243,13 @@ class TestBuildMovieEntries:
         assert expected == actual
 
         self.mock_buildFileDictHelper.assert_any_call(
-            Path("/root/path"), "file1", self.token
+            Path("some_dir/path"), "file1", self.token
         )
         self.mock_buildFileDictHelper.assert_any_call(
-            Path("/root/path"), "file2", self.token
+            Path("some_dir/path"), "file2", self.token
         )
         self.mock_buildFileDictHelper.assert_any_call(
-            Path("/root/path"), "file3", self.token
+            Path("some_dir/path"), "file3", self.token
         )
 
     def test_no_valid_files(self):
@@ -254,13 +260,13 @@ class TestBuildMovieEntries:
         assert expected == actual
 
         self.mock_buildFileDictHelper.assert_any_call(
-            Path("/root/path"), "file1", self.token
+            Path("some_dir/path"), "file1", self.token
         )
         self.mock_buildFileDictHelper.assert_any_call(
-            Path("/root/path"), "file2", self.token
+            Path("some_dir/path"), "file2", self.token
         )
         self.mock_buildFileDictHelper.assert_any_call(
-            Path("/root/path"), "file3", self.token
+            Path("some_dir/path"), "file3", self.token
         )
 
 
@@ -294,7 +300,7 @@ class TestBuildFileDictHelper:
         self.mock_getsize.return_value = 1000000
 
         expected = None
-        actual = _buildFileDictHelper("/root", "filename.mp4", self.token)
+        actual = _buildFileDictHelper("some_dir", "filename.mp4", self.token)
         assert expected == actual
         assert not self.mock_buildWaiterPath.called
         assert not self.mock_hashed_filename.called
@@ -304,7 +310,7 @@ class TestBuildFileDictHelper:
         self.mock_getsize.return_value = 100000000
 
         expected = None
-        actual = _buildFileDictHelper("/root", "filename.mkv", self.token)
+        actual = _buildFileDictHelper("some_dir", "filename.mkv", self.token)
         assert expected == actual
         assert not self.mock_buildWaiterPath.called
         assert not self.mock_hashed_filename.called
@@ -526,6 +532,11 @@ class TestGetFile:
             donation_site_name="",
             donation_site_url="",
             theme=DEFAULT_THEME,
+            is_mcp=False,
+            og_title="",
+            og_type="",
+            og_url="",
+            og_image="",
         )
 
     def test_valid_with_next_and_previous(self):
@@ -556,6 +567,11 @@ class TestGetFile:
             donation_site_name="",
             donation_site_url="",
             theme=DEFAULT_THEME,
+            is_mcp=False,
+            og_title="",
+            og_type="",
+            og_url="",
+            og_image="",
         )
 
     def test_valid_no_binge_mode(self):
@@ -585,6 +601,11 @@ class TestGetFile:
             donation_site_name="",
             donation_site_url="",
             theme=DEFAULT_THEME,
+            is_mcp=False,
+            og_title="",
+            og_type="",
+            og_url="",
+            og_image="",
         )
 
 
