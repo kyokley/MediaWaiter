@@ -72,12 +72,18 @@ class FileEntryNotFoundError(Exception):
     """Exception raised when a file entry cannot be matched to a hash path"""
 
 
-secure_headers = secure.Secure()
+secure_headers = secure.Secure(
+    cache=secure.CacheControl(),
+    hsts=secure.StrictTransportSecurity(),
+    referrer=secure.ReferrerPolicy(["no-referrer", "strict-origin-when-cross-origin"]),
+    xcto=secure.XContentTypeOptions(),
+    xfo=secure.XFrameOptions(),
+)
 
 
 @app.after_request
 def set_secure_headers(response):
-    secure_headers.framework.flask(response)
+    secure_headers.set_headers(response)
     # Allow CORS for video streaming to work from browser
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS"

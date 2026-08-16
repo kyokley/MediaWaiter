@@ -42,7 +42,8 @@ RUN addgroup -g ${UID} user && \
 RUN chown -R user:user /code /www && \
         chmod 555 -R /www /code
 
-COPY uv.lock pyproject.toml ${UV_PROJECT_DIR}/
+COPY uv.lock pyproject.toml README.md ${UV_PROJECT_DIR}/
+COPY src ${UV_PROJECT_DIR}/src
 
 RUN uv sync --no-dev --project ${VIRTUAL_ENV}
 

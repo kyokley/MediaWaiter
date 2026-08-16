@@ -2,16 +2,18 @@ services:
   mediawaiter:
     image: kyokley/mediawaiter
     environment:
-      - FLASK_APP=waiter
+      - FLASK_APP=src.mediawaiter.waiter
       - FLASK_DEBUG=1
       - MW_USE_NGINX=false
+      - MW_HOST=0.0.0.0
       - MW_BASE_PATH=/www/media
       - MW_LOG_DIR=/logs
       - MW_MEDIAWAITER_PROTOCOL=http://
+      - MW_IGNORE_MEDIA_DIR_CHECKS=true
     build:
       context: .
       target: dev
-    command: sh -c "python waiter.py"
+    command: sh -c "python -m src.mediawaiter.waiter"
     hostname: mediawaiter
     ports:
       - "127.0.0.1:5000:5000"
