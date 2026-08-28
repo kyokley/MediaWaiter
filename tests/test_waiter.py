@@ -11,6 +11,7 @@ from waiter import (
     send_file_for_download,
     get_file,
     get_status,
+    Subtitle,
 )
 from settings import REQUESTS_TIMEOUT, DEFAULT_THEME
 import mock
@@ -341,6 +342,45 @@ class TestBuildS3Entries:
         with pytest.raises(Exception):
             list(buildEntries(self.token))
 
+    def test_build_entries_s3_movie_with_subtitles(self):
+        self.token["subtitle_files"] = [
+            "https://s3.example.com/bucket/prefix/Movie.Name/"
+            "Movie.Name.mv-encoded.mp4.mv-encoded.mp4-0.vtt?X-Amz-Signature=abc123",
+            "https://s3.example.com/bucket/prefix/Movie.Name/"
+            "Movie.Name.mv-encoded.mp4.mv-encoded.mp4-1.vtt?X-Amz-Signature=abc123",
+        ]
+
+        entries = list(buildEntries(self.token))
+        assert len(entries) == 1
+        entry = entries[0]
+        assert len(entry["subtitleFiles"]) == 2
+        first, second = entry["subtitleFiles"]
+        assert first.path == self.token["subtitle_files"][0]
+        assert first.hashed_filename == "hashPath"
+        assert first.waiter_path == "waiterPath"
+        assert second.path == self.token["subtitle_files"][1]
+        assert entry["subtitleWaiterPath"] == "waiterPath"
+        self.mock_hashed_filename.assert_any_call(
+            "Movie.Name/Movie.Name.mv-encoded.mp4.mv-encoded.mp4-0.vtt"
+        )
+        self.mock_hashed_filename.assert_any_call(
+            "Movie.Name/Movie.Name.mv-encoded.mp4.mv-encoded.mp4-1.vtt"
+        )
+        self.mock_buildWaiterPath.assert_any_call("file", "asdf1234", "hashPath")
+
+    def test_build_entries_s3_movie_with_encoded_subtitle_filename(self):
+        self.token["subtitle_files"] = [
+            "https://s3.example.com/bucket/prefix/Movie.Name/"
+            "Movie.Name%20Part.mv-encoded.mp4.mv-encoded.mp4-0.vtt?X-Amz-Signature=abc123",
+        ]
+
+        entries = list(buildEntries(self.token))
+        entry = entries[0]
+        assert len(entry["subtitleFiles"]) == 1
+        self.mock_hashed_filename.assert_any_call(
+            "Movie.Name/Movie.Name Part.mv-encoded.mp4.mv-encoded.mp4-0.vtt"
+        )
+
 
 class TestBuildFileDictHelper:
     @pytest.fixture(autouse=True)
@@ -502,6 +542,56 @@ class TestSendFileForDownload:
             "Movie.Name.mv-encoded.mp4?X-Amz-Signature=abc123"
         )
         assert not self.mock_send_file_partial.called
+
+    def test_s3_subtitle_redirects(self):
+        subtitle = Subtitle(
+            path=(
+                "https://s3.example.com/bucket/prefix/Movie.Name/"
+                "Movie.Name.mv-encoded.mp4.mv-encoded.mp4-0.vtt?X-Amz-Signature=abc123"
+            ),
+            hashed_filename="subtitleHashPath",
+            waiter_path="subtitleWaiterPath",
+        )
+        self.mock_buildEntries.return_value = [
+            {
+                "hashedWaiterPath": "hashPath",
+                "unhashedPath": (
+                    "https://s3.example.com/bucket/prefix/Movie.Name/"
+                    "Movie.Name.mv-encoded.mp4?X-Amz-Signature=abc123"
+                ),
+                "rawSize": None,
+                "isS3": True,
+                "subtitleFiles": [subtitle],
+            }
+        ]
+
+        actual = send_file_for_download("guid", "subtitleHashPath")
+        assert actual.status_code == 307
+        assert actual.headers["Location"] == subtitle.path
+        assert not self.mock_send_file_partial.called
+
+    def test_local_subtitle_served_from_disk(self, tmp_path):
+        subtitle_file = tmp_path / "subtitle.vtt"
+        subtitle_file.write_bytes(b"WEBVTT")
+        subtitle = Subtitle(
+            path=subtitle_file,
+            hashed_filename="subtitleHashPath",
+            waiter_path="subtitleWaiterPath",
+        )
+        self.mock_buildEntries.return_value = [
+            {
+                "hashedWaiterPath": "hashPath",
+                "unhashedPath": Path("unhashed/path/to/file"),
+                "rawSize": 100,
+                "subtitleFiles": [subtitle],
+            }
+        ]
+
+        actual = send_file_for_download("guid", "subtitleHashPath")
+        assert actual == self.mock_send_file_partial.return_value
+        self.mock_send_file_partial.assert_called_once_with(
+            subtitle_file, "subtitle.vtt", 6
+        )
 
 
 class TestGetFile:

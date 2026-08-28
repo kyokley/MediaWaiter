@@ -208,6 +208,20 @@ def _buildS3FileDict(token):
     waiterPath = Path(token["filename"]) / filename
     hashedWaiterPath = hashed_filename(str(waiterPath))
 
+    subtitle_files = []
+    for subtitle_url in token.get("subtitle_files", []):
+        subtitle_filename = unquote(urlparse(subtitle_url).path.rsplit("/", 1)[-1])
+        hashed_subtitle = hashed_filename(
+            str(Path(token["filename"]) / subtitle_filename)
+        )
+        subtitle_files.append(
+            Subtitle(
+                path=subtitle_url,
+                hashed_filename=hashed_subtitle,
+                waiter_path=buildWaiterPath("file", token["guid"], hashed_subtitle),
+            )
+        )
+
     return {
         "path": buildWaiterPath(
             "file", token["guid"], hashedWaiterPath, includeLastSlash=True
@@ -222,8 +236,8 @@ def _buildS3FileDict(token):
         "size": "",
         "rawSize": None,
         "isAlfredEncoding": True,
-        "subtitleFiles": [],
-        "subtitleWaiterPath": "",
+        "subtitleFiles": subtitle_files,
+        "subtitleWaiterPath": (subtitle_files[0].waiter_path if subtitle_files else ""),
         "ismovie": token["ismovie"],
         "displayName": token["displayname"],
         "hasProgress": hashedWaiterPath in token["videoprogresses"],
@@ -313,6 +327,12 @@ def _getFileEntryFromHash(token, hashPath):
 
         for subtitle in entry["subtitleFiles"]:
             if subtitle.hashed_filename == hashPath:
+                if str(subtitle.path).startswith(("http://", "https://")):
+                    return {
+                        "unhashedPath": subtitle.path,
+                        "rawSize": None,
+                        "isS3": True,
+                    }
                 unhashed_path = Path(subtitle.path)
                 size = unhashed_path.stat().st_size
                 return {"unhashedPath": subtitle.path, "rawSize": size}
