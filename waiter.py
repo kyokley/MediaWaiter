@@ -8,7 +8,16 @@ import re
 from collections import namedtuple
 from pathlib import Path
 from functools import wraps
-from flask import Flask, request, send_file, render_template, jsonify, Response
+from urllib.parse import urlparse, unquote
+from flask import (
+    Flask,
+    request,
+    send_file,
+    render_template,
+    jsonify,
+    Response,
+    redirect,
+)
 from werkzeug.middleware.proxy_fix import ProxyFix
 from settings import (
     BASE_PATH,
@@ -186,7 +195,61 @@ def get_dirPath(guid):
     )
 
 
+def is_b2_token(token):
+    return str(token.get("path", "")).startswith("b2://")
+
+
+def _buildB2FileDict(token):
+    download_link = token.get("download_link")
+    if not download_link:
+        raise Exception("No download link available for B2 media")
+
+    filename = unquote(urlparse(download_link).path.rsplit("/", 1)[-1])
+    waiterPath = Path(token["filename"]) / filename
+    hashedWaiterPath = hashed_filename(str(waiterPath))
+
+    subtitle_files = []
+    for subtitle_url in token.get("subtitle_files", []):
+        subtitle_filename = unquote(urlparse(subtitle_url).path.rsplit("/", 1)[-1])
+        hashed_subtitle = hashed_filename(
+            str(Path(token["filename"]) / subtitle_filename)
+        )
+        subtitle_files.append(
+            Subtitle(
+                path=subtitle_url,
+                hashed_filename=hashed_subtitle,
+                waiter_path=buildWaiterPath("file", token["guid"], hashed_subtitle),
+            )
+        )
+
+    return {
+        "path": buildWaiterPath(
+            "file", token["guid"], hashedWaiterPath, includeLastSlash=True
+        ),
+        "streamingPath": buildWaiterPath(
+            "stream", token["guid"], hashedWaiterPath, includeLastSlash=True
+        ),
+        "hashedWaiterPath": hashedWaiterPath,
+        "unhashedPath": download_link,
+        "streamable": True,
+        "filename": filename.split("." + MEDIAVIEWER_SUFFIX)[0],
+        "size": "",
+        "rawSize": None,
+        "isAlfredEncoding": True,
+        "subtitleFiles": subtitle_files,
+        "subtitleWaiterPath": (subtitle_files[0].waiter_path if subtitle_files else ""),
+        "ismovie": token["ismovie"],
+        "displayName": token["displayname"],
+        "hasProgress": hashedWaiterPath in token["videoprogresses"],
+        "isB2": True,
+    }
+
+
 def buildEntries(token):
+    if is_b2_token(token):
+        yield _buildB2FileDict(token)
+        return
+
     if token["ismovie"]:
         fullMoviePath = Path(token["path"])
 
@@ -264,6 +327,12 @@ def _getFileEntryFromHash(token, hashPath):
 
         for subtitle in entry["subtitleFiles"]:
             if subtitle.hashed_filename == hashPath:
+                if str(subtitle.path).startswith(("http://", "https://")):
+                    return {
+                        "unhashedPath": subtitle.path,
+                        "rawSize": None,
+                        "isB2": True,
+                    }
                 unhashed_path = Path(subtitle.path)
                 size = unhashed_path.stat().st_size
                 return {"unhashedPath": subtitle.path, "rawSize": size}
@@ -288,6 +357,8 @@ def send_file_for_download(guid, hashPath):
         )
 
     entry = _getFileEntryFromHash(token, hashPath)
+    if entry.get("isB2"):
+        return redirect(entry["unhashedPath"], code=307)
     fullPath = entry["unhashedPath"]
     return send_file_partial(fullPath, fullPath.name, entry["rawSize"])
 
