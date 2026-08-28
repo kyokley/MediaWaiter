@@ -8,7 +8,16 @@ import re
 from collections import namedtuple
 from pathlib import Path
 from functools import wraps
-from flask import Flask, request, send_file, render_template, jsonify, Response
+from urllib.parse import urlparse, unquote
+from flask import (
+    Flask,
+    request,
+    send_file,
+    render_template,
+    jsonify,
+    Response,
+    redirect,
+)
 from werkzeug.middleware.proxy_fix import ProxyFix
 from settings import (
     BASE_PATH,
@@ -186,7 +195,47 @@ def get_dirPath(guid):
     )
 
 
+def is_s3_token(token):
+    return str(token.get("path", "")).startswith("s3://")
+
+
+def _buildS3FileDict(token):
+    download_link = token.get("download_link")
+    if not download_link:
+        raise Exception("No download link available for S3 media")
+
+    filename = unquote(urlparse(download_link).path.rsplit("/", 1)[-1])
+    waiterPath = Path(token["filename"]) / filename
+    hashedWaiterPath = hashed_filename(str(waiterPath))
+
+    return {
+        "path": buildWaiterPath(
+            "file", token["guid"], hashedWaiterPath, includeLastSlash=True
+        ),
+        "streamingPath": buildWaiterPath(
+            "stream", token["guid"], hashedWaiterPath, includeLastSlash=True
+        ),
+        "hashedWaiterPath": hashedWaiterPath,
+        "unhashedPath": download_link,
+        "streamable": True,
+        "filename": filename.split("." + MEDIAVIEWER_SUFFIX)[0],
+        "size": "",
+        "rawSize": None,
+        "isAlfredEncoding": True,
+        "subtitleFiles": [],
+        "subtitleWaiterPath": "",
+        "ismovie": token["ismovie"],
+        "displayName": token["displayname"],
+        "hasProgress": hashedWaiterPath in token["videoprogresses"],
+        "isS3": True,
+    }
+
+
 def buildEntries(token):
+    if is_s3_token(token):
+        yield _buildS3FileDict(token)
+        return
+
     if token["ismovie"]:
         fullMoviePath = Path(token["path"])
 
@@ -288,6 +337,8 @@ def send_file_for_download(guid, hashPath):
         )
 
     entry = _getFileEntryFromHash(token, hashPath)
+    if entry.get("isS3"):
+        return redirect(entry["unhashedPath"], code=307)
     fullPath = entry["unhashedPath"]
     return send_file_partial(fullPath, fullPath.name, entry["rawSize"])
 

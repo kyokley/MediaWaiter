@@ -6,6 +6,8 @@ from waiter import (
     get_dirPath,
     buildEntries,
     _buildFileDictHelper,
+    _buildS3FileDict,
+    is_s3_token,
     send_file_for_download,
     get_file,
     get_status,
@@ -257,6 +259,89 @@ class TestBuildMovieEntries:
         )
 
 
+class TestBuildS3Entries:
+    @pytest.fixture(autouse=True)
+    def setUp(self, mocker):
+        self.mock_hashed_filename = mocker.patch("waiter.hashed_filename")
+        self.mock_buildWaiterPath = mocker.patch("waiter.buildWaiterPath")
+        mocker.patch("waiter.MEDIAVIEWER_SUFFIX", "mv-encoded")
+        self.mock_hashed_filename.return_value = "hashPath"
+        self.mock_buildWaiterPath.return_value = "waiterPath"
+
+        self.token = {
+            "path": "s3://bucket/prefix/Movie.Name/",
+            "filename": "Movie.Name",
+            "guid": "asdf1234",
+            "ismovie": True,
+            "displayname": "Movie Name",
+            "videoprogresses": [],
+            "download_link": (
+                "https://s3.example.com/bucket/prefix/Movie.Name/"
+                "Movie.Name.mv-encoded.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256"
+                "&X-Amz-Signature=abc123"
+            ),
+        }
+
+    def test_is_s3_token(self):
+        assert is_s3_token(self.token)
+        assert not is_s3_token({"path": "/local/path"})
+        assert not is_s3_token({})
+
+    def test_build_entries_s3_movie(self):
+        entries = list(buildEntries(self.token))
+        assert len(entries) == 1
+        entry = entries[0]
+        assert entry["isS3"] is True
+        assert entry["unhashedPath"] == self.token["download_link"]
+        assert entry["subtitleFiles"] == []
+        assert entry["subtitleWaiterPath"] == ""
+        assert entry["filename"] == "Movie.Name"
+        assert entry["hashedWaiterPath"] == "hashPath"
+        assert entry["ismovie"] is True
+        assert entry["displayName"] == "Movie Name"
+        self.mock_hashed_filename.assert_called_once_with(
+            "Movie.Name/Movie.Name.mv-encoded.mp4"
+        )
+        self.mock_buildWaiterPath.assert_any_call(
+            "file", "asdf1234", "hashPath", includeLastSlash=True
+        )
+        self.mock_buildWaiterPath.assert_any_call(
+            "stream", "asdf1234", "hashPath", includeLastSlash=True
+        )
+
+    def test_build_entries_s3_tv(self):
+        self.token["ismovie"] = False
+        self.token["filename"] = "Show.Name.S01E01.mv-encoded.mp4"
+        self.token["path"] = "s3://bucket/prefix/Show.Name/"
+        self.token["download_link"] = (
+            "https://s3.example.com/bucket/prefix/Show.Name/"
+            "Show.Name.S01E01.mv-encoded.mp4?X-Amz-Signature=abc123"
+        )
+
+        entries = list(buildEntries(self.token))
+        assert len(entries) == 1
+        assert entries[0]["isS3"] is True
+        assert entries[0]["ismovie"] is False
+        self.mock_hashed_filename.assert_called_once_with(
+            "Show.Name.S01E01.mv-encoded.mp4/Show.Name.S01E01.mv-encoded.mp4"
+        )
+
+    def test_build_s3_file_dict_encoded_filename(self):
+        self.token["download_link"] = (
+            "https://s3.example.com/bucket/prefix/Movie.Name/"
+            "Movie.Name%20Part.mv-encoded.mp4?X-Amz-Signature=abc123"
+        )
+
+        entry = _buildS3FileDict(self.token)
+        assert entry["filename"] == "Movie.Name Part"
+
+    def test_build_entries_s3_missing_download_link(self):
+        self.token["download_link"] = None
+
+        with pytest.raises(Exception):
+            list(buildEntries(self.token))
+
+
 class TestBuildFileDictHelper:
     @pytest.fixture(autouse=True)
     def setUp(self, mocker):
@@ -395,6 +480,28 @@ class TestSendFileForDownload:
         self.mock_send_file_partial.assert_called_once_with(
             Path("unhashed/path/to/file"), "file", 100
         )
+
+    def test_s3_file_redirects(self):
+        self.mock_buildEntries.return_value = [
+            {
+                "hashedWaiterPath": "hashPath",
+                "unhashedPath": (
+                    "https://s3.example.com/bucket/prefix/Movie.Name/"
+                    "Movie.Name.mv-encoded.mp4?X-Amz-Signature=abc123"
+                ),
+                "rawSize": None,
+                "isS3": True,
+            }
+        ]
+
+        actual = send_file_for_download("guid", "hashPath")
+        assert actual.status_code == 307
+        assert (
+            actual.headers["Location"]
+            == "https://s3.example.com/bucket/prefix/Movie.Name/"
+            "Movie.Name.mv-encoded.mp4?X-Amz-Signature=abc123"
+        )
+        assert not self.mock_send_file_partial.called
 
 
 class TestGetFile:
