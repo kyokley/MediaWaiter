@@ -195,14 +195,14 @@ def get_dirPath(guid):
     )
 
 
-def is_s3_token(token):
-    return str(token.get("path", "")).startswith("s3://")
+def is_b2_token(token):
+    return str(token.get("path", "")).startswith("b2://")
 
 
-def _buildS3FileDict(token):
+def _buildB2FileDict(token):
     download_link = token.get("download_link")
     if not download_link:
-        raise Exception("No download link available for S3 media")
+        raise Exception("No download link available for B2 media")
 
     filename = unquote(urlparse(download_link).path.rsplit("/", 1)[-1])
     waiterPath = Path(token["filename"]) / filename
@@ -241,13 +241,13 @@ def _buildS3FileDict(token):
         "ismovie": token["ismovie"],
         "displayName": token["displayname"],
         "hasProgress": hashedWaiterPath in token["videoprogresses"],
-        "isS3": True,
+        "isB2": True,
     }
 
 
 def buildEntries(token):
-    if is_s3_token(token):
-        yield _buildS3FileDict(token)
+    if is_b2_token(token):
+        yield _buildB2FileDict(token)
         return
 
     if token["ismovie"]:
@@ -331,7 +331,7 @@ def _getFileEntryFromHash(token, hashPath):
                     return {
                         "unhashedPath": subtitle.path,
                         "rawSize": None,
-                        "isS3": True,
+                        "isB2": True,
                     }
                 unhashed_path = Path(subtitle.path)
                 size = unhashed_path.stat().st_size
@@ -357,7 +357,7 @@ def send_file_for_download(guid, hashPath):
         )
 
     entry = _getFileEntryFromHash(token, hashPath)
-    if entry.get("isS3"):
+    if entry.get("isB2"):
         return redirect(entry["unhashedPath"], code=307)
     fullPath = entry["unhashedPath"]
     return send_file_partial(fullPath, fullPath.name, entry["rawSize"])
