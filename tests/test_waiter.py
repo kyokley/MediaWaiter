@@ -336,6 +336,71 @@ class TestBuildB2Entries:
         entry = _buildB2FileDict(self.token)
         assert entry["filename"] == "Movie.Name Part"
 
+    def test_uuid_b2_movie_uses_original_filename_and_redirects(self, mocker):
+        self.token["filename"] = "Movie.Name"
+        self.token["original_filename"] = "Movie.Name.2024.mp4"
+        self.token["download_link"] = (
+            "https://b2.example.com/bucket/prefix/"
+            "550e8400-e29b-41d4-a716-446655440000.mp4?X-Amz-Signature=abc123"
+        )
+        self.mock_hashed_filename.return_value = "originalFilenameHash"
+        mocker.patch("waiter.getTokenByGUID", return_value=self.token)
+        mocker.patch("waiter.checkForValidToken", return_value=None)
+
+        entry = list(buildEntries(self.token))[0]
+
+        assert entry["filename"] == "Movie.Name.2024.mp4"
+        assert entry["displayName"] == "Movie Name"
+        assert entry["unhashedPath"] == self.token["download_link"]
+        assert entry["hashedWaiterPath"] == "originalFilenameHash"
+        self.mock_hashed_filename.assert_called_once_with(
+            "Movie.Name/Movie.Name.2024.mp4"
+        )
+
+        response = send_file_for_download("asdf1234", "originalFilenameHash")
+        assert response.status_code == 307
+        assert response.headers["Location"] == self.token["download_link"]
+
+    def test_uuid_shaped_url_without_original_filename_is_opaque(self):
+        self.token["download_link"] = (
+            "https://b2.example.com/bucket/prefix/"
+            "550e8400-e29b-41d4-a716-446655440000.mp4?X-Amz-Signature=abc123"
+        )
+
+        entry = _buildB2FileDict(self.token)
+
+        assert entry["filename"] == "550e8400-e29b-41d4-a716-446655440000.mp4"
+        self.mock_hashed_filename.assert_called_once_with(
+            "Movie.Name/550e8400-e29b-41d4-a716-446655440000.mp4"
+        )
+
+    def test_uuid_b2_tv_original_filename_redirects(self, mocker):
+        self.token["filename"] = "Show.Name.S01E01"
+        self.token["original_filename"] = "Show.Name.S01E01.mp4"
+        self.token["ismovie"] = False
+        self.token["download_link"] = (
+            "https://b2.example.com/bucket/prefix/"
+            "550e8400-e29b-41d4-a716-446655440000.mp4?X-Amz-Signature=abc123"
+        )
+        self.mock_hashed_filename.return_value = "tvOriginalFilenameHash"
+        mocker.patch("waiter.getTokenByGUID", return_value=self.token)
+        mocker.patch("waiter.checkForValidToken", return_value=None)
+
+        entry = list(buildEntries(self.token))[0]
+        self.mock_hashed_filename.assert_called_once_with(
+            "Show.Name.S01E01/Show.Name.S01E01.mp4"
+        )
+        self.mock_hashed_filename.reset_mock()
+        response = send_file_for_download("asdf1234", "tvOriginalFilenameHash")
+
+        assert entry["filename"] == "Show.Name.S01E01.mp4"
+        assert entry["hashedWaiterPath"] == "tvOriginalFilenameHash"
+        self.mock_hashed_filename.assert_called_once_with(
+            "Show.Name.S01E01/Show.Name.S01E01.mp4"
+        )
+        assert response.status_code == 307
+        assert response.headers["Location"] == self.token["download_link"]
+
     def test_build_entries_b2_missing_download_link(self):
         self.token["download_link"] = None
 

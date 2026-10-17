@@ -4,7 +4,7 @@ MediaWaiter is a Flask media file server with streaming capabilities. It serves 
 
 ## Architecture and file map
 
-- `waiter.py`: Flask application, HTTP routes, token validation, media listing, and file streaming.
+- `waiter.py`: Flask application, HTTP routes, token validation, media listing, and file streaming. B2 tokens may include `original_filename` for the playable filename; `filename` remains the logical progress-hash namespace, and `download_link` remains the redirect target.
 - `settings.py`: Environment-backed application configuration; imports `local_settings.py` when present to override settings.
 - `utils.py`, `log.py`: Shared helpers and logging.
 - `templates/`: Flask HTML templates.

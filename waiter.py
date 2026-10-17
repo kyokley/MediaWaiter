@@ -205,7 +205,9 @@ def _buildB2FileDict(token):
         raise Exception("No download link available for B2 media")
 
     filename = unquote(urlparse(download_link).path.rsplit("/", 1)[-1])
-    waiterPath = Path(token["filename"]) / filename
+    original_filename = token.get("original_filename")
+    media_filename = original_filename or filename
+    waiterPath = Path(token["filename"]) / media_filename
     hashedWaiterPath = hashed_filename(str(waiterPath))
 
     subtitle_files = []
@@ -232,7 +234,11 @@ def _buildB2FileDict(token):
         "hashedWaiterPath": hashedWaiterPath,
         "unhashedPath": download_link,
         "streamable": True,
-        "filename": filename.split("." + MEDIAVIEWER_SUFFIX)[0],
+        "filename": (
+            original_filename
+            if original_filename
+            else filename.split("." + MEDIAVIEWER_SUFFIX)[0]
+        ),
         "size": "",
         "rawSize": None,
         "isAlfredEncoding": True,
