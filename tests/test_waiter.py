@@ -6,9 +6,12 @@ from waiter import (
     get_dirPath,
     buildEntries,
     _buildFileDictHelper,
+    _buildB2FileDict,
+    is_b2_token,
     send_file_for_download,
     get_file,
     get_status,
+    Subtitle,
 )
 from settings import REQUESTS_TIMEOUT, DEFAULT_THEME
 import mock
@@ -257,6 +260,193 @@ class TestBuildMovieEntries:
         )
 
 
+class TestBuildB2Entries:
+    @pytest.fixture(autouse=True)
+    def setUp(self, mocker):
+        self.mock_hashed_filename = mocker.patch("waiter.hashed_filename")
+        self.mock_buildWaiterPath = mocker.patch("waiter.buildWaiterPath")
+        mocker.patch("waiter.MEDIAVIEWER_SUFFIX", "mv-encoded")
+        self.mock_hashed_filename.return_value = "hashPath"
+        self.mock_buildWaiterPath.return_value = "waiterPath"
+
+        self.token = {
+            "path": "b2://bucket/prefix/Movie.Name/",
+            "filename": "Movie.Name",
+            "guid": "asdf1234",
+            "ismovie": True,
+            "displayname": "Movie Name",
+            "videoprogresses": [],
+            "download_link": (
+                "https://b2.example.com/bucket/prefix/Movie.Name/"
+                "Movie.Name.mv-encoded.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256"
+                "&X-Amz-Signature=abc123"
+            ),
+        }
+
+    def test_is_b2_token(self):
+        assert is_b2_token(self.token)
+        assert not is_b2_token({"path": "/local/path"})
+        assert not is_b2_token({})
+
+    def test_build_entries_b2_movie(self):
+        entries = list(buildEntries(self.token))
+        assert len(entries) == 1
+        entry = entries[0]
+        assert entry["isB2"] is True
+        assert entry["unhashedPath"] == self.token["download_link"]
+        assert entry["subtitleFiles"] == []
+        assert entry["subtitleWaiterPath"] == ""
+        assert entry["filename"] == "Movie.Name"
+        assert entry["hashedWaiterPath"] == "hashPath"
+        assert entry["ismovie"] is True
+        assert entry["displayName"] == "Movie Name"
+        self.mock_hashed_filename.assert_called_once_with(
+            "Movie.Name/Movie.Name.mv-encoded.mp4"
+        )
+        self.mock_buildWaiterPath.assert_any_call(
+            "file", "asdf1234", "hashPath", includeLastSlash=True
+        )
+        self.mock_buildWaiterPath.assert_any_call(
+            "stream", "asdf1234", "hashPath", includeLastSlash=True
+        )
+
+    def test_build_entries_b2_tv(self):
+        self.token["ismovie"] = False
+        self.token["filename"] = "Show.Name.S01E01.mv-encoded.mp4"
+        self.token["path"] = "b2://bucket/prefix/Show.Name/"
+        self.token["download_link"] = (
+            "https://b2.example.com/bucket/prefix/Show.Name/"
+            "Show.Name.S01E01.mv-encoded.mp4?X-Amz-Signature=abc123"
+        )
+
+        entries = list(buildEntries(self.token))
+        assert len(entries) == 1
+        assert entries[0]["isB2"] is True
+        assert entries[0]["ismovie"] is False
+        self.mock_hashed_filename.assert_called_once_with(
+            "Show.Name.S01E01.mv-encoded.mp4/Show.Name.S01E01.mv-encoded.mp4"
+        )
+
+    def test_build_b2_file_dict_encoded_filename(self):
+        self.token["download_link"] = (
+            "https://b2.example.com/bucket/prefix/Movie.Name/"
+            "Movie.Name%20Part.mv-encoded.mp4?X-Amz-Signature=abc123"
+        )
+
+        entry = _buildB2FileDict(self.token)
+        assert entry["filename"] == "Movie.Name Part"
+
+    def test_uuid_b2_movie_uses_original_filename_and_redirects(self, mocker):
+        self.token["filename"] = "Movie.Name"
+        self.token["original_filename"] = "Movie.Name.2024.mp4"
+        self.token["download_link"] = (
+            "https://b2.example.com/bucket/prefix/"
+            "550e8400-e29b-41d4-a716-446655440000.mp4?X-Amz-Signature=abc123"
+        )
+        self.mock_hashed_filename.return_value = "originalFilenameHash"
+        mocker.patch("waiter.getTokenByGUID", return_value=self.token)
+        mocker.patch("waiter.checkForValidToken", return_value=None)
+
+        entry = list(buildEntries(self.token))[0]
+
+        assert entry["filename"] == "Movie.Name.2024.mp4"
+        assert entry["displayName"] == "Movie Name"
+        assert entry["unhashedPath"] == self.token["download_link"]
+        assert entry["hashedWaiterPath"] == "originalFilenameHash"
+        self.mock_hashed_filename.assert_called_once_with(
+            "Movie.Name/Movie.Name.2024.mp4"
+        )
+
+        response = send_file_for_download("asdf1234", "originalFilenameHash")
+        assert response.status_code == 307
+        assert response.headers["Location"] == self.token["download_link"]
+
+    def test_uuid_shaped_url_without_original_filename_is_opaque(self):
+        self.token["download_link"] = (
+            "https://b2.example.com/bucket/prefix/"
+            "550e8400-e29b-41d4-a716-446655440000.mp4?X-Amz-Signature=abc123"
+        )
+
+        entry = _buildB2FileDict(self.token)
+
+        assert entry["filename"] == "550e8400-e29b-41d4-a716-446655440000.mp4"
+        self.mock_hashed_filename.assert_called_once_with(
+            "Movie.Name/550e8400-e29b-41d4-a716-446655440000.mp4"
+        )
+
+    def test_uuid_b2_tv_original_filename_redirects(self, mocker):
+        self.token["filename"] = "Show.Name.S01E01"
+        self.token["original_filename"] = "Show.Name.S01E01.mp4"
+        self.token["ismovie"] = False
+        self.token["download_link"] = (
+            "https://b2.example.com/bucket/prefix/"
+            "550e8400-e29b-41d4-a716-446655440000.mp4?X-Amz-Signature=abc123"
+        )
+        self.mock_hashed_filename.return_value = "tvOriginalFilenameHash"
+        mocker.patch("waiter.getTokenByGUID", return_value=self.token)
+        mocker.patch("waiter.checkForValidToken", return_value=None)
+
+        entry = list(buildEntries(self.token))[0]
+        self.mock_hashed_filename.assert_called_once_with(
+            "Show.Name.S01E01/Show.Name.S01E01.mp4"
+        )
+        self.mock_hashed_filename.reset_mock()
+        response = send_file_for_download("asdf1234", "tvOriginalFilenameHash")
+
+        assert entry["filename"] == "Show.Name.S01E01.mp4"
+        assert entry["hashedWaiterPath"] == "tvOriginalFilenameHash"
+        self.mock_hashed_filename.assert_called_once_with(
+            "Show.Name.S01E01/Show.Name.S01E01.mp4"
+        )
+        assert response.status_code == 307
+        assert response.headers["Location"] == self.token["download_link"]
+
+    def test_build_entries_b2_missing_download_link(self):
+        self.token["download_link"] = None
+
+        with pytest.raises(Exception):
+            list(buildEntries(self.token))
+
+    def test_build_entries_b2_movie_with_subtitles(self):
+        self.token["subtitle_files"] = [
+            "https://b2.example.com/bucket/prefix/Movie.Name/"
+            "Movie.Name.mv-encoded.mp4.mv-encoded.mp4-0.vtt?X-Amz-Signature=abc123",
+            "https://b2.example.com/bucket/prefix/Movie.Name/"
+            "Movie.Name.mv-encoded.mp4.mv-encoded.mp4-1.vtt?X-Amz-Signature=abc123",
+        ]
+
+        entries = list(buildEntries(self.token))
+        assert len(entries) == 1
+        entry = entries[0]
+        assert len(entry["subtitleFiles"]) == 2
+        first, second = entry["subtitleFiles"]
+        assert first.path == self.token["subtitle_files"][0]
+        assert first.hashed_filename == "hashPath"
+        assert first.waiter_path == "waiterPath"
+        assert second.path == self.token["subtitle_files"][1]
+        assert entry["subtitleWaiterPath"] == "waiterPath"
+        self.mock_hashed_filename.assert_any_call(
+            "Movie.Name/Movie.Name.mv-encoded.mp4.mv-encoded.mp4-0.vtt"
+        )
+        self.mock_hashed_filename.assert_any_call(
+            "Movie.Name/Movie.Name.mv-encoded.mp4.mv-encoded.mp4-1.vtt"
+        )
+        self.mock_buildWaiterPath.assert_any_call("file", "asdf1234", "hashPath")
+
+    def test_build_entries_b2_movie_with_encoded_subtitle_filename(self):
+        self.token["subtitle_files"] = [
+            "https://b2.example.com/bucket/prefix/Movie.Name/"
+            "Movie.Name%20Part.mv-encoded.mp4.mv-encoded.mp4-0.vtt?X-Amz-Signature=abc123",
+        ]
+
+        entries = list(buildEntries(self.token))
+        entry = entries[0]
+        assert len(entry["subtitleFiles"]) == 1
+        self.mock_hashed_filename.assert_any_call(
+            "Movie.Name/Movie.Name Part.mv-encoded.mp4.mv-encoded.mp4-0.vtt"
+        )
+
+
 class TestBuildFileDictHelper:
     @pytest.fixture(autouse=True)
     def setUp(self, mocker):
@@ -394,6 +584,78 @@ class TestSendFileForDownload:
         assert not self.mock_hashed_filename.called
         self.mock_send_file_partial.assert_called_once_with(
             Path("unhashed/path/to/file"), "file", 100
+        )
+
+    def test_b2_file_redirects(self):
+        self.mock_buildEntries.return_value = [
+            {
+                "hashedWaiterPath": "hashPath",
+                "unhashedPath": (
+                    "https://b2.example.com/bucket/prefix/Movie.Name/"
+                    "Movie.Name.mv-encoded.mp4?X-Amz-Signature=abc123"
+                ),
+                "rawSize": None,
+                "isB2": True,
+            }
+        ]
+
+        actual = send_file_for_download("guid", "hashPath")
+        assert actual.status_code == 307
+        assert (
+            actual.headers["Location"]
+            == "https://b2.example.com/bucket/prefix/Movie.Name/"
+            "Movie.Name.mv-encoded.mp4?X-Amz-Signature=abc123"
+        )
+        assert not self.mock_send_file_partial.called
+
+    def test_b2_subtitle_redirects(self):
+        subtitle = Subtitle(
+            path=(
+                "https://b2.example.com/bucket/prefix/Movie.Name/"
+                "Movie.Name.mv-encoded.mp4.mv-encoded.mp4-0.vtt?X-Amz-Signature=abc123"
+            ),
+            hashed_filename="subtitleHashPath",
+            waiter_path="subtitleWaiterPath",
+        )
+        self.mock_buildEntries.return_value = [
+            {
+                "hashedWaiterPath": "hashPath",
+                "unhashedPath": (
+                    "https://b2.example.com/bucket/prefix/Movie.Name/"
+                    "Movie.Name.mv-encoded.mp4?X-Amz-Signature=abc123"
+                ),
+                "rawSize": None,
+                "isB2": True,
+                "subtitleFiles": [subtitle],
+            }
+        ]
+
+        actual = send_file_for_download("guid", "subtitleHashPath")
+        assert actual.status_code == 307
+        assert actual.headers["Location"] == subtitle.path
+        assert not self.mock_send_file_partial.called
+
+    def test_local_subtitle_served_from_disk(self, tmp_path):
+        subtitle_file = tmp_path / "subtitle.vtt"
+        subtitle_file.write_bytes(b"WEBVTT")
+        subtitle = Subtitle(
+            path=subtitle_file,
+            hashed_filename="subtitleHashPath",
+            waiter_path="subtitleWaiterPath",
+        )
+        self.mock_buildEntries.return_value = [
+            {
+                "hashedWaiterPath": "hashPath",
+                "unhashedPath": Path("unhashed/path/to/file"),
+                "rawSize": 100,
+                "subtitleFiles": [subtitle],
+            }
+        ]
+
+        actual = send_file_for_download("guid", "subtitleHashPath")
+        assert actual == self.mock_send_file_partial.return_value
+        self.mock_send_file_partial.assert_called_once_with(
+            subtitle_file, "subtitle.vtt", 6
         )
 
 
