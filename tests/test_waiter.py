@@ -361,6 +361,47 @@ class TestBuildB2Entries:
         assert response.status_code == 307
         assert response.headers["Location"] == self.token["download_link"]
 
+    def test_nested_b2_video_and_subtitle_urls_are_opaque(self, mocker):
+        self.token["filename"] = "Movie.Name"
+        self.token["original_filename"] = "Movie.Name.2024.mp4"
+        self.token["download_link"] = (
+            "https://b2.example.com/bucket/001/234/567/"
+            "550e8400-e29b-41d4-a716-446655440000.mp4"
+            "?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=video123"
+        )
+        subtitle_url = (
+            "https://b2.example.com/bucket/001/234/567/"
+            "550e8400-e29b-41d4-a716-446655440001.vtt"
+            "?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=subtitle456"
+        )
+        self.token["subtitle_files"] = [subtitle_url]
+        self.mock_hashed_filename.side_effect = lambda path: (
+            "originalFilenameHash"
+            if path == "Movie.Name/Movie.Name.2024.mp4"
+            else "subtitleHash"
+        )
+        mocker.patch("waiter.getTokenByGUID", return_value=self.token)
+        mocker.patch("waiter.checkForValidToken", return_value=None)
+
+        entry = list(buildEntries(self.token))[0]
+
+        assert entry["filename"] == "Movie.Name.2024.mp4"
+        assert entry["unhashedPath"] == self.token["download_link"]
+        assert entry["hashedWaiterPath"] == "originalFilenameHash"
+        self.mock_hashed_filename.assert_any_call("Movie.Name/Movie.Name.2024.mp4")
+        subtitle = entry["subtitleFiles"][0]
+        assert subtitle.path == subtitle_url
+        assert subtitle.hashed_filename == "subtitleHash"
+        assert entry["subtitleWaiterPath"] == subtitle.waiter_path
+
+        video_response = send_file_for_download("asdf1234", "originalFilenameHash")
+        subtitle_response = send_file_for_download("asdf1234", subtitle.hashed_filename)
+
+        assert video_response.status_code == 307
+        assert video_response.headers["Location"] == self.token["download_link"]
+        assert subtitle_response.status_code == 307
+        assert subtitle_response.headers["Location"] == subtitle_url
+
     def test_uuid_shaped_url_without_original_filename_is_opaque(self):
         self.token["download_link"] = (
             "https://b2.example.com/bucket/prefix/"
