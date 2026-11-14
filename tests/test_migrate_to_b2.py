@@ -320,6 +320,33 @@ def test_tied_sidecar_owner_fails_closed(tmp_path):
         )
 
 
+def test_matching_subtitle_symlink_is_rejected_without_upload_or_delete(
+    tmp_path, monkeypatch
+):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    video = show / "Episode.mp4"
+    video.write_bytes(b"video")
+    target = show / "Shared.vtt"
+    target.write_bytes(b"shared captions")
+    link = show / "Episode.en.vtt"
+    link.symlink_to(target)
+    api = ViewerSession(
+        [
+            lock_response(),
+            candidates_response(candidate(path="Show", filename="Episode.mp4")),
+            Response({}),
+        ]
+    )
+    b2 = FakeB2()
+    assert cli.run(1, config=cli.Config.from_env(), session=api, b2_client=b2) != 0
+    assert b2.calls == []
+    assert video.read_bytes() == b"video"
+    assert link.is_symlink() and target.read_bytes() == b"shared captions"
+    assert api.calls[-1][0] == "DELETE"
+
+
 def test_missing_candidates_skip_and_movie_blank_filename_rules(tmp_path):
     root = tmp_path / "root"
     (root / "Present").mkdir(parents=True)

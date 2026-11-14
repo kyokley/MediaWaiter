@@ -261,6 +261,8 @@ def find_sidecars(video, roots, peers=None):
             )
         if str(video.resolve()) not in winners:
             continue
+        if sidecar.is_symlink():
+            raise MigrationError("Subtitle sidecar symlink is not supported")
         try:
             resolved = sidecar.resolve(strict=True)
         except (OSError, RuntimeError):
