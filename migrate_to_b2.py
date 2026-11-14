@@ -1,0 +1,294 @@
+"""Safely migrate a bounded set of existing MediaViewer video files to B2."""
+
+import argparse
+import sys
+import uuid
+from pathlib import Path
+
+from migration_client import (
+    Config,
+    MigrationError,
+    ViewerClient,
+    _hash_file,
+    _validate_candidates,
+    find_sidecars,
+    local_video_inventory,
+    resolve_candidate,
+)
+
+
+def _inventory(client, maximum):
+    candidates, cursor, seen_cursors = [], None, set()
+    while True:
+        page = client.request(
+            "GET",
+            "api/migrations/file-candidates/",
+            params={"limit": min(max(maximum, 100), 1000), "cursor": cursor},
+        )
+        _validate_candidates(page)
+        candidates.extend(page["candidates"])
+        cursor = page["next_cursor"]
+        if cursor is None:
+            return candidates
+        if cursor in seen_cursors:
+            raise MigrationError("Candidate pagination cursor repeated")
+        seen_cursors.add(cursor)
+
+
+def _new_plan(candidates, maximum, roots, base_path):
+    resolved, physical, missing = [], set(), []
+    for candidate in candidates:
+        try:
+            video = resolve_candidate(candidate, roots, base_path)
+        except MigrationError as error:
+            if "missing" in str(error).lower():
+                missing.append(candidate["source_pk"])
+                continue
+            raise
+        if str(video) in physical:
+            raise MigrationError(
+                "Ambiguous duplicate candidates refer to the same physical video"
+            )
+        physical.add(str(video))
+        resolved.append((candidate, video))
+    if missing:
+        shown = ", ".join(str(pk) for pk in missing[:10])
+        rest = f" and {len(missing) - 10} more" if len(missing) > 10 else ""
+        print(
+            f"Skipped {len(missing)} missing candidates: {shown}{rest}", file=sys.stderr
+        )
+    plan = []
+    for candidate, video in resolved[:maximum]:
+        peers = local_video_inventory(video, roots)
+        sidecars = [str(path) for path in find_sidecars(video, roots, peers)]
+        plan.append(
+            {
+                "candidate": candidate,
+                "video": str(video),
+                "sidecars": sidecars,
+                "video_inventory": peers,
+            }
+        )
+    if len(plan) < maximum:
+        print(f"Selected {len(plan)} of requested {maximum} videos", file=sys.stderr)
+    return plan
+
+
+def _manifest(video_path, sidecar_paths, candidate):
+    video_size, video_sha = _hash_file(Path(video_path))
+    if video_size <= 0:
+        raise MigrationError("Video source is empty")
+    subtitles, subtitle_map = [], {}
+    fingerprints = {str(video_path): {"size": video_size, "sha1": video_sha}}
+    for source in sidecar_paths:
+        size, sha1 = _hash_file(Path(source))
+        remote_name = f"{uuid.uuid4()}.vtt"
+        subtitles.append({"filename": remote_name, "size": size, "sha1": sha1})
+        subtitle_map[source] = remote_name
+        fingerprints[source] = {"size": size, "sha1": sha1}
+    manifest = {
+        "pk": candidate.get("mediafile_pk"),
+        "filename": Path(video_path).name,
+        "b2_uuid": str(uuid.uuid4()),
+        "size": video_size,
+        "sha1": video_sha,
+        "subtitles": subtitles,
+    }
+    return manifest, subtitle_map, fingerprints
+
+
+def _sources_changed(item, roots, fingerprints):
+    try:
+        video = Path(item["video"])
+        peers = local_video_inventory(video, roots)
+        if peers != item["video_inventory"]:
+            return True
+        sidecars = [str(path) for path in find_sidecars(video, roots, peers)]
+        if sidecars != item["sidecars"]:
+            return True
+        for path, expected in fingerprints.items():
+            if _hash_file(Path(path)) != (expected["size"], expected["sha1"]):
+                return True
+        return False
+    except MigrationError:
+        return True
+
+
+def _validate_prepared(response):
+    if (
+        not isinstance(response.get("prepared"), str)
+        or not response["prepared"]
+        or type(response.get("target_pk")) is not int
+        or response["target_pk"] <= 0
+        or not isinstance(response.get("bucket"), str)
+        or not response["bucket"]
+        or not isinstance(response.get("b2_upload_prefix"), str)
+        or not response["b2_upload_prefix"]
+    ):
+        raise MigrationError("Malformed prepare-file response")
+
+
+def _migrate_video(item, roots, run_id, client, b2_client):
+    candidate = item["candidate"]
+    manifest, subtitle_map, fingerprints = _manifest(
+        item["video"], item["sidecars"], candidate
+    )
+    if _sources_changed(item, roots, fingerprints):
+        raise MigrationError("A source file changed before prepare")
+    prepared = client.request(
+        "POST",
+        f"api/migrations/{candidate['source_pk']}/prepare-file/",
+        json_body={
+            "run_id": run_id,
+            "snapshot": candidate["snapshot"],
+            "file": manifest,
+        },
+    )
+    _validate_prepared(prepared)
+    video_key = (
+        prepared["b2_upload_prefix"]
+        + manifest["b2_uuid"]
+        + Path(manifest["filename"]).suffix
+    )
+    b2_client.ensure_file(item["video"], prepared["bucket"], video_key)
+    for source, remote_name in subtitle_map.items():
+        b2_client.ensure_file(
+            source, prepared["bucket"], prepared["b2_upload_prefix"] + remote_name
+        )
+    if _sources_changed(item, roots, fingerprints):
+        raise MigrationError("A source file changed before publish")
+    result = client.request(
+        "POST",
+        f"api/migrations/{candidate['source_pk']}/publish-file/",
+        json_body={"run_id": run_id, "prepared": prepared["prepared"]},
+    )
+    if (
+        result.get("published") is not True
+        or type(result.get("mediafile_pk")) is not int
+        or result["mediafile_pk"] <= 0
+        or type(result.get("media_path_pk")) is not int
+        or result["media_path_pk"] != prepared["target_pk"]
+        or (
+            candidate.get("mediafile_pk") is not None
+            and result["mediafile_pk"] != candidate["mediafile_pk"]
+        )
+    ):
+        raise MigrationError("Malformed publish-file response")
+
+
+def _release(client, run_id):
+    response = client.request(
+        "DELETE", "api/migrations/run/", json_body={"run_id": run_id}
+    )
+    if response.get("released") is not True:
+        raise MigrationError("MediaViewer migration lock release was not confirmed")
+
+
+def _best_effort_release(client, run_id):
+    try:
+        _release(client, run_id)
+        return True
+    except BaseException:
+        return False
+
+
+def _run(maximum, *, config=None, session=None, b2_client=None):
+    if type(maximum) is not int or maximum <= 0:
+        raise MigrationError("Maximum video count must be a positive integer")
+    config = config or Config.from_env()
+    client = ViewerClient(
+        config.base_url, config.username, config.password, session=session
+    )
+    if b2_client is None:
+        from migration_storage import B2Client
+
+        b2_client = B2Client(config.b2_key_id, config.b2_key, api_url=config.b2_api_url)
+    run_id = str(uuid.uuid4())
+    try:
+        lock = client.request(
+            "POST",
+            "api/migrations/run/",
+            json_body={"run_id": run_id, "writers_paused": True},
+        )
+    except BaseException as error:
+        if "HTTP 409" in str(error):
+            raise
+        if not _best_effort_release(client, run_id):
+            print(
+                "Warning: lock acquisition is uncertain; inspect MediaViewer /run ownership",
+                file=sys.stderr,
+            )
+        raise
+    if lock.get("acquired") is not True:
+        raise MigrationError("MediaViewer migration lock was not acquired")
+    if lock.get("run_id") != run_id:
+        raise MigrationError("MediaViewer migration lock belongs to another run")
+    if type(lock.get("owner_id")) is not int or lock["owner_id"] <= 0:
+        if not _best_effort_release(client, run_id):
+            print(
+                "Warning: migration lock may remain; inspect MediaViewer /run ownership",
+                file=sys.stderr,
+            )
+        raise MigrationError("MediaViewer migration lock owner was not confirmed")
+    primary_error = None
+    cleanup_error = None
+    try:
+        print(f"Migration run acquired: {run_id}", file=sys.stderr)
+        plan = _new_plan(
+            _inventory(client, maximum), maximum, config.roots, config.base_path
+        )
+        for item in plan:
+            _migrate_video(item, config.roots, run_id, client, b2_client)
+    except BaseException as error:
+        primary_error = error
+    finally:
+        try:
+            _release(client, run_id)
+        except BaseException as error:
+            print(
+                "Warning: migration lock may remain; inspect MediaViewer /run ownership",
+                file=sys.stderr,
+            )
+            cleanup_error = error
+    if primary_error is not None:
+        raise primary_error
+    if cleanup_error is not None:
+        raise MigrationError("MediaViewer migration lock release was not confirmed")
+    return 0
+
+
+def run(maximum, *, config=None, session=None, b2_client=None):
+    try:
+        return _run(maximum, config=config, session=session, b2_client=b2_client)
+    except KeyboardInterrupt:
+        print(
+            "Migration stopped: interrupted; lock cleanup was attempted",
+            file=sys.stderr,
+        )
+    except MigrationError as error:
+        print(f"Migration stopped: {error}", file=sys.stderr)
+    except Exception as error:
+        print(
+            f"Migration stopped: operation failed ({type(error).__name__})",
+            file=sys.stderr,
+        )
+    return 1
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "max_videos", type=int, help="maximum number of videos to migrate"
+    )
+    parser.add_argument(
+        "--writers-paused",
+        action="store_true",
+        required=True,
+        help="confirm all other media writers are paused",
+    )
+    args = parser.parse_args(argv)
+    return run(args.max_videos)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
