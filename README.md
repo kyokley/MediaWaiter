@@ -5,8 +5,10 @@ A simple media file server with streaming capabilities
 
 `migrate_to_b2.py` uploads existing TV episodes and movies without transcoding,
 then updates their existing MediaViewer records through REST. Adjacent matching
-`.vtt` subtitles are uploaded unchanged. Local videos and subtitles are never
-deleted. The integer argument limits **videos**, not subtitle objects.
+`.vtt` subtitles are uploaded unchanged. Each original local video is deleted
+only after every upload succeeds and MediaViewer confirms publication. Local
+subtitle files remain. The integer argument limits **videos**, not subtitle
+objects.
 
 Deploy the matching MediaViewer file-migration API and run its database
 migrations first. Configure `B2_BUCKET_NAME` and `B2_NAME_PREFIX` in MediaViewer;
@@ -57,5 +59,7 @@ Each TV episode keeps its record ID and moves to a reserved B2 MediaPath only
 after all its uploads succeed. Unselected episodes retain their local path.
 Movies retain their existing MediaPath, which changes to B2 only at publication.
 Missing local files are skipped; ambiguous video/subtitle matches and stale
-records fail closed. Retained local files are not evidence of an incomplete
-migration: MediaViewer's published records determine playback location.
+records fail closed. If publication confirmation is lost, the source changes,
+or local deletion fails, the original video remains even if MediaViewer already
+published it. Verify the published record before manual removal; a later run
+does not automatically clean up videos whose records are already in B2.

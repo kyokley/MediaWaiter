@@ -1,6 +1,7 @@
 """Safely migrate a bounded set of existing MediaViewer video files to B2."""
 
 import argparse
+import stat
 import sys
 import uuid
 from pathlib import Path
@@ -66,6 +67,7 @@ def _new_plan(candidates, maximum, roots, base_path):
                 "candidate": candidate,
                 "video": str(video),
                 "sidecars": sidecars,
+                "sidecar_peers": peers.copy(),
                 "video_inventory": peers,
             }
         )
@@ -97,13 +99,33 @@ def _manifest(video_path, sidecar_paths, candidate):
     return manifest, subtitle_map, fingerprints
 
 
-def _sources_changed(item, roots, fingerprints):
+def _video_identity(path):
+    try:
+        result = Path(path).lstat()
+    except OSError:
+        raise MigrationError("Original video is missing or inaccessible") from None
+    if not stat.S_ISREG(result.st_mode):
+        raise MigrationError("Original video is no longer a regular file")
+    return {
+        "device": result.st_dev,
+        "inode": result.st_ino,
+        "size": result.st_size,
+        "mtime_ns": result.st_mtime_ns,
+        "mode": result.st_mode,
+    }
+
+
+def _sources_changed(item, roots, fingerprints, identity):
     try:
         video = Path(item["video"])
+        if _video_identity(video) != identity:
+            return True
         peers = local_video_inventory(video, roots)
         if peers != item["video_inventory"]:
             return True
-        sidecars = [str(path) for path in find_sidecars(video, roots, peers)]
+        sidecars = [
+            str(path) for path in find_sidecars(video, roots, item["sidecar_peers"])
+        ]
         if sidecars != item["sidecars"]:
             return True
         for path, expected in fingerprints.items():
@@ -112,6 +134,40 @@ def _sources_changed(item, roots, fingerprints):
         return False
     except MigrationError:
         return True
+
+
+def _unlink_published_video(path, roots, identity, fingerprint):
+    video = Path(path)
+    try:
+        if _video_identity(video) != identity:
+            raise MigrationError("Published video changed; local video remains")
+        try:
+            resolved = video.resolve(strict=True)
+        except (OSError, RuntimeError):
+            raise MigrationError(
+                "Published video path changed; local video remains"
+            ) from None
+        allowed = any(
+            resolved == Path(root).resolve() or Path(root).resolve() in resolved.parents
+            for root in roots
+        )
+        if resolved != video or not allowed:
+            raise MigrationError("Published video path changed; local video remains")
+        if _hash_file(video) != (fingerprint["size"], fingerprint["sha1"]):
+            raise MigrationError("Published video changed; local video remains")
+        if _video_identity(video) != identity:
+            raise MigrationError("Published video changed; local video remains")
+        video.unlink()
+    except MigrationError as error:
+        if "local video remains" in str(error).lower():
+            raise
+        raise MigrationError(
+            "MediaViewer published successfully, but local video remains; verify it before manual removal"
+        ) from None
+    except OSError:
+        raise MigrationError(
+            "MediaViewer published successfully, but local video remains; remove it manually after verifying playback"
+        ) from None
 
 
 def _validate_prepared(response):
@@ -130,10 +186,11 @@ def _validate_prepared(response):
 
 def _migrate_video(item, roots, run_id, client, b2_client):
     candidate = item["candidate"]
+    identity = _video_identity(item["video"])
     manifest, subtitle_map, fingerprints = _manifest(
         item["video"], item["sidecars"], candidate
     )
-    if _sources_changed(item, roots, fingerprints):
+    if _sources_changed(item, roots, fingerprints, identity):
         raise MigrationError("A source file changed before prepare")
     prepared = client.request(
         "POST",
@@ -155,7 +212,7 @@ def _migrate_video(item, roots, run_id, client, b2_client):
         b2_client.ensure_file(
             source, prepared["bucket"], prepared["b2_upload_prefix"] + remote_name
         )
-    if _sources_changed(item, roots, fingerprints):
+    if _sources_changed(item, roots, fingerprints, identity):
         raise MigrationError("A source file changed before publish")
     result = client.request(
         "POST",
@@ -174,6 +231,8 @@ def _migrate_video(item, roots, run_id, client, b2_client):
         )
     ):
         raise MigrationError("Malformed publish-file response")
+    _unlink_published_video(item["video"], roots, identity, fingerprints[item["video"]])
+    return item["video"]
 
 
 def _release(client, run_id):
@@ -237,8 +296,15 @@ def _run(maximum, *, config=None, session=None, b2_client=None):
         plan = _new_plan(
             _inventory(client, maximum), maximum, config.roots, config.base_path
         )
-        for item in plan:
-            _migrate_video(item, config.roots, run_id, client, b2_client)
+        for index, item in enumerate(plan):
+            deleted = _migrate_video(item, config.roots, run_id, client, b2_client)
+            deleted_path = Path(deleted)
+            for remaining in plan[index + 1 :]:
+                if (
+                    Path(remaining["video"]).parent == deleted_path.parent
+                    and deleted in remaining["video_inventory"]
+                ):
+                    remaining["video_inventory"].remove(deleted)
     except BaseException as error:
         primary_error = error
     finally:

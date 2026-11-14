@@ -1,4 +1,5 @@
 import inspect
+import os
 from pathlib import Path
 
 import pytest
@@ -23,10 +24,11 @@ class Response:
 
 
 class ViewerSession:
-    def __init__(self, responses):
+    def __init__(self, responses, callback=None):
         self.responses = iter(responses)
         self.calls = []
         self.trust_env = True
+        self.callback = callback
 
     def request(self, method, url, **kwargs):
         self.calls.append((method, url, kwargs))
@@ -49,6 +51,8 @@ class ViewerSession:
             and value.payload == {}
         ):
             value.payload = {"released": True}
+        if self.callback:
+            self.callback(method, url, kwargs)
         return value
 
 
@@ -169,8 +173,22 @@ def test_success_processes_video_and_all_subtitles_without_disk_state(
     (directory / "Episode2.vtt").write_bytes(b"unrelated")
     monkeypatch.chdir(tmp_path)
     before = set(tmp_path.iterdir())
-    session = success_session(candidate())
     b2 = FakeB2()
+
+    def assert_all_uploads_before_publish(method, url, _kwargs):
+        if method == "POST" and "publish-file" in url:
+            assert len(b2.calls) == 3
+
+    session = ViewerSession(
+        [
+            lock_response(),
+            candidates_response(candidate()),
+            prepared_response(),
+            published_response(),
+            Response({}),
+        ],
+        callback=assert_all_uploads_before_publish,
+    )
     assert cli.run(1, config=cli.Config.from_env(), session=session, b2_client=b2) == 0
     assert [x[0] for x in b2.calls] == [
         b"video bytes",
@@ -180,7 +198,9 @@ def test_success_processes_video_and_all_subtitles_without_disk_state(
     assert all(x[1] == "server-bucket" and x[2].startswith("opaque/") for x in b2.calls)
     assert b2.calls[0][2].endswith(".mkv")
     assert all(x[2].endswith(".vtt") for x in b2.calls[1:])
-    assert video.read_bytes() == b"video bytes"
+    assert not video.exists()
+    assert (directory / "Episode.en.vtt").read_bytes() == b"WEBVTT en"
+    assert (directory / "Episode.commentary.2.VTT").read_bytes() == b"WEBVTT commentary"
     assert [call[0] for call in session.calls][-1] == "DELETE"
     assert set(tmp_path.iterdir()) == before
     assert not list(tmp_path.glob(".migration-to-b2*"))
@@ -223,6 +243,7 @@ def test_movie_publish_keeps_existing_mediafile_pk(tmp_path, monkeypatch):
     prepare = next(call for call in api.calls if "prepare-file" in call[1])
     assert prepare[2]["json"]["file"]["pk"] == 7
     assert prepare[2]["json"]["file"]["filename"] == "Film.mp4"
+    assert not (movie / "Film.mp4").exists()
 
 
 def test_inventory_paginates_and_caps_limit_for_large_maximum():
@@ -502,4 +523,175 @@ def test_prepare_rejects_boolean_target_id_and_releases(tmp_path, monkeypatch):
     b2 = FakeB2()
     assert cli.run(1, config=cli.Config.from_env(), session=api, b2_client=b2) != 0
     assert b2.calls == []
+    assert api.calls[-1][0] == "DELETE"
+
+
+def test_three_video_batch_preserves_frozen_sidecar_ownership_and_cap(
+    tmp_path, monkeypatch
+):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    special, base_video, leftover = (
+        show / name for name in ("Episode.Special.mp4", "Episode.mp4", "Other.mp4")
+    )
+    special.write_bytes(b"special")
+    base_video.write_bytes(b"base")
+    leftover.write_bytes(b"leftover")
+    subtitle = show / "Episode.Special.en.vtt"
+    subtitle.write_bytes(b"WEBVTT")
+    items = [
+        candidate(1, path="Show", filename="Episode.Special.mp4"),
+        candidate(2, path="Show", filename="Episode.mp4"),
+        candidate(3, path="Show", filename="Other.mp4"),
+    ]
+    api = ViewerSession(
+        [
+            lock_response(),
+            candidates_response(*items),
+            prepared_response(10),
+            published_response(8, 10),
+            prepared_response(11),
+            published_response(9, 11),
+            Response({}),
+        ]
+    )
+    b2 = FakeB2()
+    assert cli.run(2, config=cli.Config.from_env(), session=api, b2_client=b2) == 0
+    assert not special.exists() and not base_video.exists()
+    assert leftover.read_bytes() == b"leftover"
+    assert subtitle.read_bytes() == b"WEBVTT"
+    assert [call[0] for call in b2.calls if call[0] == b"WEBVTT"] == [b"WEBVTT"]
+
+
+@pytest.mark.parametrize(
+    "failure",
+    ["prepare", "upload", "publish_http", "publish_lost", "publish_malformed"],
+)
+def test_unconfirmed_publish_never_deletes_video(tmp_path, monkeypatch, failure):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    video = show / "Ep.mp4"
+    video.write_bytes(b"video")
+    api_responses = [
+        lock_response(),
+        candidates_response(candidate(path="Show", filename="Ep.mp4")),
+    ]
+    b2 = FakeB2()
+    if failure == "prepare":
+        api_responses.extend([Response({}), Response({})])
+    else:
+        api_responses.append(prepared_response())
+        if failure == "publish_http":
+            api_responses.extend(
+                [Response({"message": "private"}, status=503), Response({})]
+            )
+        elif failure == "publish_lost":
+            api_responses.extend([requests.ConnectionError("private"), Response({})])
+        elif failure == "publish_malformed":
+            api_responses.extend(
+                [
+                    Response(
+                        {"published": True, "mediafile_pk": 8, "media_path_pk": 999}
+                    ),
+                    Response({}),
+                ]
+            )
+        elif failure == "upload":
+            api_responses.append(Response({}))
+            b2 = FakeB2(
+                lambda _: (_ for _ in ()).throw(cli.MigrationError("upload failed"))
+            )
+    api = ViewerSession(api_responses)
+    assert cli.run(1, config=cli.Config.from_env(), session=api, b2_client=b2) != 0
+    assert video.read_bytes() == b"video"
+    assert api.calls[-1][0] == "DELETE"
+
+
+@pytest.mark.parametrize("replacement_type", ["identical", "symlink"])
+def test_replaced_video_after_publish_is_not_deleted(
+    tmp_path, monkeypatch, replacement_type
+):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    video = show / "Ep.mp4"
+    video.write_bytes(b"video")
+    original_inode = video.stat().st_ino
+
+    def replace_after_publish(method, url, _kwargs):
+        if method == "POST" and "publish-file" in url:
+            replacement = show / "replacement"
+            replacement.write_bytes(b"video")
+            if replacement_type == "symlink":
+                replacement.unlink()
+                target = show / "replacement-target"
+                target.write_bytes(b"video")
+                replacement.symlink_to(target)
+            os.replace(replacement, video)
+
+    api = ViewerSession(
+        [
+            lock_response(),
+            candidates_response(candidate(path="Show", filename="Ep.mp4")),
+            prepared_response(),
+            published_response(),
+            Response({}),
+        ],
+        callback=replace_after_publish,
+    )
+    assert (
+        cli.run(1, config=cli.Config.from_env(), session=api, b2_client=FakeB2()) != 0
+    )
+    if replacement_type == "symlink":
+        assert video.is_symlink() and video.read_bytes() == b"video"
+    else:
+        assert video.read_bytes() == b"video"
+        assert video.stat().st_ino != original_inode
+    assert api.calls[-1][0] == "DELETE"
+
+
+def test_video_replaced_during_final_hash_is_not_deleted(tmp_path, monkeypatch):
+    video = tmp_path / "Ep.mp4"
+    video.write_bytes(b"original")
+    identity = cli._video_identity(video)
+    original_hash = cli._hash_file
+    fingerprint = dict(zip(("size", "sha1"), original_hash(video)))
+
+    def replace_during_hash(path):
+        result = original_hash(path)
+        replacement = tmp_path / "replacement"
+        replacement.write_bytes(b"replacement")
+        os.replace(replacement, video)
+        return result
+
+    monkeypatch.setattr(cli, "_hash_file", replace_during_hash)
+    with pytest.raises(cli.MigrationError, match="local video remains"):
+        cli._unlink_published_video(video, [tmp_path], identity, fingerprint)
+    assert video.read_bytes() == b"replacement"
+
+
+def test_unlink_failure_is_actionable_and_releases_lock(tmp_path, monkeypatch, capsys):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    video = show / "Ep.mp4"
+    video.write_bytes(b"video")
+    original_unlink = Path.unlink
+
+    def fail_video_unlink(path, *args, **kwargs):
+        if path == video:
+            raise OSError("private filesystem detail")
+        return original_unlink(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "unlink", fail_video_unlink)
+    api = success_session(candidate(path="Show", filename="Ep.mp4"))
+    assert (
+        cli.run(1, config=cli.Config.from_env(), session=api, b2_client=FakeB2()) != 0
+    )
+    assert video.exists()
+    error = capsys.readouterr().err
+    assert "published successfully" in error and "local video remains" in error
+    assert "private filesystem detail" not in error
     assert api.calls[-1][0] == "DELETE"
