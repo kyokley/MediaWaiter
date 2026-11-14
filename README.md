@@ -5,9 +5,10 @@ A simple media file server with streaming capabilities
 
 `migrate_to_b2.py` uploads existing TV episodes and movies without transcoding,
 then updates their existing MediaViewer records through REST. Adjacent matching
-`.vtt` subtitles are uploaded unchanged. Each original local video is deleted
-only after every upload succeeds and MediaViewer confirms publication. Local
-subtitle files remain. The integer argument limits **videos**, not subtitle
+`.vtt` subtitles are uploaded unchanged. Each original local video and its
+uploaded subtitle files are deleted only after every upload succeeds and
+MediaViewer confirms publication. Unrelated subtitles and files belonging to
+unselected videos remain. The integer argument limits **videos**, not subtitle
 objects.
 
 Deploy the matching MediaViewer file-migration API and run its database
@@ -58,8 +59,12 @@ authenticated account. The script prints its run ID after acquiring ownership.
 Each TV episode keeps its record ID and moves to a reserved B2 MediaPath only
 after all its uploads succeed. Unselected episodes retain their local path.
 Movies retain their existing MediaPath, which changes to B2 only at publication.
-Missing local files are skipped; ambiguous video/subtitle matches and stale
-records fail closed. If publication confirmation is lost, the source changes,
-or local deletion fails, the original video remains even if MediaViewer already
-published it. Verify the published record before manual removal; a later run
-does not automatically clean up videos whose records are already in B2.
+Missing local files are skipped; ambiguous video/subtitle matches, symlinked
+sources, and stale records fail closed. Failed or uncertain publication retains
+the original video and subtitles. Cleanup checks that all uploaded sources
+remain unchanged, then removes matching subtitles before the video. A changed
+source or deletion error
+can leave local originals even when MediaViewer already published them; an OS
+deletion error may leave partially completed local cleanup. Verify the published
+record before manual removal. A later run does not automatically clean up files
+whose records are already in B2.

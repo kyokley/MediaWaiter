@@ -99,13 +99,13 @@ def _manifest(video_path, sidecar_paths, candidate):
     return manifest, subtitle_map, fingerprints
 
 
-def _video_identity(path):
+def _source_identity(path):
     try:
         result = Path(path).lstat()
     except OSError:
-        raise MigrationError("Original video is missing or inaccessible") from None
+        raise MigrationError("Original source is missing or inaccessible") from None
     if not stat.S_ISREG(result.st_mode):
-        raise MigrationError("Original video is no longer a regular file")
+        raise MigrationError("Original source is no longer a regular file")
     return {
         "device": result.st_dev,
         "inode": result.st_ino,
@@ -115,11 +115,9 @@ def _video_identity(path):
     }
 
 
-def _sources_changed(item, roots, fingerprints, identity):
+def _sources_changed(item, roots, fingerprints, identities):
     try:
         video = Path(item["video"])
-        if _video_identity(video) != identity:
-            return True
         peers = local_video_inventory(video, roots)
         if peers != item["video_inventory"]:
             return True
@@ -129,44 +127,47 @@ def _sources_changed(item, roots, fingerprints, identity):
         if sidecars != item["sidecars"]:
             return True
         for path, expected in fingerprints.items():
-            if _hash_file(Path(path)) != (expected["size"], expected["sha1"]):
+            if _source_identity(path) != identities[path] or _hash_file(Path(path)) != (
+                expected["size"],
+                expected["sha1"],
+            ):
                 return True
         return False
     except MigrationError:
         return True
 
 
-def _unlink_published_video(path, roots, identity, fingerprint):
-    video = Path(path)
+def _verify_original_file(path, roots, identity, fingerprint):
+    source = Path(path)
+    if _source_identity(source) != identity:
+        raise MigrationError("Published source changed")
     try:
-        if _video_identity(video) != identity:
-            raise MigrationError("Published video changed; local video remains")
-        try:
-            resolved = video.resolve(strict=True)
-        except (OSError, RuntimeError):
-            raise MigrationError(
-                "Published video path changed; local video remains"
-            ) from None
-        allowed = any(
-            resolved == Path(root).resolve() or Path(root).resolve() in resolved.parents
-            for root in roots
-        )
-        if resolved != video or not allowed:
-            raise MigrationError("Published video path changed; local video remains")
-        if _hash_file(video) != (fingerprint["size"], fingerprint["sha1"]):
-            raise MigrationError("Published video changed; local video remains")
-        if _video_identity(video) != identity:
-            raise MigrationError("Published video changed; local video remains")
-        video.unlink()
-    except MigrationError as error:
-        if "local video remains" in str(error).lower():
-            raise
+        resolved = source.resolve(strict=True)
+    except (OSError, RuntimeError):
+        raise MigrationError("Published source path changed") from None
+    if resolved != source or not any(
+        resolved == Path(root).resolve() or Path(root).resolve() in resolved.parents
+        for root in roots
+    ):
+        raise MigrationError("Published source path is outside configured media roots")
+    if _hash_file(source) != (fingerprint["size"], fingerprint["sha1"]):
+        raise MigrationError("Published source content changed")
+    if _source_identity(source) != identity:
+        raise MigrationError("Published source changed during verification")
+
+
+def _unlink_published_file(path, kind, roots, identity, fingerprint):
+    source = Path(path)
+    try:
+        _verify_original_file(source, roots, identity, fingerprint)
+        source.unlink()
+    except MigrationError:
         raise MigrationError(
-            "MediaViewer published successfully, but local video remains; verify it before manual removal"
+            f"MediaViewer published successfully, but local {kind} changed and was left in place; earlier local sources may already be removed"
         ) from None
     except OSError:
         raise MigrationError(
-            "MediaViewer published successfully, but local video remains; remove it manually after verifying playback"
+            f"MediaViewer published successfully, but local {kind} remains; remove it manually after verifying playback; earlier local files may already be removed"
         ) from None
 
 
@@ -186,11 +187,12 @@ def _validate_prepared(response):
 
 def _migrate_video(item, roots, run_id, client, b2_client):
     candidate = item["candidate"]
-    identity = _video_identity(item["video"])
+    source_paths = [*item["sidecars"], item["video"]]
+    identities = {path: _source_identity(path) for path in source_paths}
     manifest, subtitle_map, fingerprints = _manifest(
         item["video"], item["sidecars"], candidate
     )
-    if _sources_changed(item, roots, fingerprints, identity):
+    if _sources_changed(item, roots, fingerprints, identities):
         raise MigrationError("A source file changed before prepare")
     prepared = client.request(
         "POST",
@@ -212,7 +214,7 @@ def _migrate_video(item, roots, run_id, client, b2_client):
         b2_client.ensure_file(
             source, prepared["bucket"], prepared["b2_upload_prefix"] + remote_name
         )
-    if _sources_changed(item, roots, fingerprints, identity):
+    if _sources_changed(item, roots, fingerprints, identities):
         raise MigrationError("A source file changed before publish")
     result = client.request(
         "POST",
@@ -231,7 +233,17 @@ def _migrate_video(item, roots, run_id, client, b2_client):
         )
     ):
         raise MigrationError("Malformed publish-file response")
-    _unlink_published_video(item["video"], roots, identity, fingerprints[item["video"]])
+    # Verify every uploaded original before deleting any, then remove subtitles first.
+    try:
+        for path in source_paths:
+            _verify_original_file(path, roots, identities[path], fingerprints[path])
+    except MigrationError:
+        raise MigrationError(
+            "MediaViewer published successfully, but a local source changed; no local files were removed"
+        ) from None
+    for path in [*item["sidecars"], item["video"]]:
+        kind = "subtitle" if path != item["video"] else "video"
+        _unlink_published_file(path, kind, roots, identities[path], fingerprints[path])
     return item["video"]
 
 
