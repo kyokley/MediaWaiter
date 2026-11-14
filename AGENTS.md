@@ -8,6 +8,7 @@ MediaWaiter is a Flask media file server with streaming capabilities. It serves 
 - `settings.py`: Environment-backed application configuration; imports `local_settings.py` when present to override settings.
 - `utils.py`, `log.py`: Shared helpers and logging.
 - `migration_storage.py`: Standalone native B2 upload client; verifies existing object content before skipping uploads and supports multipart files.
+- `migration_client.py`: Migration environment configuration, isolated MediaViewer HTTP client, and local video/subtitle safety checks.
 - `templates/`: Flask HTML templates.
 - `static/assets/`: Browser JavaScript, stylesheets, and static assets.
 - `tests/`: Pytest tests and fixtures.
