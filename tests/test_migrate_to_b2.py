@@ -179,6 +179,68 @@ def test_viewer_client_auth_timeout_redirect_and_http_status_are_safe():
     assert "private" not in str(error.value)
 
 
+def test_viewer_client_http_failure_reports_only_method_and_path():
+    failed = ViewerSession([Response({"message": "response-secret"}, status=404)])
+    client = cli.ViewerClient(
+        "https://user:password@viewer.example/mediaviewer/?token=query-secret#fragment-secret",
+        "auth-user",
+        "auth-password",
+        session=failed,
+    )
+
+    with pytest.raises(cli.MigrationError) as error:
+        client.request(
+            "GET",
+            "api/migrations/file-candidates/",
+            params={"cursor": "cursor-secret"},
+        )
+
+    message = str(error.value)
+    assert "GET" in message
+    assert "/mediaviewer/api/migrations/file-candidates/" in message
+    assert "HTTP 404" in message
+    for secret in (
+        "user",
+        "password",
+        "auth-user",
+        "auth-password",
+        "viewer.example",
+        "query-secret",
+        "fragment-secret",
+        "cursor-secret",
+        "response-secret",
+    ):
+        assert secret not in message
+
+
+def test_viewer_client_request_failure_reports_only_method_and_path():
+    failed = ViewerSession([requests.ConnectionError("exception-secret")])
+    client = cli.ViewerClient(
+        "https://user:password@viewer.example/mediaviewer/?token=query-secret#fragment-secret",
+        "auth-user",
+        "auth-password",
+        session=failed,
+    )
+
+    with pytest.raises(cli.MigrationError) as error:
+        client.request("POST", "api/migrations/run/")
+
+    message = str(error.value)
+    assert "POST" in message
+    assert "/mediaviewer/api/migrations/run/" in message
+    for secret in (
+        "user",
+        "password",
+        "auth-user",
+        "auth-password",
+        "viewer.example",
+        "query-secret",
+        "fragment-secret",
+        "exception-secret",
+    ):
+        assert secret not in message
+
+
 def test_success_processes_video_and_all_subtitles_without_disk_state(
     tmp_path, monkeypatch
 ):
@@ -425,6 +487,36 @@ def test_failure_after_lock_attempts_release_and_never_publishes(tmp_path, monke
     assert cli.run(1, config=cli.Config.from_env(), session=api, b2_client=b2) != 0
     assert [call[0] for call in api.calls][-1] == "DELETE"
     assert not any("publish-file" in call[1] for call in api.calls)
+
+
+def test_inventory_404_reports_request_and_releases_lock_without_side_effects(
+    tmp_path, monkeypatch, capsys
+):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    video = show / "Episode.mp4"
+    video.write_bytes(b"video")
+    api = ViewerSession(
+        [
+            lock_response(),
+            Response({"message": "private response"}, status=404),
+            Response({}),
+        ]
+    )
+    b2 = FakeB2()
+
+    assert cli.run(1, config=cli.Config.from_env(), session=api, b2_client=b2) != 0
+
+    error = capsys.readouterr().err
+    assert "GET" in error
+    assert "/mediaviewer/api/migrations/file-candidates/" in error
+    assert "HTTP 404" in error
+    assert "private response" not in error
+    assert [call[0] for call in api.calls] == ["POST", "GET", "DELETE"]
+    assert b2.calls == []
+    assert not any("publish-file" in call[1] for call in api.calls)
+    assert video.read_bytes() == b"video"
 
 
 def test_prepare_failure_releases_lock(tmp_path, monkeypatch):

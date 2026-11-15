@@ -4,7 +4,7 @@ import hashlib
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 import requests
 
@@ -101,6 +101,7 @@ class ViewerClient:
 
     def request(self, method, path, *, json_body=None, params=None):
         url = urljoin(self.base_url, path.lstrip("/"))
+        request_context = f"{method} {urlsplit(url).path}"
         try:
             response = self.session.request(
                 method,
@@ -126,9 +127,13 @@ class ViewerClient:
         except requests.HTTPError as error:
             status = getattr(getattr(error, "response", None), "status_code", None)
             suffix = f" (HTTP {status})" if isinstance(status, int) else ""
-            raise MigrationError(f"MediaViewer request failed{suffix}") from None
+            raise MigrationError(
+                f"MediaViewer {request_context} request failed{suffix}"
+            ) from None
         except Exception:
-            raise MigrationError("MediaViewer request failed") from None
+            raise MigrationError(
+                f"MediaViewer {request_context} request failed"
+            ) from None
 
 
 def _inside(path, roots):
