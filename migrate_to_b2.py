@@ -1,4 +1,8 @@
-"""Safely migrate a bounded set of existing MediaViewer video files to B2."""
+"""Migrate a bounded batch to B2, deleting each video's sources after publication.
+
+Each video's uploads, publication, and verified local cleanup finish before the
+next video starts. Failed or uncertain publication retains that video's sources.
+"""
 
 import argparse
 import stat

@@ -568,6 +568,8 @@ def test_three_video_batch_preserves_frozen_sidecar_ownership_and_cap(
     )
     special.write_bytes(b"special")
     base_video.write_bytes(b"base")
+    base_subtitle = show / "Episode.en.vtt"
+    base_subtitle.write_bytes(b"BASE WEBVTT")
     leftover.write_bytes(b"leftover")
     (show / "Other.en.vtt").write_bytes(b"unselected captions")
     subtitle = show / "Episode.Special.en.vtt"
@@ -588,13 +590,74 @@ def test_three_video_batch_preserves_frozen_sidecar_ownership_and_cap(
             Response({}),
         ]
     )
-    b2 = FakeB2()
+    second_video_upload_started = []
+
+    def assert_first_files_deleted(path):
+        if Path(path) == base_video:
+            second_video_upload_started.append(True)
+            assert not special.exists()
+            assert not subtitle.exists()
+
+    b2 = FakeB2(assert_first_files_deleted)
     assert cli.run(2, config=cli.Config.from_env(), session=api, b2_client=b2) == 0
+    assert second_video_upload_started
     assert not special.exists() and not base_video.exists()
     assert leftover.read_bytes() == b"leftover"
     assert (show / "Other.en.vtt").read_bytes() == b"unselected captions"
     assert not subtitle.exists()
+    assert not base_subtitle.exists()
     assert [call[0] for call in b2.calls if call[0] == b"WEBVTT"] == [b"WEBVTT"]
+
+
+@pytest.mark.parametrize("failure", ["upload", "publish_lost"])
+def test_previous_files_stay_deleted_when_later_video_fails(
+    tmp_path, monkeypatch, failure
+):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    first_video = show / "First.mp4"
+    first_subtitle = show / "First.en.vtt"
+    second_video = show / "Second.mp4"
+    second_subtitle = show / "Second.en.vtt"
+    first_video.write_bytes(b"first video")
+    first_subtitle.write_bytes(b"FIRST WEBVTT")
+    second_video.write_bytes(b"second video")
+    second_subtitle.write_bytes(b"SECOND WEBVTT")
+    api_responses = [
+        lock_response(),
+        candidates_response(
+            candidate(1, path="Show", filename="First.mp4"),
+            candidate(2, path="Show", filename="Second.mp4"),
+        ),
+        prepared_response(10),
+        published_response(8, 10),
+        prepared_response(11),
+    ]
+    if failure == "publish_lost":
+        api_responses.append(requests.ConnectionError("private"))
+    api_responses.append(Response({}))
+    api = ViewerSession(api_responses)
+    second_video_upload_started = []
+
+    def fail_or_check_second_video(path):
+        if Path(path) == second_video:
+            second_video_upload_started.append(True)
+            if failure == "upload":
+                raise cli.MigrationError("upload failed")
+
+    b2 = FakeB2(fail_or_check_second_video)
+    assert cli.run(2, config=cli.Config.from_env(), session=api, b2_client=b2) == 1
+    assert second_video_upload_started
+    assert not first_video.exists()
+    assert not first_subtitle.exists()
+    assert second_video.read_bytes() == b"second video"
+    assert second_subtitle.read_bytes() == b"SECOND WEBVTT"
+    assert sum("publish-file" in call[1] for call in api.calls) == (
+        1 if failure == "upload" else 2
+    )
+    assert len(b2.calls) == (3 if failure == "upload" else 4)
+    assert api.calls[-1][0] == "DELETE"
 
 
 @pytest.mark.parametrize(
