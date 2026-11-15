@@ -16,6 +16,7 @@ MediaWaiter is a Flask media file server with streaming capabilities. It serves 
 - `pyproject.toml`: Python dependencies, Ruff rules, and pytest discovery configuration.
 - `Makefile`: Docker build, test, security scan, and formatting targets.
 - `Dockerfile`: Container build targets.
+- `flake.nix`, `flake.lock`: Locked, standalone formatting and repository hygiene checks, using the enabled hooks from `devenv.nix` without building the development shell.
 - `.github/workflows/pr.yml`: Pull request validation jobs.
 
 ## Development and validation
@@ -23,9 +24,10 @@ MediaWaiter is a Flask media file server with streaming capabilities. It serves 
 - `make pytest`: Run pytest in the Docker development container.
 - `make bandit`: Run Bandit security scanning in the Docker development container.
 - `make tests`: Run both `pytest` and `bandit` targets.
-- `devenv test`: Run the devenv checks used by pull request CI.
+- `nix flake check --no-update-lock-file --print-build-logs`: Run the locked formatting and repository hygiene checks used by pull request CI.
+- `devenv test`: Run the local devenv checks; CI uses the standalone flake instead.
 - `make autoformat`: Run `ruff format` against the repository. This command mutates source files; review its diff before keeping changes.
-- Pull request CI runs `make pytest`, `make bandit`, and `devenv test`.
+- Pull request CI runs `make pytest`, `make bandit`, and `nix flake check --no-update-lock-file --print-build-logs`.
 
 ## Configuration and security
 
