@@ -74,3 +74,11 @@ can leave local originals even when MediaViewer already published them; an OS
 deletion error may leave partially completed local cleanup. Verify the published
 record before manual removal. A later run does not automatically clean up files
 whose records are already in B2.
+
+If planning reports duplicate candidates for the same video, the error shows the
+resolved local path and both conflicting MediaPath/MediaFile ID pairs. A `None`
+MediaFile ID means the movie does not yet have a child record. This safety check
+covers the entire inventory, even with a limit of one video, and stops before
+uploads or local deletion. Inspect the named records and their path mappings;
+do not remove the guard or choose one record arbitrarily, since deleting a shared
+source could break playback for the other record.
