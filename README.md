@@ -41,7 +41,7 @@ failure investigation too.
 From the MediaWaiter checkout, migrate at most ten videos:
 
 ```sh
-python migrate_to_b2.py 10 --writers-paused
+python migrate_to_b2.py 10
 ```
 
 Each invocation selects a fresh batch and keeps its state only in memory. There

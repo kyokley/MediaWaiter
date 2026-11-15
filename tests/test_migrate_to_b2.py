@@ -129,16 +129,35 @@ def success_session(candidate_item, mediafile=8, target=9):
     )
 
 
-def test_help_without_environment_and_old_journal_option_is_rejected(capsys):
+def test_help_without_environment_and_old_options_are_rejected(capsys, monkeypatch):
     with pytest.raises(SystemExit) as help_exit:
         cli.main(["--help"])
     assert help_exit.value.code == 0
-    assert "--journal" not in capsys.readouterr().out
+    help_output = capsys.readouterr().out
+    assert "--journal" not in help_output
+    assert "--writers-paused" not in help_output
+    monkeypatch.setattr(cli, "run", lambda *_: pytest.fail("run must not be called"))
+    with pytest.raises(SystemExit) as old_flag:
+        cli.main(["1", "--writers-paused"])
+    assert old_flag.value.code == 2
+    assert "unrecognized arguments: --writers-paused" in capsys.readouterr().err
     with pytest.raises(SystemExit) as old_option:
-        cli.main(["1", "--writers-paused", "--journal", "x"])
+        cli.main(["1", "--journal", "x"])
     assert old_option.value.code == 2
     assert "unrecognized arguments: --journal x" in capsys.readouterr().err
     assert "journal_path" not in inspect.signature(cli.run).parameters
+
+
+def test_main_delegates_integer_count_and_returns_run_result(monkeypatch):
+    calls = []
+
+    def fake_run(maximum):
+        calls.append(maximum)
+        return 23
+
+    monkeypatch.setattr(cli, "run", fake_run)
+    assert cli.main(["4"]) == 23
+    assert calls == [4]
 
 
 def test_viewer_client_auth_timeout_redirect_and_http_status_are_safe():

@@ -362,12 +362,6 @@ def main(argv=None):
     parser.add_argument(
         "max_videos", type=int, help="maximum number of videos to migrate"
     )
-    parser.add_argument(
-        "--writers-paused",
-        action="store_true",
-        required=True,
-        help="confirm all other media writers are paused",
-    )
     args = parser.parse_args(argv)
     return run(args.max_videos)
 
