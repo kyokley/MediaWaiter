@@ -15,6 +15,12 @@ Deploy the matching MediaViewer file-migration API and run its database
 migrations first. Configure `B2_BUCKET_NAME` and `B2_NAME_PREFIX` in MediaViewer;
 the script consumes its returned bucket and opaque upload prefix unchanged.
 
+Verify `python manage.py show_urls` in the deployed MediaViewer runtime lists
+`file-candidates/`, `{source_pk}/prepare-file/`, and `{source_pk}/publish-file/`
+under `/mediaviewer/api/migrations/`. The backend requires migration
+`0075_mediapath_migration_source`. The older `candidates/` and `publish/` actions
+use a different protocol; changing the client URLs to those actions is unsafe.
+
 Set these environment variables in MediaWaiter's runtime:
 
 - `MW_BASE_PATH`: local media base directory.

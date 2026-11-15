@@ -326,7 +326,9 @@ def _validate_candidates(data):
         or not isinstance(data.get("candidates"), list)
     ):
         raise MigrationError("Malformed candidate page")
-    if data.get("next_cursor") is not None and not isinstance(data["next_cursor"], str):
+    if "next_cursor" not in data:
+        raise MigrationError("Malformed candidate cursor: missing next_cursor")
+    if data["next_cursor"] is not None and not isinstance(data["next_cursor"], str):
         raise MigrationError("Malformed candidate cursor")
     for item in data["candidates"]:
         if (
