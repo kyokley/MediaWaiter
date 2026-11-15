@@ -291,6 +291,76 @@ def test_success_processes_video_and_all_subtitles_without_disk_state(
     assert not list(tmp_path.glob(".migration-to-b2*"))
 
 
+def test_current_migration_http_contract(tmp_path, monkeypatch):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    video = show / "Episode.mp4"
+    video.write_bytes(b"video bytes")
+    item = candidate(path="Show", filename="Episode.mp4")
+    item["mediafile_pk"] = 7
+    api = success_session(item, mediafile=7)
+
+    assert (
+        cli.run(1, config=cli.Config.from_env(), session=api, b2_client=FakeB2()) == 0
+    )
+
+    assert [
+        (method, url.removeprefix("https://viewer.example/mediaviewer/"))
+        for method, url, _ in api.calls
+    ] == [
+        ("POST", "api/migrations/run/"),
+        ("GET", "api/migrations/file-candidates/"),
+        ("POST", "api/migrations/1/prepare-file/"),
+        ("POST", "api/migrations/1/publish-file/"),
+        ("DELETE", "api/migrations/run/"),
+    ]
+    prepare = api.calls[2][2]["json"]
+    assert prepare["file"] == {
+        "pk": 7,
+        "filename": "Episode.mp4",
+        "b2_uuid": prepare["file"]["b2_uuid"],
+        "size": len(b"video bytes"),
+        "sha1": "398b2bda59339ce8651780bd9013b8326c2b5176",
+        "subtitles": [],
+    }
+    assert prepare["snapshot"] == "snapshot-1"
+    assert set(prepare) == {"run_id", "snapshot", "file"}
+    assert api.calls[3][2]["json"] == {
+        "run_id": prepare["run_id"],
+        "prepared": "token",
+    }
+    assert api.calls[4][2]["json"] == {"run_id": prepare["run_id"]}
+
+
+@pytest.mark.parametrize("items", [[], [candidate()]])
+def test_candidate_pages_without_next_cursor_fail_closed_and_release_lock(
+    tmp_path, monkeypatch, capsys, items
+):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    video = show / "Episode.mp4"
+    video.write_bytes(b"video bytes")
+    legacy_page = {"version": 1, "candidates": items}
+    api = ViewerSession([lock_response(), Response(legacy_page), Response({})])
+    b2 = FakeB2()
+
+    assert cli.run(1, config=cli.Config.from_env(), session=api, b2_client=b2) != 0
+
+    error = capsys.readouterr().err
+    assert "Malformed candidate cursor" in error
+    assert "next_cursor" in error
+    assert "KeyError" not in error
+    assert [call[0] for call in api.calls] == ["POST", "GET", "DELETE"]
+    assert api.calls[-1][2]["json"] == {"run_id": api.calls[0][2]["json"]["run_id"]}
+    assert b2.calls == []
+    assert video.read_bytes() == b"video bytes"
+    assert not any(
+        "prepare-file" in call[1] or "publish-file" in call[1] for call in api.calls
+    )
+
+
 def test_each_invocation_uses_fresh_run_and_current_inventory(tmp_path, monkeypatch):
     base = setup_config(tmp_path, monkeypatch)
     show = base / "Show"
