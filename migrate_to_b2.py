@@ -41,7 +41,7 @@ def _inventory(client, maximum):
 
 
 def _new_plan(candidates, maximum, roots, base_path):
-    resolved, physical, missing = [], set(), []
+    resolved, physical, missing = [], {}, []
     for candidate in candidates:
         try:
             video = resolve_candidate(candidate, roots, base_path)
@@ -50,11 +50,18 @@ def _new_plan(candidates, maximum, roots, base_path):
                 missing.append(candidate["source_pk"])
                 continue
             raise
-        if str(video) in physical:
+        canonical_path = str(video)
+        if canonical_path in physical:
+            first = physical[canonical_path]
             raise MigrationError(
-                "Ambiguous duplicate candidates refer to the same physical video"
+                "Ambiguous duplicate candidates refer to the same physical video: "
+                f"path={canonical_path!r}; "
+                f"first=(MediaPath {first['source_pk']}, "
+                f"MediaFile {first['mediafile_pk']!r}); "
+                f"second=(MediaPath {candidate['source_pk']}, "
+                f"MediaFile {candidate['mediafile_pk']!r})"
             )
-        physical.add(str(video))
+        physical[canonical_path] = candidate
         resolved.append((candidate, video))
     if missing:
         shown = ", ".join(str(pk) for pk in missing[:10])

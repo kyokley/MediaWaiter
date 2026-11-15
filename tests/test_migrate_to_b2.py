@@ -589,6 +589,57 @@ def test_inventory_404_reports_request_and_releases_lock_without_side_effects(
     assert video.read_bytes() == b"video"
 
 
+@pytest.mark.parametrize(
+    ("source_ids", "mediafile_ids", "paths", "kind", "filename"),
+    [
+        ((31, 31), (301, 302), ("Show", "Show"), "tv", "Episode.mp4"),
+        ((41, 42), (401, 402), ("Show", None), "tv", "Episode.mp4"),
+        ((51, 51), (None, None), ("Film", "Film"), "movie", "Film.mp4"),
+    ],
+)
+def test_ambiguous_candidates_report_resolved_path_and_both_ids_without_side_effects(
+    tmp_path, monkeypatch, capsys, source_ids, mediafile_ids, paths, kind, filename
+):
+    base = setup_config(tmp_path, monkeypatch)
+    folder = base / paths[0]
+    folder.mkdir()
+    video = folder / filename
+    video.write_bytes(b"preserved source")
+    candidate_rows = []
+    for index, (source_pk, mediafile_pk, path) in enumerate(
+        zip(source_ids, mediafile_ids, paths, strict=True)
+    ):
+        item = candidate(
+            source_pk, kind=kind, path=path or str(folder), filename=filename
+        )
+        item["mediafile_pk"] = mediafile_pk
+        item["snapshot"] = f"private-snapshot-{index}"
+        candidate_rows.append(item)
+    api = ViewerSession(
+        [lock_response(), candidates_response(*candidate_rows), Response({})]
+    )
+    b2 = FakeB2()
+
+    assert cli.run(1, config=cli.Config.from_env(), session=api, b2_client=b2) != 0
+
+    error = capsys.readouterr().err
+    canonical_path = str(video.resolve())
+    assert "Ambiguous duplicate candidates refer to the same physical video" in error
+    assert repr(canonical_path) in error
+    assert f"MediaPath {source_ids[0]}" in error
+    assert f"MediaFile {mediafile_ids[0]!r}" in error
+    assert f"MediaPath {source_ids[1]}" in error
+    assert f"MediaFile {mediafile_ids[1]!r}" in error
+    assert "private-snapshot" not in error
+    assert [call[0] for call in api.calls] == ["POST", "GET", "DELETE"]
+    run_id = api.calls[0][2]["json"]["run_id"]
+    assert api.calls[-1][2]["json"] == {"run_id": run_id}
+    assert not any("prepare-file" in call[1] for call in api.calls)
+    assert not any("publish-file" in call[1] for call in api.calls)
+    assert b2.calls == []
+    assert video.read_bytes() == b"preserved source"
+
+
 def test_prepare_failure_releases_lock(tmp_path, monkeypatch):
     base = setup_config(tmp_path, monkeypatch)
     show = base / "Show"
