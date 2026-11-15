@@ -42,6 +42,17 @@ class MigrationError(Exception):
     """Safe, user-facing migration failure."""
 
 
+class AmbiguousMovieError(MigrationError):
+    """Movie directory has multiple supported files to choose from."""
+
+    def __init__(self, directory, video_candidates):
+        self.directory = Path(directory)
+        self.video_candidates = tuple(sorted(video_candidates))
+        super().__init__(
+            "Ambiguous movie directory; expected exactly one supported video"
+        )
+
+
 @dataclass(frozen=True)
 class Config:
     base_url: str
@@ -54,19 +65,20 @@ class Config:
     b2_api_url: str
 
     @classmethod
-    def from_env(cls):
+    def from_env(cls, *, require_b2=True):
         base_value = os.environ.get("MW_BASE_PATH")
         roots_value = os.environ.get("MW_MEDIA_DIRS")
         required = {
             "WAITER_USERNAME": os.environ.get("WAITER_USERNAME"),
             "WAITER_PASSWORD": os.environ.get("WAITER_PASSWORD"),
-            "MW_B2_APPLICATION_KEY_ID": os.environ.get("MW_B2_APPLICATION_KEY_ID"),
-            "MW_B2_APPLICATION_KEY": os.environ.get("MW_B2_APPLICATION_KEY"),
         }
+        b2_key_id = os.environ.get("MW_B2_APPLICATION_KEY_ID", "")
+        b2_key = os.environ.get("MW_B2_APPLICATION_KEY", "")
         if (
             not base_value
             or not roots_value
             or any(not value for value in required.values())
+            or (require_b2 and (not b2_key_id or not b2_key))
         ):
             raise MigrationError("Required migration environment is missing")
         base = Path(base_value).expanduser().resolve()
@@ -84,8 +96,8 @@ class Config:
             tuple(roots),
             required["WAITER_USERNAME"],
             required["WAITER_PASSWORD"],
-            required["MW_B2_APPLICATION_KEY_ID"],
-            required["MW_B2_APPLICATION_KEY"],
+            b2_key_id,
+            b2_key,
             os.environ.get("MW_B2_API_URL", DEFAULT_B2_URL).rstrip("/"),
         )
 
@@ -185,9 +197,7 @@ def resolve_candidate(candidate, roots, base_path=None):
         if not options:
             raise MigrationError("Candidate video is missing")
         if len(options) != 1:
-            raise MigrationError(
-                "Ambiguous movie directory; expected exactly one supported video"
-            )
+            raise AmbiguousMovieError(resolved_dir, [item.name for item in options])
         video = options[0]
         if video.is_symlink():
             raise MigrationError("Candidate video symlink is not supported")
