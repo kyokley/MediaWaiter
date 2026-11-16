@@ -20,7 +20,8 @@ the same checkout. Updating only the CLI can leave incompatible helper modules
 in a container, including missing upload-progress support.
 
 Verify `python manage.py show_urls` in the deployed MediaViewer runtime lists
-`file-candidates/`, `{source_pk}/prepare-file/`, and `{source_pk}/publish-file/`
+`remaining-files/`, `file-candidates/`, `{source_pk}/prepare-file/`, and
+`{source_pk}/publish-file/`
 under `/mediaviewer/api/migrations/`. The backend requires migration
 `0075_mediapath_migration_source`. The older `candidates/` and `publish/` actions
 use a different protocol; changing the client URLs to those actions is unsafe.
@@ -107,6 +108,15 @@ local basenames, and the hashing, upload, publication, and cleanup stages. Uploa
 updates include bytes, percentage, elapsed time, and average throughput;
 intermediate byte updates are throttled to avoid flooding logs. Verified existing
 B2 objects are identified separately from newly uploaded files.
+
+At startup, after acquiring migration ownership and before fetching inventory,
+the script calls `GET /api/migrations/remaining-files/` and reports the remaining
+unmigrated MediaFile record count. The staff-only endpoint returns
+`{"version": 1, "remaining_mediafiles": 123}`. It counts records with no `b2_uuid`,
+including hidden files and files on skipped or otherwise ineligible paths; it
+does not count movie paths without a MediaFile record. This is not the number of
+eligible migration candidates. A failed or malformed count response stops the
+run and triggers a lock-release attempt.
 
 Single-upload byte counts measure data read for the request; multipart counts
 advance after each confirmed part. Reaching 100% is not confirmation of a valid

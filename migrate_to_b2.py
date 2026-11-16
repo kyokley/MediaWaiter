@@ -515,6 +515,18 @@ def _run(maximum, *, config=None, session=None, b2_client=None):
     selected = None
     try:
         _log(f"Migration run acquired: {run_id}")
+        remaining = client.request("GET", "api/migrations/remaining-files/")
+        if (
+            type(remaining.get("version")) is not int
+            or remaining["version"] != 1
+            or type(remaining.get("remaining_mediafiles")) is not int
+            or remaining["remaining_mediafiles"] < 0
+        ):
+            raise MigrationError("Malformed remaining-files response")
+        _log(
+            "Remaining unmigrated MediaFile records: "
+            f"{remaining['remaining_mediafiles']}"
+        )
         plan = _new_plan(
             _inventory(client, maximum, report_progress=True),
             maximum,
