@@ -1,4 +1,5 @@
 import hashlib
+import time
 
 import pytest
 import requests
@@ -99,11 +100,17 @@ def single_upload_responses(data, key):
     ]
 
 
-def test_uploads_unchanged_bytes_and_escapes_unicode_key(tmp_path):
+def disable_retries(monkeypatch):
+    monkeypatch.setattr("migration_storage.UPLOAD_RETRIES", 0)
+
+
+def test_uploads_unchanged_bytes_and_escapes_unicode_key(tmp_path, monkeypatch):
     data = b"unchanged\x00bytes"
     source = tmp_path / "source.bin"
     source.write_bytes(data)
     key = "folder/caf\u00e9/\u03b2.bin"
+    sleep_calls = []
+    monkeypatch.setattr(time, "sleep", sleep_calls.append)
     session = FakeSession(single_upload_responses(data, key))
     client = B2Client("id", "key", session=session)
     client.ensure_file(source, "media", key)
@@ -113,6 +120,7 @@ def test_uploads_unchanged_bytes_and_escapes_unicode_key(tmp_path):
     assert upload[2]["headers"]["X-Bz-Content-Sha1"] == hashlib.sha1(data).hexdigest()
     assert session.trust_env is False
     assert all(call[2]["allow_redirects"] is False for call in session.calls)
+    assert sleep_calls == []
 
 
 def test_single_upload_reports_read_bytes_before_confirmation_and_verified_finish(
@@ -164,6 +172,229 @@ def test_single_upload_reports_read_bytes_before_confirmation_and_verified_finis
     assert session.calls[-1][2]["uploaded_bytes"] == data
 
 
+def test_failed_upload_gets_five_retries_with_30_second_gaps(tmp_path, monkeypatch):
+    source = tmp_path / "source.bin"
+    source.write_bytes(b"retry payload")
+    sleep_calls = []
+    monkeypatch.setattr(time, "sleep", sleep_calls.append)
+
+    class AlwaysFailSession:
+        trust_env = True
+
+        def __init__(self):
+            self.uploads = 0
+
+        def request(self, method, url, **kwargs):
+            if url.endswith("b2_authorize_account"):
+                return auth_response([{"id": "bucket-id", "name": "media"}])
+            if url.endswith("b2_list_file_names"):
+                return listing([])
+            if url.endswith("b2_get_upload_url"):
+                return Response(
+                    {"uploadUrl": "https://upload.example", "authorizationToken": "t"}
+                )
+            if url == "https://upload.example":
+                self.uploads += 1
+                raise requests.ConnectionError("synthetic upload failure")
+            pytest.fail(f"unexpected synthetic request: {method} {url}")
+
+    session = AlwaysFailSession()
+    with pytest.raises(B2Error):
+        B2Client("id", "key", session=session).ensure_file(source, "media", "key")
+
+    assert session.uploads == 6
+    assert sleep_calls == [30, 30, 30, 30, 30]
+
+
+def test_partial_single_failure_reopens_file_and_recovers(tmp_path, monkeypatch):
+    data = b"complete retry bytes"
+    source = tmp_path / "source.bin"
+    source.write_bytes(data)
+    sleep_calls = []
+    monkeypatch.setattr(time, "sleep", sleep_calls.append)
+
+    class RecoverSession:
+        trust_env = True
+
+        def __init__(self):
+            self.calls = []
+            self.upload_bodies = []
+
+        def request(self, method, url, **kwargs):
+            self.calls.append((method, url, kwargs))
+            if url.endswith("b2_authorize_account"):
+                return auth_response([{"id": "bucket-id", "name": "media"}])
+            if url.endswith("b2_list_file_names"):
+                return listing([])
+            if url.endswith("b2_get_upload_url"):
+                return Response(
+                    {"uploadUrl": "https://upload.example", "authorizationToken": "t"}
+                )
+            if url == "https://upload.example":
+                stream = kwargs["data"]
+                if len(self.upload_bodies) == 0:
+                    self.upload_bodies.append(stream.read(4))
+                    raise requests.ConnectionError("partial synthetic failure")
+                body = stream.read(5) + stream.read()
+                self.upload_bodies.append(body)
+                return uploaded_file("key", data)
+            pytest.fail(f"unexpected synthetic request: {method} {url}")
+
+    session = RecoverSession()
+    events = []
+    B2Client("id", "key", session=session).ensure_file(
+        source, "media", "key", progress=lambda *event: events.append(event)
+    )
+    assert session.upload_bodies == [data[:4], data]
+    assert sleep_calls == [30]
+    assert ("retrying", 1, 5) in events
+    assert [event[1] for event in events if event[0] == "uploading"] == [
+        0,
+        4,
+        0,
+        5,
+        len(data),
+    ]
+    assert events[-1] == ("uploaded", len(data), len(data))
+
+
+def test_lost_upload_response_is_verified_and_skipped_without_duplicate_post(
+    tmp_path, monkeypatch
+):
+    data = b"maybe completed"
+    source = tmp_path / "source.bin"
+    source.write_bytes(data)
+    sleep_calls = []
+    monkeypatch.setattr(time, "sleep", sleep_calls.append)
+
+    class LostResponseSession:
+        trust_env = True
+
+        def __init__(self):
+            self.calls = []
+            self.uploads = 0
+            self.completed = False
+
+        def request(self, method, url, **kwargs):
+            self.calls.append((method, url, kwargs))
+            if url.endswith("b2_authorize_account"):
+                return auth_response([{"id": "bucket-id", "name": "media"}])
+            if url.endswith("b2_list_file_names"):
+                files = (
+                    [
+                        {
+                            "fileName": "key",
+                            "action": "upload",
+                            "contentLength": len(data),
+                            "contentSha1": hashlib.sha1(data).hexdigest(),
+                        }
+                    ]
+                    if self.completed
+                    else []
+                )
+                return listing(files)
+            if url.endswith("b2_get_upload_url"):
+                return Response(
+                    {"uploadUrl": "https://upload.example", "authorizationToken": "t"}
+                )
+            if url == "https://upload.example":
+                self.uploads += 1
+                self.completed = True
+                kwargs["data"].read()
+                raise requests.ConnectionError("lost synthetic response")
+            pytest.fail(f"unexpected synthetic request: {method} {url}")
+
+    session = LostResponseSession()
+    events = []
+    B2Client("id", "key", session=session).ensure_file(
+        source, "media", "key", progress=lambda *event: events.append(event)
+    )
+    assert session.uploads == 1
+    assert sleep_calls == [30]
+    assert events[-1] == ("skipped", len(data), len(data))
+    assert "uploaded" not in [event[0] for event in events]
+
+
+def test_multipart_retry_cancels_and_uses_fresh_upload_url(tmp_path, monkeypatch):
+    data = b"abcdef"
+    source = tmp_path / "large"
+    source.write_bytes(data)
+    monkeypatch.setattr("migration_storage.MAX_SINGLE_UPLOAD_SIZE", 4)
+    monkeypatch.setattr("migration_storage.LARGE_FILE_PART_SIZE", 3)
+    sleep_calls = []
+    monkeypatch.setattr(time, "sleep", sleep_calls.append)
+    session = FakeSession(
+        [
+            auth_response([{"id": "bucket-id", "name": "media"}]),
+            listing([]),
+            empty_unfinished(),
+            Response({"fileId": "first-id"}),
+            Response({"uploadUrl": "https://part-first", "authorizationToken": "t1"}),
+            requests.ConnectionError("first part failed"),
+            Response({}),
+            auth_response([{"id": "bucket-id", "name": "media"}]),
+            listing([]),
+            empty_unfinished(),
+            Response({"fileId": "second-id"}),
+            Response({"uploadUrl": "https://part-second", "authorizationToken": "t2"}),
+            uploaded_part(b"abc", 1),
+            uploaded_part(b"def", 2),
+            uploaded_file("key", data, multipart=True),
+        ]
+    )
+
+    B2Client("id", "key", session=session).ensure_file(source, "media", "key")
+
+    cancels = [
+        call for call in session.calls if call[1].endswith("b2_cancel_large_file")
+    ]
+    parts = [
+        call
+        for call in session.calls
+        if call[2].get("headers", {}).get("X-Bz-Part-Number")
+    ]
+    assert len(cancels) == 1 and cancels[0][2]["json"] == {"fileId": "first-id"}
+    assert [call[1] for call in parts] == [
+        "https://part-first",
+        "https://part-second",
+        "https://part-second",
+    ]
+    assert sleep_calls == [30]
+
+
+def test_retry_wait_interrupt_propagates_without_another_attempt(tmp_path, monkeypatch):
+    source = tmp_path / "source.bin"
+    source.write_bytes(b"retry payload")
+    monkeypatch.setattr(
+        time, "sleep", lambda _seconds: (_ for _ in ()).throw(KeyboardInterrupt)
+    )
+
+    class InterruptSession:
+        trust_env = True
+
+        def __init__(self):
+            self.uploads = 0
+
+        def request(self, method, url, **kwargs):
+            if url.endswith("b2_authorize_account"):
+                return auth_response([{"id": "bucket-id", "name": "media"}])
+            if url.endswith("b2_list_file_names"):
+                return listing([])
+            if url.endswith("b2_get_upload_url"):
+                return Response(
+                    {"uploadUrl": "https://upload.example", "authorizationToken": "t"}
+                )
+            if url == "https://upload.example":
+                self.uploads += 1
+                raise requests.ConnectionError("synthetic failure")
+            pytest.fail(f"unexpected synthetic request: {method} {url}")
+
+    session = InterruptSession()
+    with pytest.raises(KeyboardInterrupt):
+        B2Client("id", "key", session=session).ensure_file(source, "media", "key")
+    assert session.uploads == 1
+
+
 def test_identical_object_reports_skip_without_upload(tmp_path):
     data = b"same"
     source = tmp_path / "source"
@@ -191,7 +422,10 @@ def test_identical_object_reports_skip_without_upload(tmp_path):
     assert "uploading" not in [event[0] for event in events]
 
 
-def test_failed_single_confirmation_never_reports_verified_upload(tmp_path):
+def test_failed_single_confirmation_never_reports_verified_upload(
+    tmp_path, monkeypatch
+):
+    disable_retries(monkeypatch)
     data = b"same"
     source = tmp_path / "source"
     source.write_bytes(data)
@@ -202,6 +436,48 @@ def test_failed_single_confirmation_never_reports_verified_upload(tmp_path):
         B2Client("id", "key", session=FakeSession(responses)).ensure_file(
             source, "media", "key", progress=lambda *event: events.append(event)
         )
+    assert "uploaded" not in [event[0] for event in events]
+
+
+def test_invalid_upload_confirmation_exhausts_retries_without_verified_event(
+    tmp_path, monkeypatch
+):
+    data = b"confirmation mismatch"
+    source = tmp_path / "source.bin"
+    source.write_bytes(data)
+    sleep_calls = []
+    monkeypatch.setattr(time, "sleep", sleep_calls.append)
+    events = []
+
+    class InvalidConfirmationSession:
+        trust_env = True
+
+        def __init__(self):
+            self.uploads = 0
+
+        def request(self, method, url, **kwargs):
+            if url.endswith("b2_authorize_account"):
+                return auth_response([{"id": "bucket-id", "name": "media"}])
+            if url.endswith("b2_list_file_names"):
+                return listing([])
+            if url.endswith("b2_get_upload_url"):
+                return Response(
+                    {"uploadUrl": "https://upload.example", "authorizationToken": "t"}
+                )
+            if url == "https://upload.example":
+                self.uploads += 1
+                kwargs["data"].read()
+                return uploaded_file("wrong-key", data)
+            pytest.fail(f"unexpected synthetic request: {method} {url}")
+
+    session = InvalidConfirmationSession()
+    with pytest.raises(B2Error, match="metadata does not match"):
+        B2Client("id", "key", session=session).ensure_file(
+            source, "media", "key", progress=lambda *event: events.append(event)
+        )
+
+    assert session.uploads == 6
+    assert sleep_calls == [30, 30, 30, 30, 30]
     assert "uploaded" not in [event[0] for event in events]
 
 
@@ -321,7 +597,8 @@ def test_similarly_prefixed_object_is_not_treated_as_exact_key(tmp_path):
         {"contentLength": True, "contentSha1": hashlib.sha1(b"same").hexdigest()},
     ],
 )
-def test_conflicting_existing_object_fails_closed(tmp_path, metadata):
+def test_conflicting_existing_object_fails_closed(tmp_path, monkeypatch, metadata):
+    disable_retries(monkeypatch)
     source = tmp_path / "a"
     source.write_bytes(b"same")
     item = {"fileName": "key", "action": "upload", **metadata}
@@ -330,6 +607,48 @@ def test_conflicting_existing_object_fails_closed(tmp_path, metadata):
     )
     with pytest.raises(B2Error):
         B2Client("id", "key", session=session).ensure_file(source, "media", "key")
+    assert not any(call[1] == "upload" for call in session.calls)
+
+
+def test_valid_conflicting_object_is_rechecked_on_all_six_attempts(
+    tmp_path, monkeypatch
+):
+    source_data = b"source"
+    existing_data = b"different existing content"
+    source = tmp_path / "source.bin"
+    source.write_bytes(source_data)
+    sleeps = []
+    monkeypatch.setattr(time, "sleep", sleeps.append)
+    responses = []
+    for _ in range(6):
+        responses.extend(
+            [
+                auth_response([{"id": "bucket-id", "name": "media"}]),
+                listing(
+                    [
+                        {
+                            "fileName": "key",
+                            "action": "upload",
+                            "contentLength": len(existing_data),
+                            "contentSha1": hashlib.sha1(existing_data).hexdigest(),
+                        }
+                    ]
+                ),
+            ]
+        )
+    session = FakeSession(responses)
+
+    with pytest.raises(B2Error, match="conflicting content"):
+        B2Client("id", "key", session=session).ensure_file(source, "media", "key")
+
+    assert sum(call[1].endswith("b2_list_file_names") for call in session.calls) == 6
+    assert sleeps == [30, 30, 30, 30, 30]
+    assert not any(
+        call[1].endswith("b2_get_upload_url")
+        or call[1].endswith("b2_start_large_file")
+        or call[1] == "upload"
+        for call in session.calls
+    )
 
 
 def test_large_existing_object_uses_file_info_sha1(tmp_path):
@@ -350,7 +669,8 @@ def test_large_existing_object_uses_file_info_sha1(tmp_path):
     assert len(session.calls) == 2
 
 
-def test_malformed_listing_fails_closed(tmp_path):
+def test_malformed_listing_fails_closed(tmp_path, monkeypatch):
+    disable_retries(monkeypatch)
     source = tmp_path / "a"
     source.write_bytes(b"same")
     session = FakeSession(
@@ -363,7 +683,8 @@ def test_malformed_listing_fails_closed(tmp_path):
         B2Client("id", "key", session=session).ensure_file(source, "media", "key")
 
 
-def test_api_error_is_redacted(tmp_path):
+def test_api_error_is_redacted(tmp_path, monkeypatch):
+    disable_retries(monkeypatch)
     source = tmp_path / "a"
     source.write_bytes(b"same")
     response = Response({"message": "secret body"}, status=403)
@@ -376,7 +697,8 @@ def test_api_error_is_redacted(tmp_path):
     assert "credential" not in str(error.value)
 
 
-def test_redirect_response_is_rejected(tmp_path):
+def test_redirect_response_is_rejected(tmp_path, monkeypatch):
+    disable_retries(monkeypatch)
     source = tmp_path / "a"
     source.write_bytes(b"same")
     session = FakeSession([Response({}, status=302)])
@@ -385,7 +707,8 @@ def test_redirect_response_is_rejected(tmp_path):
     assert session.calls[0][2]["allow_redirects"] is False
 
 
-def test_restricted_key_cannot_access_other_bucket(tmp_path):
+def test_restricted_key_cannot_access_other_bucket(tmp_path, monkeypatch):
+    disable_retries(monkeypatch)
     source = tmp_path / "a"
     source.write_bytes(b"same")
     session = FakeSession([auth_response([{"id": "allowed-id", "name": "allowed"}])])
@@ -481,6 +804,7 @@ def test_multipart_order_hash_metadata_and_prior_attempt_cleanup(tmp_path, monke
 
 
 def test_failed_multipart_part_never_reports_verified_upload(tmp_path, monkeypatch):
+    disable_retries(monkeypatch)
     source = tmp_path / "large"
     source.write_bytes(b"abcdef")
     monkeypatch.setattr("migration_storage.MAX_SINGLE_UPLOAD_SIZE", 4)
@@ -510,6 +834,7 @@ def test_failed_multipart_part_never_reports_verified_upload(tmp_path, monkeypat
 def test_failed_multipart_finish_never_reports_verified_upload_and_cancels(
     tmp_path, monkeypatch
 ):
+    disable_retries(monkeypatch)
     data = b"abcdef"
     source = tmp_path / "large"
     source.write_bytes(data)
@@ -538,6 +863,7 @@ def test_failed_multipart_finish_never_reports_verified_upload_and_cancels(
 
 
 def test_prior_unfinished_cleanup_failure_prevents_new_upload(tmp_path, monkeypatch):
+    disable_retries(monkeypatch)
     source = tmp_path / "large"
     source.write_bytes(b"large")
     monkeypatch.setattr("migration_storage.MAX_SINGLE_UPLOAD_SIZE", 4)
@@ -560,6 +886,7 @@ def test_prior_unfinished_cleanup_failure_prevents_new_upload(tmp_path, monkeypa
 
 
 def test_multipart_integrity_checks_actual_bytes_before_finish(tmp_path, monkeypatch):
+    disable_retries(monkeypatch)
     source = tmp_path / "large"
     source.write_bytes(b"abcdef")
     monkeypatch.setattr("migration_storage.MAX_SINGLE_UPLOAD_SIZE", 4)
