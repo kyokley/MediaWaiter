@@ -97,6 +97,10 @@ def lock_response():
     return Response({"locked": True})
 
 
+def remaining_response(count=12):
+    return Response({"version": 1, "remaining_mediafiles": count})
+
+
 def candidates_response(*items):
     return Response({"version": 1, "candidates": list(items), "next_cursor": None})
 
@@ -122,6 +126,7 @@ def success_session(candidate_item, mediafile=8, target=9):
     return ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             candidates_response(candidate_item),
             prepared_response(target),
             published_response(mediafile, target),
@@ -265,6 +270,7 @@ def test_success_processes_video_and_all_subtitles_without_disk_state(
     session = ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             candidates_response(candidate()),
             prepared_response(),
             published_response(),
@@ -304,7 +310,13 @@ def test_progress_logs_escaped_basename_and_partial_summary(
     item = candidate(path="Show", filename=filename)
     item["snapshot"] = "private-snapshot-token"
     api = ViewerSession(
-        [lock_response(), candidates_response(item), prepared_response(), Response({})]
+        [
+            lock_response(),
+            remaining_response(),
+            candidates_response(item),
+            prepared_response(),
+            Response({}),
+        ]
     )
     b2 = FakeB2(
         lambda _path: (_ for _ in ()).throw(cli.MigrationError("upload failed"))
@@ -377,6 +389,7 @@ def test_real_b2_retry_exhaustion_retains_source_and_stops_before_publish(
     api = ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             candidates_response(
                 candidate(path="Show", filename="Episode.mp4"), next_candidate
             ),
@@ -403,12 +416,18 @@ def test_real_b2_retry_exhaustion_retains_source_and_stops_before_publish(
     log = capsys.readouterr().err
     assert len(attempts) == 6
     assert delays == [30, 30, 30, 30, 30]
-    assert [call[0] for call in api.calls] == ["POST", "GET", "POST", "DELETE"]
+    assert [call[0] for call in api.calls] == [
+        "POST",
+        "GET",
+        "GET",
+        "POST",
+        "DELETE",
+    ]
     assert video.read_bytes() == b"video"
     assert subtitle.read_bytes() == b"WEBVTT captions"
     assert next_video.read_bytes() == b"next video"
     assert "publish-file" not in " ".join(call[1] for call in api.calls)
-    assert not any("prepare-file" in call[1] for call in api.calls[3:])
+    assert not any("prepare-file" in call[1] for call in api.calls[4:])
     assert "retry 1/5" in log and "retry 5/5" in log
     assert log.count("uploading 0/5 bytes") == 6
     assert "B2 upload verified" not in log
@@ -453,12 +472,13 @@ def test_current_migration_http_contract(tmp_path, monkeypatch, capsys):
         for method, url, _ in api.calls
     ] == [
         ("POST", "api/migrations/run/"),
+        ("GET", "api/migrations/remaining-files/"),
         ("GET", "api/migrations/file-candidates/"),
         ("POST", "api/migrations/1/prepare-file/"),
         ("POST", "api/migrations/1/publish-file/"),
         ("DELETE", "api/migrations/run/"),
     ]
-    prepare = api.calls[2][2]["json"]
+    prepare = api.calls[3][2]["json"]
     assert prepare["file"] == {
         "pk": 7,
         "filename": "Episode.mp4",
@@ -469,11 +489,116 @@ def test_current_migration_http_contract(tmp_path, monkeypatch, capsys):
     }
     assert prepare["snapshot"] == "snapshot-1"
     assert set(prepare) == {"run_id", "snapshot", "file"}
-    assert api.calls[3][2]["json"] == {
+    assert api.calls[4][2]["json"] == {
         "run_id": prepare["run_id"],
         "prepared": "token",
     }
-    assert api.calls[4][2]["json"] == {"run_id": prepare["run_id"]}
+    assert api.calls[5][2]["json"] == {"run_id": prepare["run_id"]}
+
+
+@pytest.mark.parametrize("count", [0, 23])
+def test_remaining_count_is_logged_before_inventory(
+    tmp_path, monkeypatch, capsys, count
+):
+    setup_config(tmp_path, monkeypatch)
+    api = ViewerSession(
+        [
+            lock_response(),
+            remaining_response(count),
+            candidates_response(),
+            Response({}),
+        ]
+    )
+
+    assert (
+        cli.run(1, config=cli.Config.from_env(), session=api, b2_client=FakeB2()) == 0
+    )
+
+    output = capsys.readouterr().err
+    assert f"Remaining unmigrated MediaFile records: {count}" in output
+    assert output.index("Remaining unmigrated") < output.index("Inventory page")
+    assert [
+        call[1].removeprefix("https://viewer.example/mediaviewer/")
+        for call in api.calls
+    ] == [
+        "api/migrations/run/",
+        "api/migrations/remaining-files/",
+        "api/migrations/file-candidates/",
+        "api/migrations/run/",
+    ]
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"version": 1, "remaining_mediafiles": -1},
+        {"version": 1, "remaining_mediafiles": True},
+        {"version": 1},
+        {"version": 1, "remaining_mediafiles": "3"},
+        {"version": True, "remaining_mediafiles": 3},
+        {"version": 2, "remaining_mediafiles": 3},
+    ],
+)
+def test_malformed_remaining_count_stops_before_inventory_and_releases_lock(
+    tmp_path, monkeypatch, capsys, payload
+):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    video = show / "Episode.mp4"
+    video.write_bytes(b"video")
+    api = ViewerSession([lock_response(), Response(payload), Response({})])
+    b2 = FakeB2()
+
+    assert cli.run(1, config=cli.Config.from_env(), session=api, b2_client=b2) != 0
+
+    assert "Malformed remaining-files response" in capsys.readouterr().err
+    assert [
+        call[1].removeprefix("https://viewer.example/mediaviewer/")
+        for call in api.calls
+    ] == [
+        "api/migrations/run/",
+        "api/migrations/remaining-files/",
+        "api/migrations/run/",
+    ]
+    assert api.calls[-1][0] == "DELETE"
+    assert b2.calls == []
+    assert video.read_bytes() == b"video"
+
+
+def test_remaining_count_http_failure_stops_before_inventory_and_releases_lock(
+    tmp_path, monkeypatch, capsys
+):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    video = show / "Episode.mp4"
+    video.write_bytes(b"video")
+    api = ViewerSession(
+        [
+            lock_response(),
+            Response({"private": "body"}, status=503),
+            Response({}),
+        ]
+    )
+    b2 = FakeB2()
+
+    assert cli.run(1, config=cli.Config.from_env(), session=api, b2_client=b2) != 0
+
+    error = capsys.readouterr().err
+    assert "remaining-files/" in error and "HTTP 503" in error
+    assert "private" not in error and "body" not in error
+    assert [
+        call[1].removeprefix("https://viewer.example/mediaviewer/")
+        for call in api.calls
+    ] == [
+        "api/migrations/run/",
+        "api/migrations/remaining-files/",
+        "api/migrations/run/",
+    ]
+    assert api.calls[-1][0] == "DELETE"
+    assert b2.calls == []
+    assert video.read_bytes() == b"video"
 
 
 @pytest.mark.parametrize("items", [[], [candidate()]])
@@ -486,7 +611,9 @@ def test_candidate_pages_without_next_cursor_fail_closed_and_release_lock(
     video = show / "Episode.mp4"
     video.write_bytes(b"video bytes")
     legacy_page = {"version": 1, "candidates": items}
-    api = ViewerSession([lock_response(), Response(legacy_page), Response({})])
+    api = ViewerSession(
+        [lock_response(), remaining_response(), Response(legacy_page), Response({})]
+    )
     b2 = FakeB2()
 
     assert cli.run(1, config=cli.Config.from_env(), session=api, b2_client=b2) != 0
@@ -495,7 +622,7 @@ def test_candidate_pages_without_next_cursor_fail_closed_and_release_lock(
     assert "Malformed candidate cursor" in error
     assert "next_cursor" in error
     assert "KeyError" not in error
-    assert [call[0] for call in api.calls] == ["POST", "GET", "DELETE"]
+    assert [call[0] for call in api.calls] == ["POST", "GET", "GET", "DELETE"]
     assert api.calls[-1][2]["json"] == {"run_id": api.calls[0][2]["json"]["run_id"]}
     assert b2.calls == []
     assert video.read_bytes() == b"video bytes"
@@ -525,8 +652,8 @@ def test_each_invocation_uses_fresh_run_and_current_inventory(tmp_path, monkeypa
     first_id = first_api.calls[0][2]["json"]["run_id"]
     second_id = second_api.calls[0][2]["json"]["run_id"]
     assert first_id != second_id
-    assert first_api.calls[1][2]["params"]["limit"] == 100
-    assert second_api.calls[1][2]["params"]["limit"] == 100
+    assert first_api.calls[2][2]["params"]["limit"] == 100
+    assert second_api.calls[2][2]["params"]["limit"] == 100
 
 
 def test_movie_publish_keeps_existing_mediafile_pk(tmp_path, monkeypatch):
@@ -855,6 +982,7 @@ def test_matching_subtitle_symlink_is_rejected_without_upload_or_delete(
     api = ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             candidates_response(candidate(path="Show", filename="Episode.mp4")),
             Response({}),
         ]
@@ -914,6 +1042,7 @@ def test_failure_after_lock_attempts_release_and_never_publishes(tmp_path, monke
     api = ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             requests.ConnectionError("private"),
             Response({}),
         ]
@@ -935,6 +1064,7 @@ def test_inventory_404_reports_request_and_releases_lock_without_side_effects(
     api = ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             Response({"message": "private response"}, status=404),
             Response({}),
         ]
@@ -948,7 +1078,7 @@ def test_inventory_404_reports_request_and_releases_lock_without_side_effects(
     assert "/mediaviewer/api/migrations/file-candidates/" in error
     assert "HTTP 404" in error
     assert "private response" not in error
-    assert [call[0] for call in api.calls] == ["POST", "GET", "DELETE"]
+    assert [call[0] for call in api.calls] == ["POST", "GET", "GET", "DELETE"]
     assert b2.calls == []
     assert not any("publish-file" in call[1] for call in api.calls)
     assert video.read_bytes() == b"video"
@@ -1002,6 +1132,7 @@ def test_inventory_resolution_failure_reports_context_and_releases_lock(
     api = ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             candidates_response(candidate(path="Show", filename="Episode.mp4")),
             Response({}),
         ]
@@ -1019,7 +1150,7 @@ def test_inventory_resolution_failure_reports_context_and_releases_lock(
     assert "PermissionError" in error
     assert "private error path" not in error
     assert "/secret/credentials" not in error
-    assert [call[0] for call in api.calls] == ["POST", "GET", "DELETE"]
+    assert [call[0] for call in api.calls] == ["POST", "GET", "GET", "DELETE"]
     assert not any("prepare-file" in call[1] for call in api.calls)
     assert not any("publish-file" in call[1] for call in api.calls)
     assert b2.calls == []
@@ -1054,7 +1185,12 @@ def test_ambiguous_candidates_report_resolved_path_and_both_ids_without_side_eff
         item["snapshot"] = f"private-snapshot-{index}"
         candidate_rows.append(item)
     api = ViewerSession(
-        [lock_response(), candidates_response(*candidate_rows), Response({})]
+        [
+            lock_response(),
+            remaining_response(),
+            candidates_response(*candidate_rows),
+            Response({}),
+        ]
     )
     b2 = FakeB2()
 
@@ -1069,7 +1205,7 @@ def test_ambiguous_candidates_report_resolved_path_and_both_ids_without_side_eff
     assert f"MediaPath {source_ids[1]}" in error
     assert f"MediaFile {mediafile_ids[1]!r}" in error
     assert "private-snapshot" not in error
-    assert [call[0] for call in api.calls] == ["POST", "GET", "DELETE"]
+    assert [call[0] for call in api.calls] == ["POST", "GET", "GET", "DELETE"]
     run_id = api.calls[0][2]["json"]["run_id"]
     assert api.calls[-1][2]["json"] == {"run_id": run_id}
     assert not any("prepare-file" in call[1] for call in api.calls)
@@ -1086,6 +1222,7 @@ def test_prepare_failure_releases_lock(tmp_path, monkeypatch):
     api = ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             candidates_response(candidate(path="Show", filename="Ep.mp4")),
             Response({"bad": True}),
             Response({}),
@@ -1132,7 +1269,12 @@ def test_lock_cleanup_failure_is_reported_and_nonzero(tmp_path, monkeypatch, cap
     base = setup_config(tmp_path, monkeypatch)
     (base / "Show").mkdir()
     api = ViewerSession(
-        [lock_response(), candidates_response(), Response({"released": False})]
+        [
+            lock_response(),
+            remaining_response(),
+            candidates_response(),
+            Response({"released": False}),
+        ]
     )
     assert (
         cli.run(1, config=cli.Config.from_env(), session=api, b2_client=FakeB2()) != 0
@@ -1163,6 +1305,7 @@ def test_source_mutation_prevents_publish_and_releases_lock(
     api = ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             candidates_response(candidate(path="Show", filename="Ep.mp4")),
             prepared_response(),
             Response({}),
@@ -1189,6 +1332,7 @@ def test_keyboard_interrupt_after_acquire_releases_lock(tmp_path, monkeypatch):
     api = ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             candidates_response(candidate(path="Show", filename="Ep.mp4")),
             prepared_response(),
             Response({}),
@@ -1209,6 +1353,7 @@ def test_prepare_rejects_boolean_target_id_and_releases(tmp_path, monkeypatch):
     api = ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             candidates_response(candidate(path="Show", filename="Ep.mp4")),
             Response(
                 {
@@ -1252,6 +1397,7 @@ def test_three_video_batch_preserves_frozen_sidecar_ownership_and_cap(
     api = ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             candidates_response(*items),
             prepared_response(10),
             published_response(8, 10),
@@ -1296,6 +1442,7 @@ def test_previous_files_stay_deleted_when_later_video_fails(
     second_subtitle.write_bytes(b"SECOND WEBVTT")
     api_responses = [
         lock_response(),
+        remaining_response(),
         candidates_response(
             candidate(1, path="Show", filename="First.mp4"),
             candidate(2, path="Show", filename="Second.mp4"),
@@ -1351,6 +1498,7 @@ def test_unconfirmed_publish_never_deletes_video(tmp_path, monkeypatch, failure)
     subtitle.write_bytes(b"WEBVTT")
     api_responses = [
         lock_response(),
+        remaining_response(),
         candidates_response(candidate(path="Show", filename="Ep.mp4")),
     ]
     b2 = FakeB2()
@@ -1422,6 +1570,7 @@ def test_replaced_video_after_publish_is_not_deleted(
     api = ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             candidates_response(candidate(path="Show", filename="Ep.mp4")),
             prepared_response(),
             published_response(),
@@ -1466,6 +1615,7 @@ def test_replaced_subtitle_after_publish_keeps_all_local_sources(
     api = ViewerSession(
         [
             lock_response(),
+            remaining_response(),
             candidates_response(candidate(path="Show", filename="Ep.mp4")),
             prepared_response(),
             published_response(),
