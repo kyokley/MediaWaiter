@@ -235,7 +235,12 @@ def _new_plan(candidates, maximum, roots, base_path):
         )
     plan = []
     for candidate, video in resolved[:maximum]:
-        peers = local_video_inventory(video, roots)
+        try:
+            peers = local_video_inventory(video, roots)
+        except MigrationError as error:
+            raise MigrationError(
+                f"Video inventory failed for MediaPath {candidate['source_pk']}: {error}"
+            ) from None
         sidecars = [str(path) for path in find_sidecars(video, roots, peers)]
         plan.append(
             {
