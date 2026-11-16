@@ -23,6 +23,7 @@ from migration_client import (
     local_video_inventory,
     resolve_candidate,
 )
+from migration_storage import UPLOAD_RETRY_DELAY_SECONDS
 
 PROGRESS_INTERVAL = 5.0
 
@@ -60,6 +61,13 @@ class _UploadProgress:
                 self._write("hashed", done, total, now)
             return
         if event == "checking":
+            return
+        if event == "retrying":
+            self.last_done = None
+            _log(
+                f"{self.label}: retry {done}/{total} after B2 failure; "
+                f"waiting {UPLOAD_RETRY_DELAY_SECONDS}s"
+            )
             return
         if final:
             self._write(event, done, total, now)

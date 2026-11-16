@@ -2,6 +2,7 @@
 
 import hashlib
 import mimetypes
+import time
 from pathlib import Path
 from urllib.parse import quote
 
@@ -14,9 +15,12 @@ LARGE_FILE_PART_SIZE = 100 * 1024 * 1024
 API_TIMEOUT = 30
 UPLOAD_TIMEOUT = 3600
 HASH_CHUNK_SIZE = 1024 * 1024
+UPLOAD_RETRIES = 5
+UPLOAD_RETRY_DELAY_SECONDS = 30
 
 
 def _notify(callback, event, bytes_done, total_bytes):
+    """For retrying events, the values are retry ordinal/count, not byte counts."""
     if callback is not None:
         callback(event, bytes_done, total_bytes)
 
@@ -70,6 +74,23 @@ class B2Client:
         self._auth = None
 
     def ensure_file(self, local_path, bucket, key, *, progress=None):
+        for retry in range(UPLOAD_RETRIES + 1):
+            try:
+                return self._ensure_file_once(
+                    local_path, bucket, key, progress=progress
+                )
+            except Exception as error:
+                self._auth = None
+                if retry == UPLOAD_RETRIES:
+                    if isinstance(error, B2Error):
+                        raise
+                    raise B2Error(
+                        "B2 upload failed after retries; verify object state before retrying"
+                    ) from None
+                _notify(progress, "retrying", retry + 1, UPLOAD_RETRIES)
+                time.sleep(UPLOAD_RETRY_DELAY_SECONDS)
+
+    def _ensure_file_once(self, local_path, bucket, key, *, progress=None):
         path = Path(local_path)
         _notify(progress, "hashing", 0, 0)
         try:

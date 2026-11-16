@@ -125,6 +125,19 @@ python migrate_to_b2.py 10 2>migration-progress.log
 
 `--preflight` keeps its JSON output and does not emit migration progress logs.
 
+Each video or subtitle upload gets one initial attempt and up to **five
+retries**, with **30 seconds between attempts**. Retry messages identify the
+file and retry number. A retry checks the same destination object's size and
+hash before uploading again; an already-completed matching object is reused,
+and conflicting content is never overwritten. Multipart retries restart the
+file rather than resume individual parts.
+
+After six failed attempts, migration stops without publishing or deleting that
+video's local sources or starting the next video. Earlier completed videos stay
+migrated. Interruptions are not retried. This policy does not retry MediaViewer
+publication or local deletion; their existing safety checks remain in place.
+Keep ordinary writers paused throughout the retries and failure investigation.
+
 Each invocation selects a fresh batch and keeps its state only in memory. There
 is no journal or crash-resume support. Already published records are excluded
 from later batches, but interrupted uploads can leave unpublished B2 objects.

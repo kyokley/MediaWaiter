@@ -7,6 +7,7 @@ import requests
 
 import migrate_to_b2 as cli
 from migration_client import HTTP_TIMEOUT
+from migration_storage import B2Client, B2Error
 
 
 class Response:
@@ -358,6 +359,61 @@ def test_upload_progress_throttles_intermediate_updates(monkeypatch, capsys):
     assert "0/10 bytes" in output[0]
     assert "2/10 bytes" in output[1]
     assert "10/10 bytes (100.0%)" in output[2]
+
+
+def test_real_b2_retry_exhaustion_retains_source_and_stops_before_publish(
+    tmp_path, monkeypatch, capsys
+):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    video = show / "Episode.mp4"
+    subtitle = show / "Episode.en.vtt"
+    next_video = show / "Next.mp4"
+    video.write_bytes(b"video")
+    subtitle.write_bytes(b"WEBVTT captions")
+    next_video.write_bytes(b"next video")
+    next_candidate = candidate(2, path="Show", filename="Next.mp4")
+    api = ViewerSession(
+        [
+            lock_response(),
+            candidates_response(
+                candidate(path="Show", filename="Episode.mp4"), next_candidate
+            ),
+            prepared_response(),
+            Response({}),
+        ]
+    )
+    delays = []
+    monkeypatch.setattr("migration_storage.time.sleep", delays.append)
+    b2 = B2Client("private-id", "private-key", session=ViewerSession([]))
+    attempts = []
+
+    def fail_single_attempt(_path, _bucket, _key, *, progress=None):
+        attempts.append(True)
+        if progress:
+            progress("uploading", 0, len(b"video"))
+            progress("uploading", len(b"video"), len(b"video"))
+        raise B2Error("synthetic B2 upload failure")
+
+    monkeypatch.setattr(b2, "_ensure_file_once", fail_single_attempt)
+
+    assert cli.run(2, config=cli.Config.from_env(), session=api, b2_client=b2) == 1
+
+    log = capsys.readouterr().err
+    assert len(attempts) == 6
+    assert delays == [30, 30, 30, 30, 30]
+    assert [call[0] for call in api.calls] == ["POST", "GET", "POST", "DELETE"]
+    assert video.read_bytes() == b"video"
+    assert subtitle.read_bytes() == b"WEBVTT captions"
+    assert next_video.read_bytes() == b"next video"
+    assert "publish-file" not in " ".join(call[1] for call in api.calls)
+    assert not any("prepare-file" in call[1] for call in api.calls[3:])
+    assert "retry 1/5" in log and "retry 5/5" in log
+    assert log.count("uploading 0/5 bytes") == 6
+    assert "B2 upload verified" not in log
+    assert "Migration summary: 0/2 videos complete" in log
+    assert "private-id" not in log and "private-key" not in log
 
 
 def test_current_migration_http_contract(tmp_path, monkeypatch, capsys):
