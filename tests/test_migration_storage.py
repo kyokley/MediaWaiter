@@ -115,6 +115,148 @@ def test_uploads_unchanged_bytes_and_escapes_unicode_key(tmp_path):
     assert all(call[2]["allow_redirects"] is False for call in session.calls)
 
 
+def test_single_upload_reports_read_bytes_before_confirmation_and_verified_finish(
+    tmp_path,
+):
+    data = b"streamed bytes"
+    source = tmp_path / "source.bin"
+    source.write_bytes(data)
+    events = []
+
+    class ChunkedSession(FakeSession):
+        def request(self, method, url, **kwargs):
+            if method == "POST" and url == "https://upload.example":
+                stream = kwargs["data"]
+                chunks = [stream.read(size) for size in (4, 4, 4, 4)]
+                stream.seek(0)
+                assert stream.read(5) == data[:5]
+                self.calls.append(
+                    (method, url, {**kwargs, "uploaded_bytes": b"".join(chunks)})
+                )
+                self.before_response(method, url, kwargs)
+                return next(self.responses)
+            return super().request(method, url, **kwargs)
+
+    session = ChunkedSession(single_upload_responses(data, "key"))
+    order = []
+
+    def record(event):
+        events.append(event)
+        order.append(event)
+
+    session.before_response = lambda method, url, _kwargs: (
+        order.append("upload-response")
+        if method == "POST" and url == "https://upload.example"
+        else None
+    )
+    B2Client("id", "key", session=session).ensure_file(
+        source, "media", "key", progress=lambda *event: record(event)
+    )
+    uploaded = next(i for i, event in enumerate(events) if event[0] == "uploaded")
+    streamed = [event[1] for event in events if event[0] == "uploading"]
+    assert streamed == sorted(set(streamed))
+    assert streamed == [0, 4, 8, 12, len(data)]
+    assert all(0 <= count <= len(data) for count in streamed)
+    assert order.index(("uploading", len(data), len(data))) < order.index(
+        "upload-response"
+    )
+    assert order.index("upload-response") < order.index(events[uploaded])
+    assert session.calls[-1][2]["uploaded_bytes"] == data
+
+
+def test_identical_object_reports_skip_without_upload(tmp_path):
+    data = b"same"
+    source = tmp_path / "source"
+    source.write_bytes(data)
+    events = []
+    session = FakeSession(
+        [
+            auth_response([{"id": "bucket-id", "name": "media"}]),
+            listing(
+                [
+                    {
+                        "fileName": "key",
+                        "action": "upload",
+                        "contentLength": len(data),
+                        "contentSha1": hashlib.sha1(data).hexdigest(),
+                    }
+                ]
+            ),
+        ]
+    )
+    B2Client("id", "key", session=session).ensure_file(
+        source, "media", "key", progress=lambda *event: events.append(event)
+    )
+    assert [event[0] for event in events][-1] == "skipped"
+    assert "uploading" not in [event[0] for event in events]
+
+
+def test_failed_single_confirmation_never_reports_verified_upload(tmp_path):
+    data = b"same"
+    source = tmp_path / "source"
+    source.write_bytes(data)
+    events = []
+    responses = single_upload_responses(data, "key")
+    responses[-1] = uploaded_file("wrong-key", data)
+    with pytest.raises(B2Error):
+        B2Client("id", "key", session=FakeSession(responses)).ensure_file(
+            source, "media", "key", progress=lambda *event: events.append(event)
+        )
+    assert "uploaded" not in [event[0] for event in events]
+
+
+def test_zero_byte_upload_reports_zero_without_false_full_percentage(tmp_path):
+    source = tmp_path / "empty"
+    source.write_bytes(b"")
+    events = []
+    session = FakeSession(single_upload_responses(b"", "key"))
+    B2Client("id", "key", session=session).ensure_file(
+        source, "media", "key", progress=lambda *event: events.append(event)
+    )
+    assert events[0] == ("hashing", 0, 0)
+    assert events[-1] == ("uploaded", 0, 0)
+
+
+def test_multipart_upload_progress_advances_only_after_confirmed_parts(
+    tmp_path, monkeypatch
+):
+    data = b"abcdef"
+    source = tmp_path / "large"
+    source.write_bytes(data)
+    monkeypatch.setattr("migration_storage.MAX_SINGLE_UPLOAD_SIZE", 4)
+    monkeypatch.setattr("migration_storage.LARGE_FILE_PART_SIZE", 3)
+    events = []
+    order = []
+    session = FakeSession(
+        [
+            auth_response([{"id": "bucket-id", "name": "media"}]),
+            listing([]),
+            empty_unfinished(),
+            Response({"fileId": "new-id"}),
+            Response({"uploadUrl": "https://part", "authorizationToken": "part-token"}),
+            uploaded_part(b"abc", 1),
+            uploaded_part(b"def", 2),
+            uploaded_file("key", data, multipart=True),
+        ]
+    )
+    session.before_response = lambda method, url, kwargs: (
+        order.append("part-response")
+        if method == "POST" and url == "https://part"
+        else None
+    )
+
+    def report(*event):
+        events.append(event)
+        order.append(event)
+
+    B2Client("id", "key", session=session).ensure_file(
+        source, "media", "key", progress=report
+    )
+    assert [event[1] for event in events if event[0] == "uploading"] == [0, 3, 6]
+    assert order.index(("uploading", 0, len(data))) < order.index("part-response")
+    assert events[-1] == ("uploaded", len(data), len(data))
+
+
 def test_vtt_content_type_is_explicit_case_insensitively(tmp_path):
     data = b"WEBVTT\n"
     source = tmp_path / "captions.VTT"
@@ -302,7 +444,10 @@ def test_multipart_order_hash_metadata_and_prior_attempt_cleanup(tmp_path, monke
             uploaded_file("key", data, multipart=True),
         ]
     )
-    B2Client("id", "key", session=session).ensure_file(source, "media", "key")
+    progress = []
+    B2Client("id", "key", session=session).ensure_file(
+        source, "media", "key", progress=lambda *event: progress.append(event)
+    )
     assert session.calls[2][2]["json"] == {
         "bucketId": "bucket-id",
         "namePrefix": "key",
@@ -330,6 +475,66 @@ def test_multipart_order_hash_metadata_and_prior_attempt_cleanup(tmp_path, monke
         call for call in session.calls if call[1].endswith("b2_finish_large_file")
     )
     assert finish[2]["json"]["partSha1Array"] == part_hashes
+    part_progress = [event for event in progress if event[0] == "uploading"]
+    assert [event[1] for event in part_progress] == [0, 3, 6, 8]
+    assert progress[-1] == ("uploaded", len(data), len(data))
+
+
+def test_failed_multipart_part_never_reports_verified_upload(tmp_path, monkeypatch):
+    source = tmp_path / "large"
+    source.write_bytes(b"abcdef")
+    monkeypatch.setattr("migration_storage.MAX_SINGLE_UPLOAD_SIZE", 4)
+    monkeypatch.setattr("migration_storage.LARGE_FILE_PART_SIZE", 3)
+    bad_part = uploaded_part(b"abc", 1)
+    bad_part.payload["contentSha1"] = "0" * 40
+    events = []
+    session = FakeSession(
+        [
+            auth_response([{"id": "bucket-id", "name": "media"}]),
+            listing([]),
+            empty_unfinished(),
+            Response({"fileId": "new-id"}),
+            Response({"uploadUrl": "https://part", "authorizationToken": "part-token"}),
+            bad_part,
+            Response({}),
+        ]
+    )
+    with pytest.raises(B2Error, match="part confirmation"):
+        B2Client("id", "key", session=session).ensure_file(
+            source, "media", "key", progress=lambda *event: events.append(event)
+        )
+    assert "uploaded" not in [event[0] for event in events]
+    assert not any(call[1].endswith("b2_finish_large_file") for call in session.calls)
+
+
+def test_failed_multipart_finish_never_reports_verified_upload_and_cancels(
+    tmp_path, monkeypatch
+):
+    data = b"abcdef"
+    source = tmp_path / "large"
+    source.write_bytes(data)
+    monkeypatch.setattr("migration_storage.MAX_SINGLE_UPLOAD_SIZE", 4)
+    monkeypatch.setattr("migration_storage.LARGE_FILE_PART_SIZE", 3)
+    events = []
+    session = FakeSession(
+        [
+            auth_response([{"id": "bucket-id", "name": "media"}]),
+            listing([]),
+            empty_unfinished(),
+            Response({"fileId": "new-id"}),
+            Response({"uploadUrl": "https://part", "authorizationToken": "part-token"}),
+            uploaded_part(b"abc", 1),
+            uploaded_part(b"def", 2),
+            requests.ConnectionError("finish unavailable"),
+            Response({}),
+        ]
+    )
+    with pytest.raises(B2Error, match="B2 API request failed"):
+        B2Client("id", "key", session=session).ensure_file(
+            source, "media", "key", progress=lambda *event: events.append(event)
+        )
+    assert "uploaded" not in [event[0] for event in events]
+    assert session.calls[-1][1].endswith("b2_cancel_large_file")
 
 
 def test_prior_unfinished_cleanup_failure_prevents_new_upload(tmp_path, monkeypatch):

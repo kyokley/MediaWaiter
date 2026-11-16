@@ -15,6 +15,10 @@ Deploy the matching MediaViewer file-migration API and run its database
 migrations first. Configure `B2_BUCKET_NAME` and `B2_NAME_PREFIX` in MediaViewer;
 the script consumes its returned bucket and opaque upload prefix unchanged.
 
+Deploy `migrate_to_b2.py`, `migration_client.py`, and `migration_storage.py` from
+the same checkout. Updating only the CLI can leave incompatible helper modules
+in a container, including missing upload-progress support.
+
 Verify `python manage.py show_urls` in the deployed MediaViewer runtime lists
 `file-candidates/`, `{source_pk}/prepare-file/`, and `{source_pk}/publish-file/`
 under `/mediaviewer/api/migrations/`. The backend requires migration
@@ -96,6 +100,30 @@ From the MediaWaiter checkout, migrate at most ten videos:
 ```sh
 python migrate_to_b2.py 10
 ```
+
+Progress is written to stderr and flushed for terminals and container logs. It
+shows inventory and batch counts, each video's position and record IDs, escaped
+local basenames, and the hashing, upload, publication, and cleanup stages. Upload
+updates include bytes, percentage, elapsed time, and average throughput;
+intermediate byte updates are throttled to avoid flooding logs. Verified existing
+B2 objects are identified separately from newly uploaded files.
+
+Single-upload byte counts measure data read for the request; multipart counts
+advance after each confirmed part. Reaching 100% is not confirmation of a valid
+B2 object, MediaViewer publication, or local cleanup. Separate messages identify
+those stages. A video counts as completed only after confirmed publication and
+successful cleanup of its uploaded sources. Final or stopped-batch summaries
+report completed versus selected videos and elapsed time, including partial
+progress on failure.
+
+Progress logs omit credentials, signed tokens, remote object keys, and upload
+URLs, but contain local basenames; keep captured logs private. To capture them:
+
+```sh
+python migrate_to_b2.py 10 2>migration-progress.log
+```
+
+`--preflight` keeps its JSON output and does not emit migration progress logs.
 
 Each invocation selects a fresh batch and keeps its state only in memory. There
 is no journal or crash-resume support. Already published records are excluded
