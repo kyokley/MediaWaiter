@@ -129,6 +129,7 @@ class B2Client:
         data = self._call(
             "GET",
             f"{self._api_url}/b2api/{B2_API_VERSION}/b2_authorize_account",
+            operation="authorize account",
             auth=(self._application_key_id, self._application_key),
             timeout=API_TIMEOUT,
         )
@@ -172,6 +173,7 @@ class B2Client:
             response = self._call(
                 "POST",
                 f"{auth['api_url']}/b2api/{B2_API_VERSION}/b2_list_buckets",
+                operation="list buckets",
                 json={"accountId": auth["account_id"], "bucketName": bucket},
                 headers={"Authorization": auth["token"]},
                 timeout=API_TIMEOUT,
@@ -202,6 +204,7 @@ class B2Client:
         data = self._call(
             "POST",
             f"{auth['api_url']}/b2api/{B2_API_VERSION}/b2_list_file_names",
+            operation="find existing file",
             json={
                 "bucketId": bucket_id,
                 "prefix": key,
@@ -262,6 +265,7 @@ class B2Client:
             data = self._call(
                 "POST",
                 f"{auth['api_url']}/b2api/{B2_API_VERSION}/b2_list_unfinished_large_files",
+                operation="list unfinished multipart uploads",
                 json=payload,
                 headers={"Authorization": auth["token"]},
                 timeout=API_TIMEOUT,
@@ -287,13 +291,20 @@ class B2Client:
                         self._call(
                             "POST",
                             f"{auth['api_url']}/b2api/{B2_API_VERSION}/b2_cancel_large_file",
+                            operation="cancel prior unfinished multipart upload",
                             json={"fileId": file_id},
                             headers={"Authorization": auth["token"]},
                             timeout=API_TIMEOUT,
                         )
-                    except Exception:
+                    except Exception as error:
+                        detail = (
+                            str(error)
+                            if isinstance(error, B2Error)
+                            else "B2 API request failed"
+                        )
                         raise B2Error(
-                            "Unable to cancel prior unfinished multipart upload"
+                            "Unable to cancel prior unfinished multipart upload; "
+                            f"{detail}"
                         ) from None
             if next_file_id is not None and (
                 not next_file_id or next_file_id in seen_file_ids
@@ -308,6 +319,7 @@ class B2Client:
         data = self._call(
             "GET",
             f"{auth['api_url']}/b2api/{B2_API_VERSION}/b2_get_upload_url",
+            operation="get upload URL",
             params={"bucketId": bucket_id},
             headers={"Authorization": auth["token"]},
             timeout=API_TIMEOUT,
@@ -330,7 +342,12 @@ class B2Client:
         with path.open("rb") as stream:
             stream = _ProgressStream(stream, progress, size)
             result = self._call(
-                "POST", upload_url, data=stream, headers=headers, timeout=UPLOAD_TIMEOUT
+                "POST",
+                upload_url,
+                operation="upload file",
+                data=stream,
+                headers=headers,
+                timeout=UPLOAD_TIMEOUT,
             )
         self._validate_uploaded_file(result, key, size, sha1, multipart=False)
         _notify(progress, "uploaded", size, size)
@@ -339,6 +356,7 @@ class B2Client:
         start = self._call(
             "POST",
             f"{auth['api_url']}/b2api/{B2_API_VERSION}/b2_start_large_file",
+            operation="start multipart upload",
             json={
                 "bucketId": bucket_id,
                 "fileName": key,
@@ -355,6 +373,7 @@ class B2Client:
             part_upload = self._call(
                 "GET",
                 f"{auth['api_url']}/b2api/{B2_API_VERSION}/b2_get_upload_part_url",
+                operation="get multipart part URL",
                 params={"fileId": file_id},
                 headers={"Authorization": auth["token"]},
                 timeout=API_TIMEOUT,
@@ -379,6 +398,7 @@ class B2Client:
                     part_result = self._call(
                         "POST",
                         upload_url,
+                        operation="upload part",
                         data=part,
                         headers={
                             "Authorization": upload_token,
@@ -409,43 +429,83 @@ class B2Client:
             result = self._call(
                 "POST",
                 f"{auth['api_url']}/b2api/{B2_API_VERSION}/b2_finish_large_file",
+                operation="finish multipart upload",
                 json={"fileId": file_id, "partSha1Array": part_hashes},
                 headers={"Authorization": auth["token"]},
                 timeout=API_TIMEOUT,
             )
-        except Exception:
+        except Exception as error:
             try:
                 self._call(
                     "POST",
                     f"{auth['api_url']}/b2api/{B2_API_VERSION}/b2_cancel_large_file",
+                    operation="cancel multipart upload",
                     json={"fileId": file_id},
                     headers={"Authorization": auth["token"]},
                     timeout=API_TIMEOUT,
                 )
             except Exception:
-                raise B2Error(
-                    "Multipart upload failed; unfinished upload may remain"
-                ) from None
+                detail = (
+                    str(error)
+                    if isinstance(error, B2Error)
+                    else "Multipart upload failed"
+                )
+                raise B2Error(f"{detail}; unfinished upload may remain") from None
             raise
         self._validate_uploaded_file(result, key, size, sha1, multipart=True)
         _notify(progress, "uploaded", size, size)
 
-    def _call(self, method, url, **kwargs):
+    def _call(self, method, url, *, operation, **kwargs):
         try:
             kwargs.setdefault("verify", True)
             kwargs.setdefault("allow_redirects", False)
             response = self._session.request(method, url, **kwargs)
             if 300 <= response.status_code < 400:
-                raise B2Error("B2 API request returned a redirect")
+                redirect_status = (
+                    response.status_code
+                    if isinstance(response.status_code, int)
+                    and not isinstance(response.status_code, bool)
+                    else None
+                )
+                status_detail = (
+                    f"; HTTP {redirect_status}" if redirect_status is not None else ""
+                )
+                raise B2Error(
+                    f"B2 API request returned a redirect (operation: {operation}"
+                    f"{status_detail})"
+                )
             response.raise_for_status()
             data = response.json()
             if not isinstance(data, dict):
-                raise B2Error("Malformed B2 API response")
+                raise B2Error(
+                    f"B2 API request returned an unexpected response "
+                    f"(operation: {operation})"
+                )
             return data
         except B2Error:
             raise
+        except requests.Timeout:
+            category = "timeout"
+            status = None
+        except requests.ConnectionError:
+            category = "connection error"
+            status = None
+        except requests.HTTPError as error:
+            category = None
+            response = error.response
+            status = getattr(response, "status_code", None)
+        except (requests.exceptions.JSONDecodeError, ValueError):
+            category = "invalid JSON"
+            status = None
         except Exception:
-            raise B2Error("B2 API request failed") from None
+            category = "unexpected response"
+            status = None
+        detail = f"operation: {operation}"
+        if isinstance(status, int) and not isinstance(status, bool):
+            detail += f"; HTTP {status}"
+        elif category is not None:
+            detail += f"; {category}"
+        raise B2Error(f"B2 API request failed ({detail})") from None
 
     @staticmethod
     def _validate_uploaded_file(data, key, size, sha1, *, multipart):

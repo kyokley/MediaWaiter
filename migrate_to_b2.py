@@ -23,7 +23,7 @@ from migration_client import (
     local_video_inventory,
     resolve_candidate,
 )
-from migration_storage import UPLOAD_RETRY_DELAY_SECONDS
+from migration_storage import B2Error, UPLOAD_RETRY_DELAY_SECONDS
 
 PROGRESS_INTERVAL = 5.0
 
@@ -574,7 +574,7 @@ def run(maximum, *, config=None, session=None, b2_client=None):
             "Migration stopped: interrupted; lock cleanup was attempted",
             file=sys.stderr,
         )
-    except MigrationError as error:
+    except (MigrationError, B2Error) as error:
         print(f"Migration stopped: {error}", file=sys.stderr)
     except Exception as error:
         print(
