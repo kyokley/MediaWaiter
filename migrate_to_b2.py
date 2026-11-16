@@ -5,6 +5,7 @@ next video starts. Failed or uncertain publication retains that video's sources.
 """
 
 import argparse
+import json
 import stat
 import sys
 import uuid
@@ -12,6 +13,7 @@ from pathlib import Path
 
 from migration_client import (
     Config,
+    AmbiguousMovieError,
     MigrationError,
     ViewerClient,
     _hash_file,
@@ -38,6 +40,88 @@ def _inventory(client, maximum):
         if cursor in seen_cursors:
             raise MigrationError("Candidate pagination cursor repeated")
         seen_cursors.add(cursor)
+
+
+def preflight(*, config=None, session=None):
+    """Print a read-only source-selection audit and return its process status."""
+    try:
+        config = config or Config.from_env(require_b2=False)
+        client = ViewerClient(
+            config.base_url, config.username, config.password, session=session
+        )
+        candidates = _inventory(client, 1000)
+        indexed_issues, resolved, by_video = [], [], {}
+        for index, candidate in enumerate(candidates):
+            source = {
+                "source_pk": candidate["source_pk"],
+                "mediafile_pk": candidate["mediafile_pk"],
+            }
+            try:
+                video = resolve_candidate(candidate, config.roots, config.base_path)
+            except AmbiguousMovieError as error:
+                indexed_issues.append(
+                    (
+                        index,
+                        {
+                            "type": "ambiguous_movie",
+                            **source,
+                            "directory": str(error.directory),
+                            "video_candidates": list(error.video_candidates),
+                        },
+                    )
+                )
+            except MigrationError as error:
+                indexed_issues.append(
+                    (
+                        index,
+                        {
+                            "type": "source_error",
+                            **source,
+                            "path": candidate.get("path")
+                            if isinstance(candidate.get("path"), str)
+                            else None,
+                            "filename": candidate.get("filename")
+                            if isinstance(candidate.get("filename"), str)
+                            else None,
+                            "error": str(error),
+                        },
+                    )
+                )
+            else:
+                video_path = str(video)
+                resolved.append((index, video_path))
+                by_video.setdefault(video_path, []).append(source)
+
+        reported_duplicates = set()
+        for index, video in resolved:
+            sources = by_video[video]
+            if len(sources) > 1 and video not in reported_duplicates:
+                reported_duplicates.add(video)
+                indexed_issues.append(
+                    (
+                        index,
+                        {"type": "duplicate_video", "video": video, "sources": sources},
+                    )
+                )
+        indexed_issues.sort(key=lambda entry: entry[0])
+        payload = {
+            "version": 1,
+            "checked_candidates": len(candidates),
+            "resolved_candidates": len(resolved),
+            "issues": [issue for _, issue in indexed_issues],
+        }
+        print(json.dumps(payload, ensure_ascii=True))
+        return int(bool(payload["issues"]))
+    except KeyboardInterrupt:
+        print("Preflight stopped: interrupted", file=sys.stderr)
+    except MigrationError as error:
+        print(f"Preflight stopped: {error}", file=sys.stderr)
+    except Exception as error:
+        print(
+            f"Preflight stopped: operation failed ({type(error).__name__})",
+            file=sys.stderr,
+        )
+    return 1
 
 
 def _new_plan(candidates, maximum, roots, base_path):
@@ -367,9 +451,20 @@ def run(maximum, *, config=None, session=None, b2_client=None):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "max_videos", type=int, help="maximum number of videos to migrate"
+        "max_videos", nargs="?", type=int, help="maximum number of videos to migrate"
+    )
+    parser.add_argument(
+        "--preflight",
+        action="store_true",
+        help="report source-selection issues without changing files",
     )
     args = parser.parse_args(argv)
+    if args.preflight and args.max_videos is not None:
+        parser.error("--preflight cannot be combined with max_videos")
+    if args.preflight:
+        return preflight()
+    if args.max_videos is None:
+        parser.error("max_videos is required unless --preflight is used")
     return run(args.max_videos)
 
 

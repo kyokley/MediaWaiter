@@ -39,6 +39,37 @@ Set these environment variables in MediaWaiter's runtime:
   name; bucket-scoped keys use their authorization response's bucket ID.
 - `MW_B2_API_URL`: optional native B2 API base URL; defaults to Backblaze.
 
+### Inspect sources without migrating
+
+Run the read-only source preflight where the configured local media paths are
+accessible:
+
+```sh
+python migrate_to_b2.py --preflight > preflight.json
+```
+
+Do not supply a video count with `--preflight`. It scans the full candidate
+inventory using MediaViewer GET requests, without acquiring a migration lock,
+initializing B2, uploading, publishing, hashing file contents, or deleting files.
+Only the media-path configuration and MediaViewer credentials above are needed;
+B2 credentials are not required.
+
+The JSON report includes `version`, `checked_candidates`, `resolved_candidates`,
+and `issues`. Ambiguous movies include their `source_pk` (MediaPath ID),
+`mediafile_pk` (MediaFile ID, possibly null), directory, and supported video
+filenames. Other unresolved sources and duplicate video references are reported
+as well. Signed snapshots and credentials are omitted. Reports contain local
+paths and filenames; keep them private.
+
+Exit status is `0` when no issues are found, or `1` when issues or configuration/API
+errors occur. Configuration/API errors go to stderr and may leave no JSON report.
+Missing sources are reported as issues even though a normal migration skips them.
+The report is a point-in-time source-selection audit, not an upload, subtitle,
+storage-integrity, or playback check. Review ambiguous records and set their
+intended filenames in MediaViewer; the preflight never chooses a video for you.
+
+### Run the migration
+
 Pause MediaConverter, scrubbing jobs, and other writers that change the affected
 MediaViewer records or local files. The migration lock coordinates migration
 clients only; it does **not** pause ordinary writers. Keep them paused during
