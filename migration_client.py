@@ -36,6 +36,7 @@ VIDEO_EXTENSIONS = {
     ".mxf",
 }
 HASH_CHUNK = 1024 * 1024
+ENCODED_COPY_SUFFIX = ".ALFRED-ENCODED.mp4"
 
 
 class MigrationError(Exception):
@@ -196,9 +197,27 @@ def resolve_candidate(candidate, roots, base_path=None):
             raise MigrationError("Unable to inspect movie directory") from None
         if not options:
             raise MigrationError("Candidate video is missing")
-        if len(options) != 1:
+        if len(options) == 2:
+            encoded = [
+                item for item in options if item.name.endswith(ENCODED_COPY_SUFFIX)
+            ]
+            original = next((item for item in options if item not in encoded), None)
+            if (
+                len(encoded) == 1
+                and original is not None
+                and encoded[0].name == original.name + ENCODED_COPY_SUFFIX
+                and all(
+                    not item.is_symlink() and item.is_file()
+                    for item in (original, encoded[0])
+                )
+            ):
+                video = encoded[0]
+            else:
+                raise AmbiguousMovieError(resolved_dir, [item.name for item in options])
+        elif len(options) != 1:
             raise AmbiguousMovieError(resolved_dir, [item.name for item in options])
-        video = options[0]
+        else:
+            video = options[0]
         if video.is_symlink():
             raise MigrationError("Candidate video symlink is not supported")
     else:
