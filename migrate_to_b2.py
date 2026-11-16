@@ -8,6 +8,7 @@ import argparse
 import json
 import stat
 import sys
+import time
 import uuid
 from pathlib import Path
 
@@ -23,9 +24,74 @@ from migration_client import (
     resolve_candidate,
 )
 
+PROGRESS_INTERVAL = 5.0
 
-def _inventory(client, maximum):
+
+def _log(message):
+    print(message, file=sys.stderr, flush=True)
+
+
+class _UploadProgress:
+    def __init__(self, label):
+        self.label = label
+        self.started = time.monotonic()
+        self.last_update = self.started
+        self.last_done = None
+
+    def __call__(self, event, done, total):
+        now = time.monotonic()
+        final = event in {"uploaded", "skipped"}
+        if event == "uploading":
+            if self.last_done is None:
+                self.started = now
+                self.last_update = now
+                self.last_done = done
+                self._write(event, done, total, now)
+            elif done > self.last_done and (
+                done >= total or now - self.last_update >= PROGRESS_INTERVAL
+            ):
+                self.last_done = done
+                self._write(event, done, total, now)
+            return
+        if event == "hashing":
+            if done == 0:
+                self._write("hashing", done, total, now)
+            elif total:
+                self._write("hashed", done, total, now)
+            return
+        if event == "checking":
+            return
+        if final:
+            self._write(event, done, total, now)
+
+    def _write(self, event, done, total, now):
+        percent = f"{done * 100 / total:.1f}%" if total else "0.0%"
+        if event == "skipped":
+            _log(
+                f"{self.label}: Existing B2 object verified; upload skipped ({total} bytes)"
+            )
+        elif event == "uploaded":
+            elapsed = max(now - self.started, 0.0)
+            rate = done / (1024 * 1024 * elapsed) if elapsed else 0.0
+            _log(
+                f"{self.label}: B2 upload verified {done}/{total} bytes ({percent}); "
+                f"{elapsed:.1f}s, {rate:.2f} MiB/s"
+            )
+        elif event == "uploading":
+            elapsed = max(now - self.started, 0.0)
+            rate = done / (1024 * 1024 * elapsed) if elapsed else 0.0
+            _log(
+                f"{self.label}: uploading {done}/{total} bytes ({percent}); "
+                f"{elapsed:.1f}s, {rate:.2f} MiB/s"
+            )
+        else:
+            _log(f"{self.label}: {event} {done}/{total} bytes ({percent})")
+        self.last_update = now
+
+
+def _inventory(client, maximum, *, report_progress=False):
     candidates, cursor, seen_cursors = [], None, set()
+    page_number = 0
     while True:
         page = client.request(
             "GET",
@@ -33,7 +99,13 @@ def _inventory(client, maximum):
             params={"limit": min(max(maximum, 100), 1000), "cursor": cursor},
         )
         _validate_candidates(page)
+        page_number += 1
         candidates.extend(page["candidates"])
+        if report_progress:
+            _log(
+                f"Inventory page {page_number}: {len(page['candidates'])} candidates "
+                f"({len(candidates)} total)"
+            )
         cursor = page["next_cursor"]
         if cursor is None:
             return candidates
@@ -283,12 +355,19 @@ def _validate_prepared(response):
 def _migrate_video(item, roots, run_id, client, b2_client):
     candidate = item["candidate"]
     source_paths = [*item["sidecars"], item["video"]]
+    for path in source_paths:
+        _log(f"Verifying source before migration: {Path(path).name!r}")
     identities = {path: _source_identity(path) for path in source_paths}
+    _log(
+        f"Hashing {Path(item['video']).name!r} and {len(item['sidecars'])} subtitle(s)"
+    )
     manifest, subtitle_map, fingerprints = _manifest(
         item["video"], item["sidecars"], candidate
     )
+    _log(f"Verifying sources before prepare for MediaPath {candidate['source_pk']}")
     if _sources_changed(item, roots, fingerprints, identities):
         raise MigrationError("A source file changed before prepare")
+    _log(f"Preparing MediaPath {candidate['source_pk']} for upload")
     prepared = client.request(
         "POST",
         f"api/migrations/{candidate['source_pk']}/prepare-file/",
@@ -304,11 +383,26 @@ def _migrate_video(item, roots, run_id, client, b2_client):
         + manifest["b2_uuid"]
         + Path(manifest["filename"]).suffix
     )
-    b2_client.ensure_file(item["video"], prepared["bucket"], video_key)
+    video_label = (
+        f"MediaPath {candidate['source_pk']} video {Path(item['video']).name!r}"
+    )
+    _log(f"Checking B2 object for {video_label}")
+    b2_client.ensure_file(
+        item["video"],
+        prepared["bucket"],
+        video_key,
+        progress=_UploadProgress(video_label),
+    )
     for source, remote_name in subtitle_map.items():
+        label = f"MediaPath {candidate['source_pk']} subtitle {Path(source).name!r}"
+        _log(f"Checking B2 object for {label}")
         b2_client.ensure_file(
-            source, prepared["bucket"], prepared["b2_upload_prefix"] + remote_name
+            source,
+            prepared["bucket"],
+            prepared["b2_upload_prefix"] + remote_name,
+            progress=_UploadProgress(label),
         )
+    _log(f"Verifying sources before publishing MediaPath {candidate['source_pk']}")
     if _sources_changed(item, roots, fingerprints, identities):
         raise MigrationError("A source file changed before publish")
     result = client.request(
@@ -328,8 +422,10 @@ def _migrate_video(item, roots, run_id, client, b2_client):
         )
     ):
         raise MigrationError("Malformed publish-file response")
+    _log(f"Publication confirmed for MediaPath {candidate['source_pk']}")
     # Verify every uploaded original before deleting any, then remove subtitles first.
     try:
+        _log(f"Verifying published sources for MediaPath {candidate['source_pk']}")
         for path in source_paths:
             _verify_original_file(path, roots, identities[path], fingerprints[path])
     except MigrationError:
@@ -338,6 +434,7 @@ def _migrate_video(item, roots, run_id, client, b2_client):
         ) from None
     for path in [*item["sidecars"], item["video"]]:
         kind = "subtitle" if path != item["video"] else "video"
+        _log(f"Removing published {kind} {Path(path).name!r}")
         _unlink_published_file(path, kind, roots, identities[path], fingerprints[path])
     return item["video"]
 
@@ -398,13 +495,29 @@ def _run(maximum, *, config=None, session=None, b2_client=None):
         raise MigrationError("MediaViewer migration lock owner was not confirmed")
     primary_error = None
     cleanup_error = None
+    started = time.monotonic()
+    completed = 0
+    selected = None
     try:
-        print(f"Migration run acquired: {run_id}", file=sys.stderr)
+        _log(f"Migration run acquired: {run_id}")
         plan = _new_plan(
-            _inventory(client, maximum), maximum, config.roots, config.base_path
+            _inventory(client, maximum, report_progress=True),
+            maximum,
+            config.roots,
+            config.base_path,
         )
+        selected = len(plan)
+        _log(f"Selected {selected} of requested {maximum} videos")
         for index, item in enumerate(plan):
+            candidate = item["candidate"]
+            _log(
+                f"Video {index + 1}/{selected}: MediaPath {candidate['source_pk']}, "
+                f"MediaFile {candidate.get('mediafile_pk')!r}, "
+                f"{Path(item['video']).name!r}"
+            )
             deleted = _migrate_video(item, config.roots, run_id, client, b2_client)
+            completed += 1
+            _log(f"Video {completed}/{selected} complete after publication and cleanup")
             deleted_path = Path(deleted)
             for remaining in plan[index + 1 :]:
                 if (
@@ -423,6 +536,16 @@ def _run(maximum, *, config=None, session=None, b2_client=None):
                 file=sys.stderr,
             )
             cleanup_error = error
+        else:
+            _log("Migration run lock release confirmed")
+    progress_summary = (
+        f"{completed}/{selected} videos complete"
+        if selected is not None
+        else f"{completed}/? videos complete; selection incomplete"
+    )
+    _log(
+        f"Migration summary: {progress_summary}; elapsed {time.monotonic() - started:.1f}s"
+    )
     if primary_error is not None:
         raise primary_error
     if cleanup_error is not None:

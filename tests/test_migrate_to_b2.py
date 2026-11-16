@@ -61,7 +61,7 @@ class FakeB2:
         self.calls = []
         self.callback = callback
 
-    def ensure_file(self, path, bucket, key):
+    def ensure_file(self, path, bucket, key, *, progress=None):
         data = Path(path).read_bytes()
         self.calls.append((data, bucket, key))
         if self.callback:
@@ -291,7 +291,76 @@ def test_success_processes_video_and_all_subtitles_without_disk_state(
     assert not list(tmp_path.glob(".migration-to-b2*"))
 
 
-def test_current_migration_http_contract(tmp_path, monkeypatch):
+def test_progress_logs_escaped_basename_and_partial_summary(
+    tmp_path, monkeypatch, capsys
+):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    filename = "Episode\nprivate-snapshot.mp4"
+    video = show / filename
+    video.write_bytes(b"video")
+    item = candidate(path="Show", filename=filename)
+    item["snapshot"] = "private-snapshot-token"
+    api = ViewerSession(
+        [lock_response(), candidates_response(item), prepared_response(), Response({})]
+    )
+    b2 = FakeB2(
+        lambda _path: (_ for _ in ()).throw(cli.MigrationError("upload failed"))
+    )
+
+    assert cli.run(1, config=cli.Config.from_env(), session=api, b2_client=b2) == 1
+
+    log = capsys.readouterr().err
+    assert "Inventory page 1: 1 candidates (1 total)" in log
+    assert "Video 1/1: MediaPath 1" in log
+    assert "Episode\\nprivate-snapshot.mp4" in log
+    assert "private-snapshot-token" not in log
+    assert "Publication confirmed" not in log
+    assert "Video 1/1 complete" not in log
+    assert "Migration summary: 0/1 videos complete" in log
+    assert api.calls[-1][0] == "DELETE"
+
+
+def test_preflight_stdout_remains_exact_json_and_progress_stays_off_stderr(
+    tmp_path, monkeypatch, capsys
+):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    (show / "Episode.mp4").write_bytes(b"video")
+    api = ViewerSession(
+        [candidates_response(candidate(path="Show", filename="Episode.mp4"))]
+    )
+
+    assert cli.preflight(config=cli.Config.from_env(require_b2=False), session=api) == 0
+
+    captured = capsys.readouterr()
+    assert captured.out == (
+        '{"version": 1, "checked_candidates": 1, "resolved_candidates": 1, '
+        '"issues": []}\n'
+    )
+    assert captured.err == ""
+
+
+def test_upload_progress_throttles_intermediate_updates(monkeypatch, capsys):
+    clock = iter((0.0, 0.0, 1.0, 5.0, 6.0))
+    monkeypatch.setattr(cli.time, "monotonic", lambda: next(clock))
+    progress = cli._UploadProgress("synthetic video")
+
+    progress("uploading", 0, 10)
+    progress("uploading", 1, 10)
+    progress("uploading", 2, 10)
+    progress("uploading", 10, 10)
+
+    output = capsys.readouterr().err.splitlines()
+    assert len(output) == 3
+    assert "0/10 bytes" in output[0]
+    assert "2/10 bytes" in output[1]
+    assert "10/10 bytes (100.0%)" in output[2]
+
+
+def test_current_migration_http_contract(tmp_path, monkeypatch, capsys):
     base = setup_config(tmp_path, monkeypatch)
     show = base / "Show"
     show.mkdir()
@@ -303,6 +372,23 @@ def test_current_migration_http_contract(tmp_path, monkeypatch):
 
     assert (
         cli.run(1, config=cli.Config.from_env(), session=api, b2_client=FakeB2()) == 0
+    )
+    progress = capsys.readouterr().err
+    stages = [
+        "Video 1/1:",
+        "Hashing 'Episode.mp4'",
+        "Preparing MediaPath 1",
+        "Checking B2 object",
+        "Verifying sources before publishing",
+        "Publication confirmed",
+        "Verifying published sources",
+        "Removing published video",
+        "Video 1/1 complete",
+        "Migration run lock release confirmed",
+        "Migration summary: 1/1 videos complete",
+    ]
+    assert [progress.index(stage) for stage in stages] == sorted(
+        progress.index(stage) for stage in stages
     )
 
     assert [
@@ -874,7 +960,7 @@ def test_keyboard_interrupt_after_acquire_releases_lock(tmp_path, monkeypatch):
     (show / "Ep.mp4").write_bytes(b"video")
 
     class InterruptB2:
-        def ensure_file(self, *_):
+        def ensure_file(self, *_, progress=None):
             raise KeyboardInterrupt
 
     api = ViewerSession(

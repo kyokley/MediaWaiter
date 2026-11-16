@@ -16,6 +16,37 @@ UPLOAD_TIMEOUT = 3600
 HASH_CHUNK_SIZE = 1024 * 1024
 
 
+def _notify(callback, event, bytes_done, total_bytes):
+    if callback is not None:
+        callback(event, bytes_done, total_bytes)
+
+
+class _ProgressStream:
+    """Count bytes as the HTTP client reads, without changing the file stream."""
+
+    def __init__(self, stream, callback, total):
+        self._stream = stream
+        self._callback = callback
+        self._total = total
+        self._high_water = 0
+
+    def read(self, size=-1):
+        data = self._stream.read(size)
+        position = self._stream.tell()
+        if position > self._high_water:
+            self._high_water = position
+            _notify(
+                self._callback,
+                "uploading",
+                min(self._high_water, self._total),
+                self._total,
+            )
+        return data
+
+    def __getattr__(self, name):
+        return getattr(self._stream, name)
+
+
 class B2Error(Exception):
     """Safe, credential-free error from the B2 storage client."""
 
@@ -38,27 +69,31 @@ class B2Client:
         self._session.trust_env = False
         self._auth = None
 
-    def ensure_file(self, local_path, bucket, key):
+    def ensure_file(self, local_path, bucket, key, *, progress=None):
         path = Path(local_path)
+        _notify(progress, "hashing", 0, 0)
         try:
             size = path.stat().st_size
             sha1 = self._file_sha1(path)
         except OSError:
             raise B2Error("Unable to read local upload file") from None
+        _notify(progress, "hashing", size, size)
+        _notify(progress, "checking", 0, size)
         auth = self._authorize()
         bucket_id = self._bucket_id(auth, bucket)
         existing = self._find_file(auth, bucket_id, key)
         if existing is not None:
             existing_size, existing_sha1 = self._file_metadata(existing)
             if existing_size == size and existing_sha1 == sha1:
+                _notify(progress, "skipped", size, size)
                 return None
             raise B2Error("B2 object already exists with conflicting content")
         try:
             if size > MAX_SINGLE_UPLOAD_SIZE:
                 self._cancel_prior_large_files(auth, bucket_id, key)
-                self._upload_large(path, size, sha1, bucket_id, key, auth)
+                self._upload_large(path, size, sha1, bucket_id, key, auth, progress)
             else:
-                self._upload_single(path, size, sha1, bucket_id, key, auth)
+                self._upload_single(path, size, sha1, bucket_id, key, auth, progress)
         except B2Error:
             raise
         except Exception:
@@ -248,7 +283,7 @@ class B2Client:
             seen_file_ids.add(next_file_id)
             start_file_id = next_file_id
 
-    def _upload_single(self, path, size, sha1, bucket_id, key, auth):
+    def _upload_single(self, path, size, sha1, bucket_id, key, auth, progress=None):
         data = self._call(
             "GET",
             f"{auth['api_url']}/b2api/{B2_API_VERSION}/b2_get_upload_url",
@@ -270,13 +305,16 @@ class B2Client:
             "Content-Length": str(size),
             "X-Bz-Content-Sha1": sha1,
         }
+        _notify(progress, "uploading", 0, size)
         with path.open("rb") as stream:
+            stream = _ProgressStream(stream, progress, size)
             result = self._call(
                 "POST", upload_url, data=stream, headers=headers, timeout=UPLOAD_TIMEOUT
             )
         self._validate_uploaded_file(result, key, size, sha1, multipart=False)
+        _notify(progress, "uploaded", size, size)
 
-    def _upload_large(self, path, size, sha1, bucket_id, key, auth):
+    def _upload_large(self, path, size, sha1, bucket_id, key, auth, progress=None):
         start = self._call(
             "POST",
             f"{auth['api_url']}/b2api/{B2_API_VERSION}/b2_start_large_file",
@@ -307,6 +345,7 @@ class B2Client:
             part_hashes = []
             whole_file_sha1 = hashlib.sha1(usedforsecurity=False)
             bytes_sent = 0
+            _notify(progress, "uploading", 0, size)
             with path.open("rb") as stream:
                 part_number = 1
                 while True:
@@ -342,6 +381,7 @@ class B2Client:
                             "B2 multipart part confirmation does not match data"
                         )
                     part_hashes.append(part_sha1)
+                    _notify(progress, "uploading", bytes_sent, size)
                     part_number += 1
             if bytes_sent != size or whole_file_sha1.hexdigest() != sha1:
                 raise B2Error("Local file changed during multipart upload")
@@ -367,6 +407,7 @@ class B2Client:
                 ) from None
             raise
         self._validate_uploaded_file(result, key, size, sha1, multipart=True)
+        _notify(progress, "uploaded", size, size)
 
     def _call(self, method, url, **kwargs):
         try:
