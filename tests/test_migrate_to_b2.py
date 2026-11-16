@@ -412,6 +412,7 @@ def test_real_b2_retry_exhaustion_retains_source_and_stops_before_publish(
     assert "retry 1/5" in log and "retry 5/5" in log
     assert log.count("uploading 0/5 bytes") == 6
     assert "B2 upload verified" not in log
+    assert "synthetic B2 upload failure" in log
     assert "Migration summary: 0/2 videos complete" in log
     assert "private-id" not in log and "private-key" not in log
 

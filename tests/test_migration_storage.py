@@ -697,6 +697,132 @@ def test_api_error_is_redacted(tmp_path, monkeypatch):
     assert "credential" not in str(error.value)
 
 
+def test_http_failure_reports_operation_and_status_without_hostile_details():
+    url = "https://upload.example/object?token=url-secret"
+    response = Response({"message": "body-secret"}, status=403)
+    session = FakeSession([requests.HTTPError("exception-secret", response=response)])
+    client = B2Client("id", "key", session=session)
+
+    with pytest.raises(B2Error) as error:
+        client._call("POST", url, operation="upload part")
+
+    message = str(error.value)
+    assert "upload part" in message
+    assert "403" in message
+    assert all(
+        secret not in message
+        for secret in (
+            "upload.example",
+            "url-secret",
+            "body-secret",
+            "exception-secret",
+        )
+    )
+
+
+@pytest.mark.parametrize(
+    ("exception", "category"),
+    [
+        (requests.Timeout("exception-secret"), "timeout"),
+        (requests.ConnectionError("exception-secret"), "connection error"),
+        (ValueError("exception-secret"), "invalid JSON"),
+        (RuntimeError("exception-secret"), "unexpected response"),
+    ],
+)
+def test_transport_failures_report_fixed_category_without_exception_text(
+    exception, category
+):
+    session = FakeSession([exception])
+    client = B2Client("id", "key", session=session)
+
+    with pytest.raises(B2Error) as error:
+        client._call(
+            "POST",
+            "https://upload.example/path?token=url-secret",
+            operation="upload part",
+        )
+
+    message = str(error.value)
+    assert "upload part" in message and category in message
+    assert all(
+        secret not in message
+        for secret in ("upload.example", "url-secret", "exception-secret")
+    )
+
+
+def test_multipart_part_failure_names_operation_not_upload_url(tmp_path, monkeypatch):
+    disable_retries(monkeypatch)
+    source = tmp_path / "large"
+    source.write_bytes(b"abcdef")
+    monkeypatch.setattr("migration_storage.MAX_SINGLE_UPLOAD_SIZE", 4)
+    monkeypatch.setattr("migration_storage.LARGE_FILE_PART_SIZE", 3)
+    url = "https://opaque-upload.example/path?token=upload-secret"
+    session = FakeSession(
+        [
+            auth_response([{"id": "bucket-id", "name": "media"}]),
+            listing([]),
+            empty_unfinished(),
+            Response({"fileId": "new-id"}),
+            Response({"uploadUrl": url, "authorizationToken": "part-token"}),
+            requests.ConnectionError("body-secret"),
+            Response({}),
+        ]
+    )
+
+    with pytest.raises(B2Error) as error:
+        B2Client("id", "key", session=session).ensure_file(source, "media", "key")
+
+    message = str(error.value)
+    assert "upload part" in message and "connection error" in message
+    assert "unfinished upload may remain" not in message
+    assert all(
+        secret not in message
+        for secret in ("opaque-upload.example", "upload-secret", "body-secret")
+    )
+
+
+def test_multipart_cancel_failure_preserves_upload_diagnostic_and_warning(
+    tmp_path, monkeypatch
+):
+    disable_retries(monkeypatch)
+    source = tmp_path / "large"
+    source.write_bytes(b"abcdef")
+    monkeypatch.setattr("migration_storage.MAX_SINGLE_UPLOAD_SIZE", 4)
+    monkeypatch.setattr("migration_storage.LARGE_FILE_PART_SIZE", 3)
+    session = FakeSession(
+        [
+            auth_response([{"id": "bucket-id", "name": "media"}]),
+            listing([]),
+            empty_unfinished(),
+            Response({"fileId": "new-id"}),
+            Response(
+                {
+                    "uploadUrl": "https://opaque-upload.example/path?token=upload-secret",
+                    "authorizationToken": "part-token",
+                }
+            ),
+            requests.ConnectionError("upload-body-secret"),
+            requests.ConnectionError("cancel-body-secret"),
+        ]
+    )
+
+    with pytest.raises(B2Error) as error:
+        B2Client("id", "key", session=session).ensure_file(source, "media", "key")
+
+    message = str(error.value)
+    assert "upload part" in message and "connection error" in message
+    assert "unfinished upload may remain" in message
+    assert all(
+        secret not in message
+        for secret in (
+            "opaque-upload.example",
+            "upload-secret",
+            "upload-body-secret",
+            "cancel-body-secret",
+        )
+    )
+
+
 def test_redirect_response_is_rejected(tmp_path, monkeypatch):
     disable_retries(monkeypatch)
     source = tmp_path / "a"
