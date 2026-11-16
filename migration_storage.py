@@ -259,7 +259,7 @@ class B2Client:
         start_file_id = None
         seen_file_ids = set()
         while True:
-            payload = {"bucketId": bucket_id, "namePrefix": key, "maxFileCount": 1000}
+            payload = {"bucketId": bucket_id, "namePrefix": key, "maxFileCount": 100}
             if start_file_id is not None:
                 payload["startFileId"] = start_file_id
             data = self._call(

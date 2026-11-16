@@ -881,10 +881,11 @@ def test_multipart_order_hash_metadata_and_prior_attempt_cleanup(tmp_path, monke
                         {"fileName": "key-similar", "fileId": "do-not-cancel"},
                         {"fileName": "key", "fileId": "prior-id"},
                     ],
-                    "nextFileId": None,
+                    "nextFileId": "next-page",
                 }
             ),
             Response({}),
+            empty_unfinished(),
             Response({"fileId": "new-id"}),
             Response({"uploadUrl": "https://part", "authorizationToken": "part-token"}),
             uploaded_part(b"abc", 1),
@@ -900,7 +901,14 @@ def test_multipart_order_hash_metadata_and_prior_attempt_cleanup(tmp_path, monke
     assert session.calls[2][2]["json"] == {
         "bucketId": "bucket-id",
         "namePrefix": "key",
-        "maxFileCount": 1000,
+        "maxFileCount": 100,
+    }
+    assert session.calls[4][1].endswith("b2_list_unfinished_large_files")
+    assert session.calls[4][2]["json"] == {
+        "bucketId": "bucket-id",
+        "namePrefix": "key",
+        "maxFileCount": 100,
+        "startFileId": "next-page",
     }
     cancellations = [
         call for call in session.calls if call[1].endswith("b2_cancel_large_file")
