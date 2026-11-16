@@ -401,6 +401,135 @@ def test_movie_publish_keeps_existing_mediafile_pk(tmp_path, monkeypatch):
     assert not (movie / "Film.mp4").exists()
 
 
+@pytest.mark.parametrize("extension", ["avi", "mkv", "mp4"])
+def test_movie_auto_discovery_prefers_exact_encoded_pair(tmp_path, extension):
+    root = tmp_path / "root"
+    movie = root / "Synthetic Movie"
+    movie.mkdir(parents=True)
+    original = movie / f"synthetic.{extension}"
+    encoded = movie / f"{original.name}.ALFRED-ENCODED.mp4"
+    original.write_bytes(b"original")
+    encoded.write_bytes(b"encoded")
+
+    selected = cli.resolve_candidate(
+        candidate(kind="movie", path="Synthetic Movie", filename=""),
+        [root],
+        root,
+    )
+
+    assert selected == encoded
+
+
+def test_movie_explicit_filename_overrides_encoded_pair_preference(tmp_path):
+    root = tmp_path / "root"
+    movie = root / "Synthetic Movie"
+    movie.mkdir(parents=True)
+    original = movie / "synthetic.mkv"
+    encoded = movie / f"{original.name}.ALFRED-ENCODED.mp4"
+    original.touch()
+    encoded.touch()
+
+    selected = cli.resolve_candidate(
+        candidate(kind="movie", path="Synthetic Movie", filename=original.name),
+        [root],
+        root,
+    )
+
+    assert selected == original
+
+
+@pytest.mark.parametrize(
+    "names",
+    [
+        ("synthetic.mkv", "unrelated.ALFRED-ENCODED.mp4"),
+        (
+            "synthetic.mkv",
+            "synthetic.mkv.ALFRED-ENCODED.mp4",
+            "extra.avi",
+        ),
+        (
+            "synthetic.mkv.ALFRED-ENCODED.mp4",
+            "synthetic.mkv.ALFRED-ENCODED.mp4.ALFRED-ENCODED.mp4",
+        ),
+    ],
+)
+def test_movie_auto_discovery_rejects_non_exact_encoded_pairs(tmp_path, names):
+    root = tmp_path / "root"
+    movie = root / "Synthetic Movie"
+    movie.mkdir(parents=True)
+    for name in names:
+        (movie / name).touch()
+
+    with pytest.raises(cli.AmbiguousMovieError) as error:
+        cli.resolve_candidate(
+            candidate(kind="movie", path="Synthetic Movie", filename=""),
+            [root],
+            root,
+        )
+
+    assert error.value.video_candidates == tuple(sorted(names))
+
+
+@pytest.mark.parametrize(
+    "symlink_name", ["synthetic.mkv", "synthetic.mkv.ALFRED-ENCODED.mp4"]
+)
+def test_movie_auto_discovery_rejects_symlink_in_encoded_pair(tmp_path, symlink_name):
+    root = tmp_path / "root"
+    movie = root / "Synthetic Movie"
+    movie.mkdir(parents=True)
+    original = movie / "synthetic.mkv"
+    encoded = movie / f"{original.name}.ALFRED-ENCODED.mp4"
+    other = movie / "elsewhere"
+    other.touch()
+    (
+        movie / (encoded.name if symlink_name == original.name else original.name)
+    ).write_bytes(b"regular pair member")
+    (movie / symlink_name).symlink_to(other)
+
+    with pytest.raises(cli.AmbiguousMovieError) as error:
+        cli.resolve_candidate(
+            candidate(kind="movie", path="Synthetic Movie", filename=""),
+            [root],
+            root,
+        )
+    assert error.value.video_candidates == tuple(sorted((original.name, encoded.name)))
+
+
+def test_run_movie_encoded_pair_uploads_and_removes_only_encoded_sources(
+    tmp_path, monkeypatch
+):
+    base = setup_config(tmp_path, monkeypatch)
+    movie = base / "Synthetic Movie"
+    movie.mkdir()
+    original = movie / "synthetic.mkv"
+    encoded = movie / f"{original.name}.ALFRED-ENCODED.mp4"
+    original_subtitle = movie / f"{original.name}.vtt"
+    encoded_subtitle = movie / f"{encoded.name}.vtt"
+    original.write_bytes(b"preserved original video")
+    encoded.write_bytes(b"selected encoded video")
+    original_subtitle.write_bytes(b"preserved original subtitle")
+    encoded_subtitle.write_bytes(b"selected encoded subtitle")
+    item = candidate(71, kind="movie", path="Synthetic Movie", filename="")
+    item["mediafile_pk"] = None
+    api = success_session(item, mediafile=72, target=73)
+    b2 = FakeB2()
+
+    assert cli.run(1, config=cli.Config.from_env(), session=api, b2_client=b2) == 0
+
+    prepare = next(call for call in api.calls if "prepare-file" in call[1])
+    manifest = prepare[2]["json"]["file"]
+    assert manifest["filename"] == encoded.name
+    assert len(manifest["subtitles"]) == 1
+    assert [call[0] for call in b2.calls] == [
+        b"selected encoded video",
+        b"selected encoded subtitle",
+    ]
+    assert not encoded.exists()
+    assert not encoded_subtitle.exists()
+    assert original.read_bytes() == b"preserved original video"
+    assert original_subtitle.read_bytes() == b"preserved original subtitle"
+
+
 def test_inventory_paginates_and_caps_limit_for_large_maximum():
     class Client:
         def __init__(self):

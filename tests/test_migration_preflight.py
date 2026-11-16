@@ -203,6 +203,47 @@ def test_preflight_paginates_all_inventory_pages(tmp_path, capsys):
     assert api.calls[1][2]["params"]["cursor"] == "next"
 
 
+def test_preflight_resolves_exact_encoded_pair_without_mutation(tmp_path, capsys):
+    config = config_for(tmp_path)
+    directory = config.base_path / "Synthetic Movie"
+    directory.mkdir()
+    original = directory / "synthetic.mkv"
+    encoded = directory / f"{original.name}.ALFRED-ENCODED.mp4"
+    original.write_bytes(b"preserved original")
+    encoded.write_bytes(b"selected encoded")
+    api = Session(
+        [
+            page(
+                [
+                    candidate(
+                        32,
+                        "Synthetic Movie",
+                        kind="movie",
+                        filename="",
+                    )
+                ]
+            )
+        ]
+    )
+
+    assert cli.preflight(config=config, session=api) == 0
+    data, _ = report(capsys)
+    assert data == {
+        "version": 1,
+        "checked_candidates": 1,
+        "resolved_candidates": 1,
+        "issues": [],
+    }
+    assert [(method, url) for method, url, _ in api.calls] == [
+        (
+            "GET",
+            "https://viewer.example/mediaviewer/api/migrations/file-candidates/",
+        )
+    ]
+    assert original.read_bytes() == b"preserved original"
+    assert encoded.read_bytes() == b"selected encoded"
+
+
 def test_preflight_config_does_not_require_b2_but_migration_still_does(
     tmp_path, monkeypatch
 ):

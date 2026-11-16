@@ -65,8 +65,24 @@ Exit status is `0` when no issues are found, or `1` when issues or configuration
 errors occur. Configuration/API errors go to stderr and may leave no JSON report.
 Missing sources are reported as issues even though a normal migration skips them.
 The report is a point-in-time source-selection audit, not an upload, subtitle,
-storage-integrity, or playback check. Review ambiguous records and set their
-intended filenames in MediaViewer; the preflight never chooses a video for you.
+storage-integrity, or playback check. Preflight uses the movie-selection rules
+below without changing files or records. Review any remaining ambiguities and
+set the intended filenames in MediaViewer.
+
+### Movie file selection
+
+An explicit movie filename takes precedence. When it is blank, a directory with
+one supported video uses that file. A directory with exactly two supported video
+files may use the legacy encoded copy instead: exactly one filename must end in
+the case-sensitive suffix `.ALFRED-ENCODED.mp4`, and its complete name must equal
+the other filename plus that suffix. Both files must be regular, nonsymlink
+files. Unrelated names, additional videos, multiple encoded files, and
+double-encoded chains remain ambiguous.
+
+For an accepted pair, migration uploads the encoded video and its matching
+subtitles. After confirmed publication, cleanup removes only those uploaded
+sources. The original video and its own matching subtitles remain untouched.
+Preflight reports other ambiguous arrangements; normal migration stops on them.
 
 ### Run the migration
 
