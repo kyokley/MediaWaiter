@@ -860,6 +860,79 @@ def test_inventory_404_reports_request_and_releases_lock_without_side_effects(
     assert video.read_bytes() == b"video"
 
 
+def test_local_video_inventory_reports_safe_resolution_diagnostic(
+    tmp_path, monkeypatch
+):
+    base = tmp_path / "media"
+    base.mkdir()
+    video = base / "Episode.mp4"
+    video.write_bytes(b"video")
+    private_path = str(base / "private-secret.mp4")
+
+    def fail_resolve(path, strict=False):
+        if path.name == video.name and strict:
+            raise FileNotFoundError(private_path)
+        return original_resolve(path, strict=strict)
+
+    original_resolve = Path.resolve
+    monkeypatch.setattr(Path, "resolve", fail_resolve)
+
+    with pytest.raises(cli.MigrationError) as error:
+        cli.local_video_inventory(video, [base])
+
+    message = str(error.value)
+    assert "Episode.mp4" in message
+    assert "FileNotFoundError" in message
+    assert private_path not in message
+
+
+def test_inventory_resolution_failure_reports_context_and_releases_lock(
+    tmp_path, monkeypatch, capsys
+):
+    base = setup_config(tmp_path, monkeypatch)
+    show = base / "Show"
+    show.mkdir()
+    video = show / "Episode.mp4"
+    video.write_bytes(b"preserved source")
+    bad_name = "bad\nname.mp4"
+    other_video = show / bad_name
+    other_video.write_bytes(b"other source")
+    original_resolve = Path.resolve
+
+    def fail_bad_entry(path, strict=False):
+        if path.name == bad_name and strict:
+            raise PermissionError("private error path /secret/credentials")
+        return original_resolve(path, strict=strict)
+
+    monkeypatch.setattr(Path, "resolve", fail_bad_entry)
+    api = ViewerSession(
+        [
+            lock_response(),
+            candidates_response(candidate(path="Show", filename="Episode.mp4")),
+            Response({}),
+        ]
+    )
+    b2 = FakeB2()
+
+    assert cli.run(1, config=cli.Config.from_env(), session=api, b2_client=b2) != 0
+
+    error = capsys.readouterr().err
+    assert "Selected 0 of requested 1 videos" not in error
+    assert "0/? videos complete; selection incomplete" in error
+    assert "Migration run lock release confirmed" in error
+    assert "MediaPath 1" in error
+    assert "bad\\nname.mp4" in error
+    assert "PermissionError" in error
+    assert "private error path" not in error
+    assert "/secret/credentials" not in error
+    assert [call[0] for call in api.calls] == ["POST", "GET", "DELETE"]
+    assert not any("prepare-file" in call[1] for call in api.calls)
+    assert not any("publish-file" in call[1] for call in api.calls)
+    assert b2.calls == []
+    assert video.read_bytes() == b"preserved source"
+    assert other_video.read_bytes() == b"other source"
+
+
 @pytest.mark.parametrize(
     ("source_ids", "mediafile_ids", "paths", "kind", "filename"),
     [

@@ -325,8 +325,11 @@ def local_video_inventory(video, roots):
             raise MigrationError("Video symlink is not supported")
         try:
             resolved = entry.resolve(strict=True)
-        except (OSError, RuntimeError):
-            raise MigrationError("Video inventory changed or is inaccessible") from None
+        except (OSError, RuntimeError) as error:
+            raise MigrationError(
+                "Video inventory changed or is inaccessible: "
+                f"{entry.name!r} ({type(error).__name__})"
+            ) from None
         if (
             resolved.parent != video.parent
             or not _inside(resolved, roots)
