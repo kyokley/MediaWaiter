@@ -97,7 +97,7 @@ class _UploadProgress:
         self.last_update = now
 
 
-def _inventory(client, maximum, *, report_progress=False):
+def _inventory(client, maximum, *, report_progress=False, collect_all=False):
     candidates, cursor, seen_cursors = [], None, set()
     page_number = 0
     while True:
@@ -114,6 +114,8 @@ def _inventory(client, maximum, *, report_progress=False):
                 f"Inventory page {page_number}: {len(page['candidates'])} candidates "
                 f"({len(candidates)} total)"
             )
+        if not collect_all and len(candidates) >= maximum:
+            return candidates
         cursor = page["next_cursor"]
         if cursor is None:
             return candidates
@@ -129,7 +131,7 @@ def preflight(*, config=None, session=None):
         client = ViewerClient(
             config.base_url, config.username, config.password, session=session
         )
-        candidates = _inventory(client, 1000)
+        candidates = _inventory(client, 1000, collect_all=True)
         indexed_issues, resolved, by_video = [], [], {}
         for index, candidate in enumerate(candidates):
             source = {

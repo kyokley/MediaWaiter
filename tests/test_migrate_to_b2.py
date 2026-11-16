@@ -694,6 +694,99 @@ def test_inventory_paginates_and_caps_limit_for_large_maximum():
     assert client.calls[1]["cursor"] == "next"
 
 
+def test_inventory_stops_after_first_full_page_reaches_maximum():
+    items = [candidate(1), candidate(2), candidate(3)]
+
+    class Client:
+        def __init__(self):
+            self.calls = []
+
+        def request(self, method, path, *, params):
+            self.calls.append(params)
+            return {
+                "version": 1,
+                "candidates": items,
+                "next_cursor": "unfetched",
+            }
+
+    client = Client()
+
+    assert cli._inventory(client, 2) == items
+    assert len(client.calls) == 1
+
+
+def test_inventory_stops_at_maximum_after_later_full_page():
+    first_page = [candidate(1)]
+    second_page = [candidate(2), candidate(3)]
+
+    class Client:
+        def __init__(self):
+            self.calls = []
+
+        def request(self, method, path, *, params):
+            self.calls.append(params)
+            if len(self.calls) == 1:
+                return {
+                    "version": 1,
+                    "candidates": first_page,
+                    "next_cursor": "next",
+                }
+            return {
+                "version": 1,
+                "candidates": second_page,
+                "next_cursor": "unfetched",
+            }
+
+    client = Client()
+
+    assert cli._inventory(client, 2) == first_page + second_page
+    assert len(client.calls) == 2
+    assert client.calls[1]["cursor"] == "next"
+
+
+def test_inventory_returns_exhausted_candidates_below_maximum():
+    items = [candidate()]
+
+    class Client:
+        def __init__(self):
+            self.calls = []
+
+        def request(self, method, path, *, params):
+            self.calls.append(params)
+            if len(self.calls) == 1:
+                return {
+                    "version": 1,
+                    "candidates": items,
+                    "next_cursor": "next",
+                }
+            return {"version": 1, "candidates": [], "next_cursor": None}
+
+    client = Client()
+
+    assert cli._inventory(client, 2) == items
+    assert len(client.calls) == 2
+
+
+def test_preflight_collects_full_inventory_when_count_reaches_maximum(
+    tmp_path, monkeypatch, capsys
+):
+    setup_config(tmp_path, monkeypatch)
+    items = [candidate(index) for index in range(1, 1001)]
+    client = ViewerSession(
+        [
+            Response({"version": 1, "candidates": items, "next_cursor": "next"}),
+            Response({"version": 1, "candidates": [], "next_cursor": None}),
+        ]
+    )
+
+    assert (
+        cli.preflight(config=cli.Config.from_env(require_b2=False), session=client) == 1
+    )
+
+    assert len(client.calls) == 2
+    assert '"checked_candidates": 1000' in capsys.readouterr().out
+
+
 def test_sidecars_are_not_counted_toward_video_limit(tmp_path, monkeypatch):
     base = setup_config(tmp_path, monkeypatch)
     directory = base / "Show"
